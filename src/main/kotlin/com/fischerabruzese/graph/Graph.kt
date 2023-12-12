@@ -1,11 +1,27 @@
 package com.fischerabruzese.graph
 
-data class Edge<E:Any>(val from: E, val to: E?, val weight: Int)
+class Graph<E:Any>(vararg outboundConnections : Pair<E,Array<Pair<E,Int>>>?) {
 
+    constructor(vararg outboundConnectionsUnweighted : Pair<E,Array<E>>) : this(*(
+                Array<Pair<E,Array<Pair<E,Int>>>?>(outboundConnectionsUnweighted.size) {
+                    i -> Pair(
+                    outboundConnectionsUnweighted[i].first,
+                    Array<Pair<E,Int>>(
+                        outboundConnectionsUnweighted[i].second.size) {
+                            j -> Pair(outboundConnectionsUnweighted[i].second[j],1)
+                        }
+                    )
+                }
+            ))
 
-class Graph<E:Any>(edges: Collection<Edge<E>>) {
-    constructor(vararg edge: Edge<E>) : this(edge.toList())
-    constructor() : this(emptyList())
+    constructor(vararg vertices: E) : this(*(
+                Array<Pair<E,Array<Pair<E,Int>>>?>(vertices.size) { i -> Pair(
+                    vertices[i],
+                    emptyArray()
+                )}
+            ))
+
+    constructor() : this(null)
 
     data class Vertex<E>(val item: E, val index: Int)
 
