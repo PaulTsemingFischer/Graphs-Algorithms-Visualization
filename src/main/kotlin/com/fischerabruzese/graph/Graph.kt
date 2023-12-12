@@ -1,7 +1,5 @@
 package com.fischerabruzese.graph
 
-import javafx.scene.transform.MatrixType
-
 data class Edge<E:Any>(val from: E, val to: E?, val weight: Int)
 
 
@@ -17,15 +15,16 @@ class Graph<E:Any>(edges: Collection<Edge<E>>) {
     init {
         val addedVertices = HashMap<E, Int>()
         for(edge in edges){
-            if(addedVertices.put(edge.from, addedVertices.size+1) == null){
-                vertices.add(Vertex(edge.from, addedVertices.size))
+            if(addedVertices.put(edge.from, vertices.size) == null){
+                vertices.add(Vertex(edge.from, vertices.size))
+            }
+            if(edge.to != null && addedVertices.put(edge.to, vertices.size) == null){
+                vertices.add(Vertex(edge.to, vertices.size))
             }
         }
         edgeMatrix = Array(vertices.size) {IntArray(vertices.size)}
         for(edge in edges){
             if(edge.to != null){
-                edgeMatrix[addedVertices[edge.to]!!][addedVertices[edge.from]!!] = edge.weight
-                //if symmetric
                 edgeMatrix[addedVertices[edge.from]!!][addedVertices[edge.to]!!] = edge.weight
             }
         }
