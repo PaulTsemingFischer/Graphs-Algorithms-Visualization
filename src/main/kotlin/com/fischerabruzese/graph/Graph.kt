@@ -1,4 +1,10 @@
 package com.fischerabruzese.graph
 
-class Graph {
+class Graph<E:Any>(vararg item: E) {
+    constructor(items: Array<E>) : this(*items)
+
+    init {
+
+    }
+
 }
