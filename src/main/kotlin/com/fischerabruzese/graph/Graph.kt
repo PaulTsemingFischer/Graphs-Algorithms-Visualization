@@ -30,9 +30,10 @@ class Graph<E:Any>(vararg outboundConnections : Pair<E,Array<Pair<E,Int>>>?) {
 
     init {
         val addedVertices = HashMap<E, Int>()
-        for(edge in edges){
-            if(addedVertices.put(edge.from, vertices.size) == null){
-                vertices.add(Vertex(edge.from, vertices.size))
+        for(connections in outboundConnections){
+            if(connections == null) continue
+            if(addedVertices.put(connections.first, vertices.size) == null){
+                vertices.add(Vertex(connections.first, vertices.size))
             }
             if(edge.to != null && addedVertices.put(edge.to, vertices.size) == null){
                 vertices.add(Vertex(edge.to, vertices.size))
