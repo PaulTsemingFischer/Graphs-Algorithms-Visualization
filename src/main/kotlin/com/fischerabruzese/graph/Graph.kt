@@ -1,25 +1,19 @@
 package com.fischerabruzese.graph
 
-class Graph<E:Any>(vararg outboundConnections : Pair<E,Array<Pair<E,Int>>>?) {
+/* Construct a graph with outboundConnections containing:
+        outboundConnection(Source, ArrayOf(Destination, Distance))
+ */
+class Graph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?) {
 
-//    constructor(vararg outboundConnectionsUnweighted : Pair<E,Array<E>>) : this(*(
-//                Array<Pair<E,Array<Pair<E,Int>>>?>(outboundConnectionsUnweighted.size) {
-//                    i -> Pair(
-//                    outboundConnectionsUnweighted[i].first,
-//                    Array<Pair<E,Int>>(
-//                        outboundConnectionsUnweighted[i].second.size) {
-//                            j -> Pair(outboundConnectionsUnweighted[i].second[j],1)
-//                        }
-//                    )
-//                }
-//            ))
+//    constructor(vararg outboundConnectionsUnweighted: Pair<E, Iterable<E>>) : this(
+//        *outboundConnectionsUnweighted.map { (source, destinations) ->
+//            source to destinations.map { it to 1 }
+//        }.toTypedArray()
+//    )
 
-    constructor(vararg vertices: E) : this(*(
-                Array<Pair<E,Array<Pair<E,Int>>>?>(vertices.size) { i -> Pair(
-                    vertices[i],
-                    emptyArray()
-                )}
-            ))
+    constructor(vararg vertices: E) : this(
+        *vertices.map { it to emptyList<Pair<E, Int>>()}.toTypedArray()
+    )
 
     constructor() : this(null)
 
@@ -64,6 +58,10 @@ class Graph<E:Any>(vararg outboundConnections : Pair<E,Array<Pair<E,Int>>>?) {
     operator fun set(from : Int, to : Int, value : Int) : Int? {
         return this[from, to].also { edgeMatrix[from][to] = value }
         //TODO: DETERMINE IF WE NEED TO RERUN PATHING ALGORITHMS
+    }
+
+    fun connect(from : Int, to : Int) : Boolean {
+        return set(from, to, 1) == null
     }
 
     override fun toString(): String {
