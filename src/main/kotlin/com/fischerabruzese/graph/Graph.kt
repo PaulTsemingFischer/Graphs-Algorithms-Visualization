@@ -23,7 +23,8 @@ class Graph<E:Any>(vararg outboundConnections : Pair<E,Array<Pair<E,Int>>>?) {
 
     constructor() : this(null)
 
-    data class Vertex<E>(val item: E, val index: Int)
+    //do we need to store the index? is the index the location in the array?
+    data class Vertex<E>(val item: E, val index: Int) { override fun toString(): String = "$item -> $index" }
 
     private var vertices : ArrayList<Vertex<E>> = ArrayList()
     private var edgeMatrix : Array<IntArray>
@@ -52,6 +53,19 @@ class Graph<E:Any>(vararg outboundConnections : Pair<E,Array<Pair<E,Int>>>?) {
         }
     }
 
+    //syntax -> this[from,to]
+    operator fun get(from : Int, to : Int) : Int? {
+        return if (edgeMatrix[from][to] == -1) null
+        else edgeMatrix[from][to]
+    }
+
+    //returns previous node connection
+    //syntax -> this[from,to] = value
+    operator fun set(from : Int, to : Int, value : Int) : Int? {
+        return this[from, to].also { edgeMatrix[from][to] = value }
+        //TODO: DETERMINE IF WE NEED TO RERUN PATHING ALGORITHMS
+    }
+
     override fun toString(): String {
         val string = StringBuilder()
         for(destinations in edgeMatrix){
@@ -64,6 +78,8 @@ class Graph<E:Any>(vararg outboundConnections : Pair<E,Array<Pair<E,Int>>>?) {
         }
         return string.toString()
     }
+
+    //this should return an array<E> if that's even possible (stupid reified)
     fun getVertices() : ArrayList<Vertex<E>> {
         return vertices
     }
