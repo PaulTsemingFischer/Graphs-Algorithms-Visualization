@@ -89,6 +89,7 @@ class Graph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?) 
         return string.toString()
     }
 
+    //this should return an array<E> if that's even possible (stupid reified)
     fun printVertices() = println("Vertices: $vertices")
 
 }
