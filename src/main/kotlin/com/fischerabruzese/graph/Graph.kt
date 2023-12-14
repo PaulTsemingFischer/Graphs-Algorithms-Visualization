@@ -25,9 +25,9 @@ class Graph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?) 
 
     private var vertices : ArrayList<Vertex<E>> = ArrayList()
     private var edgeMatrix : Array<IntArray>
+    private val indexLookup = HashMap<E, Int>()
 
     init {
-        val addedVertices = HashMap<E, Int>()
         for(connections in outboundConnections){
             if(connections == null) continue
             if(indexLookup.put(connections.first, vertices.size) == null){
