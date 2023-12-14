@@ -1,7 +1,7 @@
 package com.fischerabruzese.graph
 
 /* Construct a graph with outboundConnections containing:
-        outboundConnection(Source, ArrayOf(Destination, Distance))
+        outboundConnection(Source, ArrayOf(Destination, Weight))
  */
 class Graph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?) {
 
@@ -64,12 +64,24 @@ class Graph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?) 
         return set(from, to, 1) == null
     }
 
+    fun randomize(chanceFilled : Double, maxWeight: Int){
+        for(i in 0 until edgeMatrix.size) {
+            for (j in 0 until edgeMatrix.size) {
+                if (chanceFilled > Math.random()) {
+                    set(i, j, (1..maxWeight).random())
+                } else {
+                    set(i, j, -1)
+                }
+            }
+        }
+    }
+
     override fun toString(): String {
         val string = StringBuilder()
         for(destinations in edgeMatrix){
             string.append("[")
             for (weight in destinations){
-                string.append("$weight][")
+                string.append("${weight.let{if(it == -1) " " else it}}][")
             }
             string.deleteRange(string.length - 2, string.length)
             string.append("]\n")
@@ -78,9 +90,6 @@ class Graph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?) 
     }
 
     //this should return an array<E> if that's even possible (stupid reified)
-    fun getVertices() : ArrayList<Vertex<E>> {
-        return vertices
-    }
-
+    fun printVertices() = println("Vertices: $vertices")
 
 }
