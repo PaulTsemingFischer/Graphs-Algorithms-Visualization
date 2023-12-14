@@ -15,10 +15,13 @@ class Graph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?) 
         *vertices.map { it to emptyList<Pair<E, Int>>()}.toTypedArray()
     )
 
-    constructor() : this(null)
+    internal constructor() : this(
+        null
+    )
 
     //do we need to store the index? is the index the location in the array?
-    data class Vertex<E>(val item: E, val index: Int) { override fun toString(): String = "$item -> $index" }
+    data class Vertex<E>(val item: E,
+    )
 
     private var vertices : ArrayList<Vertex<E>> = ArrayList()
     private var edgeMatrix : Array<IntArray>
@@ -27,28 +30,31 @@ class Graph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?) 
         val addedVertices = HashMap<E, Int>()
         for(connections in outboundConnections){
             if(connections == null) continue
-            if(addedVertices.put(connections.first, vertices.size) == null){
-                vertices.add(Vertex(connections.first, vertices.size))
+            if(indexLookup.put(connections.first, vertices.size) == null){
+                vertices.add(Vertex(connections.first))
             }
             for(outboundEdge in connections.second){
-                if(addedVertices.put(outboundEdge.first, vertices.size) == null){
-                    vertices.add(Vertex(outboundEdge.first, vertices.size))
+                if(indexLookup.put(outboundEdge.first, vertices.size) == null){
+                    vertices.add(Vertex(outboundEdge.first))
                 }
             }
-
         }
         edgeMatrix = Array(vertices.size) {IntArray(vertices.size) {-1} }
 
         for(connections in outboundConnections) {
             if(connections == null) continue
             for(outboundEdge in connections.second){
-                edgeMatrix[addedVertices[connections.first]!!][addedVertices[outboundEdge.first]!!] = outboundEdge.second
+                edgeMatrix[indexLookup[connections.first]!!][indexLookup[outboundEdge.first]!!] = outboundEdge.second
             }
         }
     }
 
     //syntax -> this[from,to]
-    operator fun get(from : Int, to : Int) : Int? {
+    operator fun get(from : E, to : E ) : Int? {
+        return indexLookup[from]?.let { fromi -> indexLookup[to]?.let { toi -> get(fromi, toi) } }
+    }
+
+    private fun get(from : Int, to : Int) : Int? {
         return if (edgeMatrix[from][to] == -1) null
         else edgeMatrix[from][to]
     }
@@ -56,7 +62,7 @@ class Graph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?) 
     //returns previous node connection
     //syntax -> this[from,to] = value
     operator fun set(from : Int, to : Int, value : Int) : Int? {
-        return this[from, to].also { edgeMatrix[from][to] = value }
+        return get(from, to).also { edgeMatrix[from][to] = value }
         //TODO: DETERMINE IF WE NEED TO RERUN PATHING ALGORITHMS
     }
 
@@ -65,8 +71,8 @@ class Graph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?) 
     }
 
     fun randomize(chanceFilled : Double, maxWeight: Int){
-        for(i in 0 until edgeMatrix.size) {
-            for (j in 0 until edgeMatrix.size) {
+        for(i in edgeMatrix.indices) {
+            for (j in edgeMatrix.indices) {
                 if (chanceFilled > Math.random()) {
                     set(i, j, (1..maxWeight).random())
                 } else {
@@ -89,7 +95,5 @@ class Graph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?) 
         return string.toString()
     }
 
-    //this should return an array<E> if that's even possible (stupid reified)
     fun printVertices() = println("Vertices: $vertices")
-
 }
