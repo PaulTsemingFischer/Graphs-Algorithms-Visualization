@@ -85,6 +85,10 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         }
     }
 
+    override fun iterator(): Iterator<E> {
+        TODO("Not yet implemented")
+    }
+
     override fun toString(): String {
         val string = StringBuilder()
         for(destinations in edgeMatrix){

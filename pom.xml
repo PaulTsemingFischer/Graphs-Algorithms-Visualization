@@ -68,7 +68,7 @@
                         <!-- Default configuration for running with: mvn clean javafx:run -->
                         <id>default-cli</id>
                         <configuration>
-                            <mainClass>com.fa.graphs/com.fischerabruzese.graphsFX.HelloApplication</mainClass>
+                            <mainClass>com.fa.graphs/com.fischerabruzese.graphsFX.GraphApp</mainClass>
                             <launcher>app</launcher>
                             <jlinkZipName>app</jlinkZipName>
                             <jlinkImageName>app</jlinkImageName>
