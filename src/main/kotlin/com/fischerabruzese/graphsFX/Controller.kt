@@ -9,10 +9,13 @@ import javafx.scene.paint.Color
 import javafx.scene.shape.Circle
 import javafx.scene.shape.Line
 import com.fischerabruzese.graph.*
+import javafx.beans.binding.Bindings
+import javafx.beans.property.DoubleProperty
 import javafx.beans.property.ReadOnlyDoubleProperty
 import javafx.beans.property.SimpleDoubleProperty
+import javafx.scene.input.MouseEvent
 
-class Controller {
+class Controller<E: Any> {
     @FXML
     private lateinit var pane: Pane
 
@@ -20,14 +23,21 @@ class Controller {
     private lateinit var paneHeight : ReadOnlyDoubleProperty
     private val CIRCLE_RADIUS = 20.0
 
+    private lateinit var graph : Graph<E>
 
     @FXML
-    fun initialize(){
+    fun initialize() {
+        println("Initialize")
         paneWidth = pane.widthProperty()
         paneHeight = pane.heightProperty()
     }
 
-    fun<E : Any> draw(graph : Graph<E>) {
+    fun graphInit(graph : Graph<E>){
+        this.graph = graph
+    }
+
+    fun draw() {
+        println("Draw")
         val vertices = graph.getVerticies().toList()
         val verticesElements = Array(vertices.size){ index -> Vertex(vertices[index].toString(), Math.random(), Math.random())}
         val edgeElements = ArrayList<Edge>()
@@ -39,13 +49,15 @@ class Controller {
             }
         }
 
-        pane.children.addAll(verticesElements)
         pane.children.addAll(edgeElements)
+        pane.children.addAll(verticesElements)
+
     }
 
     @FXML
     private fun randomizePressed() {
-        println("Randomize")
+        pane.children.clear()
+        draw()
     }
 
     @FXML
@@ -54,30 +66,61 @@ class Controller {
     }
 
 
-
-    inner class Vertex(name: String, xpos : Double, ypos : Double) : StackPane() {
-        private val x = paneWidth.multiply(xpos).subtract(CIRCLE_RADIUS)
-        private val y = paneHeight.multiply(ypos).subtract(CIRCLE_RADIUS)
+    //Precondition: x and y are between 0 and 1
+    inner class Vertex(name: String, x : Double, y : Double) : StackPane() {
+        //Components
         private val circle = Circle(CIRCLE_RADIUS, Color.BLUE)
         private val label = Label(name)
 
+        //Location Bindings
+        private val usablePercentPaneWidth: DoubleBinding = Bindings.createDoubleBinding(
+            { 1.0 - 2 * CIRCLE_RADIUS / paneWidth.get() },
+            paneWidth
+        )
+        private val usablePercentPaneHeight: DoubleBinding = Bindings.createDoubleBinding(
+            { 1.0 - 2 * CIRCLE_RADIUS / paneHeight.get() },
+            paneHeight
+        )
+
+        private var xpos : DoubleProperty = SimpleDoubleProperty(x)
+        private var ypos : DoubleProperty = SimpleDoubleProperty(y)
+
+        private var xBinding : DoubleBinding = paneWidth.multiply(xpos).multiply(usablePercentPaneWidth)
+        private var yBinding : DoubleBinding = paneHeight.multiply(ypos).multiply(usablePercentPaneHeight)
+
+        //Dragging
+        private var xDelta : Double = 0.0
+        private var yDelta : Double = 0.0
+
         init{
             //Circle
-            circle.translateXProperty().bind(x)
-            circle.translateYProperty().bind(y)
+            circle.translateXProperty().bind(xBinding)
+            circle.translateYProperty().bind(yBinding)
 
             //Label
             label.translateXProperty().bind(circle.translateXProperty())
             label.translateYProperty().bind(circle.translateYProperty())
 
             label.textFill = Color.WHITE
+            label.pickOnBoundsProperty().set(false)
+
+            //Dragging
+            setOnMousePressed { dragStart(it) }
+            setOnMouseDragged { drag(it) }
 
             children.addAll(circle, label)
         }
 
-        fun move(x : Double, y : Double){
-            circle.translateX = x
-            circle.translateY = y
+        private fun dragStart(event : MouseEvent) {
+            xDelta = event.sceneX / pane.width - xpos.get()
+            yDelta = event.sceneY / pane.height - ypos.get()
+
+            println("Drag start - $xDelta, $yDelta")
+        }
+        private fun drag(event : MouseEvent) {
+            xpos.set(event.sceneX / pane.width - xDelta)
+            ypos.set(event.sceneY / pane.height - yDelta)
+            circle.fill = Color.RED
         }
 
         fun getCenterX() : DoubleBinding {
