@@ -93,26 +93,6 @@ class Controller<E: Any> {
         private var xDelta : Double = 0.0
         private var yDelta : Double = 0.0
 
-        //Location Bindings
-        private val usablePercentPaneWidth: DoubleBinding = Bindings.createDoubleBinding(
-            { 1.0 - 2 * CIRCLE_RADIUS / paneWidth.get() },
-            paneWidth
-        )
-        private val usablePercentPaneHeight: DoubleBinding = Bindings.createDoubleBinding(
-            { 1.0 - 2 * CIRCLE_RADIUS / paneHeight.get() },
-            paneHeight
-        )
-
-        private var xpos : DoubleProperty = SimpleDoubleProperty(x)
-        private var ypos : DoubleProperty = SimpleDoubleProperty(y)
-
-        private var xBinding : DoubleBinding = paneWidth.multiply(xpos).multiply(usablePercentPaneWidth)
-        private var yBinding : DoubleBinding = paneHeight.multiply(ypos).multiply(usablePercentPaneHeight)
-
-        //Dragging
-        private var xDelta : Double = 0.0
-        private var yDelta : Double = 0.0
-
         init{
             //Circle
             circle.translateXProperty().bind(xBinding)
