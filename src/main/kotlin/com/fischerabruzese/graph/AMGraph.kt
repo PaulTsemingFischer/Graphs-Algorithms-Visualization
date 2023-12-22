@@ -90,7 +90,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
     }
 
     override fun getVerticies(): Set<E> {
-        TODO("Not yet implemented")
+        return vertices.map { it.item }.toSet()
     }
 
     override fun toString(): String {
