@@ -5,7 +5,7 @@ import java.util.PriorityQueue
 
 /* Construct a graph with outboundConnections containing:
         outboundConnection(Source, ArrayOf(Destination, Weight))
- */
+*/
 class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?) : Graph<E>() {
 
 //    constructor(vararg outboundConnectionsUnweighted: Pair<E, Iterable<E>>) : this(
@@ -14,7 +14,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
 //        }.toTypedArray()
 //    )
 
-    constructor(vararg vertices: E) : this(
+    constructor(vararg vertices: E, usingVertexContructor : Boolean) : this(
         *vertices.map { it to emptyList<Pair<E, Int>>()}.toTypedArray()
     )
 
