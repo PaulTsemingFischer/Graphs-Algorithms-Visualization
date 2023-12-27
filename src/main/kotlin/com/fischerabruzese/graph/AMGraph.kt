@@ -21,9 +21,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         null
     )
 
-    data class Vertex<E>(val item : E)
-
-    private var vertices : ArrayList<Vertex<E>> = ArrayList()
+    private var vertices : ArrayList<E> = ArrayList()
     var edgeMatrix : Array<IntArray>//TODO:make this private
     private val indexLookup = HashMap<E, Int>()
 
@@ -31,11 +29,11 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         for(connections in outboundConnections){
             if(connections == null) continue
             if(indexLookup.putIfAbsent(connections.first, vertices.size) == null){
-                vertices.add(Vertex(connections.first))
+                vertices.add(connections.first)
             }
             for(outboundEdge in connections.second){
                 if(indexLookup.putIfAbsent(outboundEdge.first, vertices.size) == null){
-                    vertices.add(Vertex(outboundEdge.first))
+                    vertices.add(outboundEdge.first)
                 }
             }
         }
@@ -79,7 +77,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
     }
 
     override fun getVerticies(): Set<E> {
-        return vertices.map { it.item }.toSet()
+        return vertices.toSet()
     }
 
     override fun toString(): String {
@@ -114,7 +112,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
     }
 
     fun add(vararg additions : E){
-        vertices.addAll(additions.map { Vertex(it) })
+        vertices.addAll(additions)
         val newEdgeMatrix = Array(additions.size) {IntArray(additions.size) {-1} }
         for(from in edgeMatrix.indices)
             for(to in edgeMatrix.indices)
@@ -151,7 +149,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         val fromIndex = indexLookup[from]!!
         return dikstra(fromIndex, null).let{
             it.mapIndexed{ index, pair ->
-                getPath(fromIndex, index, it).map {vertex ->  vertices[vertex].item } to pair.second
+                getPath(fromIndex, index, it).map {vertex ->  vertices[vertex] } to pair.second
             }
         }.toTypedArray()
     }
@@ -160,7 +158,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         val fromIndex = indexLookup[from]!!
         val toIndex = indexLookup[to]!!
         return dikstra(fromIndex, toIndex).let{
-            getPath(fromIndex, toIndex, it).map{vertex -> vertices[vertex].item} to it[toIndex].second
+            getPath(fromIndex, toIndex, it).map{vertex -> vertices[vertex]} to it[toIndex].second
         }
     }
 
@@ -178,7 +176,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         val fromIndex = indexLookup[from]!!
         return abruzeseDijkstras(fromIndex).let{
             it.mapIndexed{ index, pair ->
-                abruzeseGetPath(index, it).map {vertex ->  vertices[vertex].item } to 0
+                abruzeseGetPath(index, it).map {vertex ->  vertices[vertex]} to 0
             }
         }.toTypedArray()
     }
