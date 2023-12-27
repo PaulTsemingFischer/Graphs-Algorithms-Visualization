@@ -122,7 +122,7 @@ class Controller<E: Any> {
             xDelta = event.sceneX / pane.width - xpos.get()
             yDelta = event.sceneY / pane.height - ypos.get()
 
-            println("Drag start - $xDelta, $yDelta")
+            println("Drag start - ${event.sceneX}, ${event.sceneY}")
         }
         private fun drag(event : MouseEvent) {
             xpos.set(event.sceneX / pane.width - xDelta)
@@ -135,6 +135,10 @@ class Controller<E: Any> {
         }
         fun getCenterY() : DoubleBinding {
             return circle.translateYProperty().add(circle.radiusProperty())
+        }
+        fun move(x: Double, y: Double){
+            xpos.set(x)
+            ypos.set(y)
         }
     }
     inner class Edge(from : Vertex, to : Vertex, weight : Int) : Pane() {

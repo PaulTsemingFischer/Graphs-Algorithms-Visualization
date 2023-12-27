@@ -24,12 +24,14 @@ class GraphApp : Application() {
         println("From c:" + graph.getAllDijkstra('c').joinToString("\n"))
         println("From d:" + graph.getAllDijkstra('d').joinToString("\n"))
 
-
+/*
         println("------------Dikstras------------")
         println("From a:" + graph.getAllDijkstras('a').joinToString("\n"))
         println("From b:" + graph.getAllDijkstras('b').joinToString("\n"))
         println("From c:" + graph.getAllDijkstras('c').joinToString("\n"))
         println("From d:" + graph.getAllDijkstras('d').joinToString("\n"))
+        
+ */
 
         controller.draw()
         stage.show()

@@ -1,7 +1,6 @@
 package com.fischerabruzese.graph
 
 import java.util.LinkedList
-import java.util.PriorityQueue
 
 /* Construct a graph with outboundConnections containing:
         outboundConnection(Source, ArrayOf(Destination, Weight))
@@ -14,7 +13,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
 //        }.toTypedArray()
 //    )
 
-    constructor(vararg vertices: E, usingVertexContructor : Boolean) : this(
+    constructor(vararg vertices: E, usingVertexConstructor : Boolean) : this(
         *vertices.map { it to emptyList<Pair<E, Int>>()}.toTypedArray()
     )
 
@@ -22,11 +21,10 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         null
     )
 
-    //do we need to store the index? is the index the location in the array?
     data class Vertex<E>(val item : E)
 
     private var vertices : ArrayList<Vertex<E>> = ArrayList()
-    private var edgeMatrix : Array<IntArray>
+    var edgeMatrix : Array<IntArray>//TODO:make this private
     private val indexLookup = HashMap<E, Int>()
 
     init {
@@ -109,6 +107,45 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         }
     }
 
+    fun clearEdges(){
+        for(from in edgeMatrix.indices)
+            for(to in edgeMatrix.indices)
+                edgeMatrix[from][to] = 0
+    }
+
+    fun add(vararg additions : E){
+        vertices.addAll(additions.map { Vertex(it) })
+        val newEdgeMatrix = Array(additions.size) {IntArray(additions.size) {-1} }
+        for(from in edgeMatrix.indices)
+            for(to in edgeMatrix.indices)
+                newEdgeMatrix[from][to] = edgeMatrix[from][to]
+        edgeMatrix = newEdgeMatrix
+    }
+
+    fun remove(vararg removals : E){
+        val vertexToRemove = Array(vertices.size){false}
+        for (vertex in removals.map { indexLookup[it]!! }){
+            vertexToRemove[vertex] = true
+        }
+
+        val newEdgeMatrix = Array(vertices.size - removals.size) {IntArray(vertices.size - removals.size) {-1} }
+        var fromOffset = 0
+        for(from in edgeMatrix.indices) {
+            if (vertexToRemove[from])
+                fromOffset++
+            else {
+                var toOffset = 0
+                for (to in edgeMatrix.indices) {
+                    if (vertexToRemove[to])
+                        toOffset++
+                    else
+                        newEdgeMatrix[from - fromOffset][to - toOffset] = edgeMatrix[from][to]
+                }
+            }
+        }
+        edgeMatrix = newEdgeMatrix
+    }
+    //Dijkstra
     //Pre-condition: "from" is a valid vertex
     fun getAllDijkstra(from : E) : Array<Pair<List<E>, Int>> {
         val fromIndex = indexLookup[from]!!
@@ -196,7 +233,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         while(to == null || !visited[to]){
             //Determine the next vertex to visit
             var currVert = visited.indexOfFirst{!it} //Finds first unvisited
-            if(currVert == -1 || distance[currVert] == Int.MAX_VALUE) break //All visited//TODO: might cause issues
+            if(currVert == -1) break //All visited //TODO:  || distance[currVert] == Int.MAX_VALUE
             for(i in currVert + 1 until visited.size){//TODO: +1 might cause issues
                 if(!visited[i] && distance[i] < distance[currVert]){
                     currVert = i
