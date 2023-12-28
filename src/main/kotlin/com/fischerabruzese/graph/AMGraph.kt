@@ -141,6 +141,15 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<E>>?, weights 
         }.toTypedArray()
     }
 
+    fun getAllDijkstra2(from : E) : Array<Pair<List<E>, Int>> {
+        val fromIndex = indexLookup[from]!!
+        return dikstra2(fromIndex, null).let{
+            it.mapIndexed{ index, pair ->
+                getPath(fromIndex, index, it).map {vertex ->  vertices[vertex] } to pair.second
+            }
+        }.toTypedArray()
+    }
+
     fun getDijkstra(from: E, to: E) : Pair<List<E>, Int>{
         val fromIndex = indexLookup[from]!!
         val toIndex = indexLookup[to]!!
@@ -177,8 +186,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<E>>?, weights 
             }
             //Update distances and previous
             val currDist = distance[currVert]
-            for(i in visited.indices){
-                val edge = edgeMatrix[currVert][i]
+            for((i,edge) in edgeMatrix[currVert].withIndex()){
                 if(!visited[i] && edge != -1 && currDist + edge < distance[i]){
                     distance[i] = (currDist + edgeMatrix[currVert][i])
                     prev[i] = currVert

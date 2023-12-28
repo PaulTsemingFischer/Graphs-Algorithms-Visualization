@@ -10,7 +10,7 @@ class GraphApp : Application() {
     override fun start(stage: Stage) {
         val fxmlLoader = FXMLLoader(GraphApp::class.java.getResource("graph.fxml"))
         val scene = Scene(fxmlLoader.load(), 600.0, 400.0)
-        val controller : Controller<Char> = fxmlLoader.getController()!!
+        val controller : Controller<Int> = fxmlLoader.getController()!!
 
         stage.title = "Graph"
         stage.scene = scene
