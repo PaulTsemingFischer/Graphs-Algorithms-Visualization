@@ -1,28 +1,23 @@
 package com.fischerabruzese.graph
 
 import java.util.LinkedList
+import java.util.PriorityQueue
 
 /* Construct a graph with outboundConnections containing:
         outboundConnection(Source, ArrayOf(Destination, Weight))
 */
-class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?) : Graph<E>() {
+class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<E>>?, weights : List<Int>) : Graph<E>() {
 
-//    constructor(vararg outboundConnectionsUnweighted: Pair<E, Iterable<E>>) : this(
-//        *outboundConnectionsUnweighted.map { (source, destinations) ->
-//            source to destinations.map { it to 1 }
-//        }.toTypedArray()
-//    )
-
-    constructor(vararg vertices: E, usingVertexConstructor : Boolean) : this(
-        *vertices.map { it to emptyList<Pair<E, Int>>()}.toTypedArray()
+    constructor(vararg vertices: E) : this(
+        *vertices.map { it to emptyList<E>()}.toTypedArray(), weights = emptyList<Int>()
     )
 
     internal constructor() : this(
-        null
+        null, weights = emptyList<Int>()
     )
 
     private var vertices : ArrayList<E> = ArrayList()
-    var edgeMatrix : Array<IntArray>//TODO:make this private
+    var edgeMatrix : Array<IntArray> //TODO:make this private
     private val indexLookup = HashMap<E, Int>()
 
     init {
@@ -32,8 +27,8 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
                 vertices.add(connections.first)
             }
             for(outboundEdge in connections.second){
-                if(indexLookup.putIfAbsent(outboundEdge.first, vertices.size) == null){
-                    vertices.add(outboundEdge.first)
+                if(indexLookup.putIfAbsent(outboundEdge, vertices.size) == null){
+                    vertices.add(outboundEdge)
                 }
             }
         }
@@ -41,8 +36,13 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
 
         for(connections in outboundConnections) {
             if(connections == null) continue
-            for(outboundEdge in connections.second){
-                edgeMatrix[indexLookup[connections.first]!!][indexLookup[outboundEdge.first]!!] = outboundEdge.second
+            for((i, outboundEdge) in connections.second.withIndex()){
+                try {
+                    if(weights[i] <= 0) throw Exception()
+                    else edgeMatrix[indexLookup[connections.first]!!][indexLookup[outboundEdge]!!] = weights[i]
+                } catch (e : Exception){
+                    edgeMatrix[indexLookup[connections.first]!!][indexLookup[outboundEdge]!!] = 1
+                }
             }
         }
     }
@@ -78,19 +78,6 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
 
     override fun getVerticies(): Set<E> {
         return vertices.toSet()
-    }
-
-    override fun toString(): String {
-        val string = StringBuilder()
-        for(destinations in edgeMatrix){
-            string.append("[")
-            for (weight in destinations){
-                string.append("${weight.let{if(it == -1) " " else it}}][")
-            }
-            string.deleteRange(string.length - 2, string.length)
-            string.append("]\n")
-        }
-        return string.toString()
     }
 
     fun randomize(chanceFilled : Double, maxWeight: Int){
@@ -168,61 +155,12 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         return dikstra(fromIndex, toIndex)[toIndex].second
     }
 
-    fun getDijkstraPath(from: E, to: E) : List<E>{
-        return getDijkstra(from, to).first
-    }
-
-    fun getAllDijkstras(from : E) : Array<Pair<List<E>, Int>> {
-        val fromIndex = indexLookup[from]!!
-        return abruzeseDijkstras(fromIndex).let{
-            it.mapIndexed{ index, pair ->
-                abruzeseGetPath(index, it).map {vertex ->  vertices[vertex]} to 0
-            }
-        }.toTypedArray()
-    }
-
-    private fun abruzeseDijkstras(from : Int): Array<LinkedList<Int>> {
-        data class DikstraVertex(val location : Int, var previous : DikstraVertex?, var distFromSrc : Int, var visited : Boolean)
-        var start : DikstraVertex? = null
-        val dikstrasVertices = List(vertices.size) { i -> DikstraVertex(i, null, Int.MAX_VALUE, false).also { if(i == from) start = it; it.distFromSrc = 0} }
-
-        val que = LinkedList<DikstraVertex>()
-        que.add(start!!)
-        while(que.size != 0) {
-            val cur = que.peek()
-            for ((next, distToNext) in edgeMatrix[cur.location].withIndex()) {
-                if (next != -1 && !dikstrasVertices[next].visited && dikstrasVertices[next].distFromSrc < cur.distFromSrc + distToNext) {
-                    dikstrasVertices[next].previous = cur
-                    dikstrasVertices[next].distFromSrc = cur.distFromSrc + distToNext
-                    que.add(dikstrasVertices[next])
-                }
-            }
-            que.poll().visited = true
-        }
-        //the index in the array is the path it is to
-        return Array(vertices.size) { i ->
-            var path = LinkedList<Int>()
-            var j = i
-            while(dikstrasVertices[j] != start){
-                if(dikstrasVertices[j].previous == null) {
-                    path = emptyList<Int>() as LinkedList<Int>
-                    break
-                }
-                else j = dikstrasVertices[j].previous!!.location
-                path.addFirst(dikstrasVertices[j].location)
-            }
-            path
-        }
-    }
-    private fun abruzeseGetPath(to: Int, table : Array<LinkedList<Int>>): List<Int> {
-        return table[to]
-    }
-
 
     //Pre-condition: If "to" is null, finds every path from "from", else only the path from "from" to "to" is accurate
     //Post-condition: A Int.MAX_VALUE in distance indicates unreachable, a -1 in Prev indicates no path
     //Post-condition: Returns an array of (previous vertex index, distance)
     private fun dikstra(from : Int, to : Int?) : Array<Pair<Int, Int>> {
+
         val distance = IntArray(vertices.size) { Int.MAX_VALUE }
         val prev = IntArray(vertices.size) { -1 }
         val visited = BooleanArray(vertices.size) { false }
@@ -237,7 +175,6 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
                     currVert = i
                 }
             }
-
             //Update distances and previous
             val currDist = distance[currVert]
             for(i in visited.indices){
@@ -247,11 +184,38 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
                     prev[i] = currVert
                 }
             }
-
             //Update visited
             visited[currVert] = true
         }
         return prev.zip(distance).toTypedArray() //funky function
+    }
+
+    private fun dikstra2(from : Int, to : Int?) : Array<Pair<Int, Int>> {
+        data class Vertex(val id : Int, var prev : Int, var distFromSrc : Int, var visited : Boolean) : Comparable<Vertex>{
+            override fun compareTo(other: Vertex): Int {
+                return this.distFromSrc.compareTo(other.distFromSrc)
+            }
+        }
+        val vlist = List(vertices.size) { i -> Vertex(i, -1, Int.MAX_VALUE, false)}
+        vlist[from].distFromSrc = 0
+        val que = PriorityQueue<Vertex>()
+        que.add(vlist[from])
+        while(to == null || !vlist[to].visited){
+            val currVert = que.peek() ?: break
+            if(currVert.visited) {
+                que.remove()
+                continue
+            }
+            for((i,edge) in edgeMatrix[currVert.id].withIndex()){
+                if(edge != -1 && !vlist[i].visited && currVert.distFromSrc + edge < vlist[i].distFromSrc){
+                    vlist[i].distFromSrc = currVert.distFromSrc + edge
+                    vlist[i].prev = currVert.id
+                    que.add(vlist[i])
+                }
+            }
+            que.poll().visited = true
+        }
+        return Array(vlist.size) { i -> vlist[i].prev to vlist[i].distFromSrc}
     }
 
     private fun getPath(from: Int, to: Int, dikstraTable: Array<Pair<Int, Int>>): List<Int> {
@@ -262,5 +226,18 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
             path.addFirst(dikstraTable[curr].first.also{curr = it})
         }
         return path
+    }
+
+    override fun toString(): String {
+        val string = StringBuilder()
+        for(destinations in edgeMatrix){
+            string.append("[")
+            for (weight in destinations){
+                string.append("${weight.let{if(it == -1) " " else it}}][")
+            }
+            string.deleteRange(string.length - 2, string.length)
+            string.append("]\n")
+        }
+        return string.toString()
     }
 }

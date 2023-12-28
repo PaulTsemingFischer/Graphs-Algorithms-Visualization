@@ -15,26 +15,39 @@ class GraphApp : Application() {
         stage.title = "Graph"
         stage.scene = scene
 
-        val graph = AMGraph('a' to listOf('c' to 2, 'd' to 7), 'b' to listOf('c' to 7, 'd' to 1), 'c' to listOf('a' to 2, 'b' to 4, 'd' to 3), 'd' to listOf('a' to 7, 'b' to 1, 'c' to 3))
+        val verts = Array(50){i -> i}
+        val graph = AMGraph(*verts)
+        graph.randomize(1.0, 9)
         controller.graphInit(graph)
 
-        println("------------Dikstra------------")
-        println("From a:" + graph.getAllDijkstra('a').joinToString("\n"))
-        println("From b:" + graph.getAllDijkstra('b').joinToString("\n"))
-        println("From c:" + graph.getAllDijkstra('c').joinToString("\n"))
-        println("From d:" + graph.getAllDijkstra('d').joinToString("\n"))
+//        println("------------Dijkstra------------")
+//        println("From a:" + graph.getAllDijkstra('a').joinToString("\n"))
+//        println("From b:" + graph.getAllDijkstra('b').joinToString("\n"))
+//        println("From c:" + graph.getAllDijkstra('c').joinToString("\n"))
+//        println("From d:" + graph.getAllDijkstra('d').joinToString("\n"))
 
-/*
-        println("------------Dikstras------------")
-        println("From a:" + graph.getAllDijkstras('a').joinToString("\n"))
-        println("From b:" + graph.getAllDijkstras('b').joinToString("\n"))
-        println("From c:" + graph.getAllDijkstras('c').joinToString("\n"))
-        println("From d:" + graph.getAllDijkstras('d').joinToString("\n"))
-        
- */
+        val start1 = System.nanoTime()
+        for (i in verts.indices){
+            graph.getAllDijkstra(i)
+        }
+        println("Pau: Time Elapsed: ${System.nanoTime() - start1}")
 
-        controller.draw()
-        stage.show()
+        val start2 = System.nanoTime()
+        for (i in verts.indices){
+            graph.getAllDijkstra2(i)
+        }
+        println("Sky: Time Elapsed: ${System.nanoTime() - start2}")
+
+
+//        println("------------Dijkstra2------------")
+//        println("From a:" + graph.getAllDijkstra2('a').joinToString("\n"))
+//        println("From b:" + graph.getAllDijkstra2('b').joinToString("\n"))
+//        println("From c:" + graph.getAllDijkstra2('c').joinToString("\n"))
+//        println("From d:" + graph.getAllDijkstra2('d').joinToString("\n"))
+
+
+//        controller.draw()
+//        stage.show()
     }
 //    fun<E : Any> draw(graph : Graph<E>){
 //        if (::controller.isInitialized) {
