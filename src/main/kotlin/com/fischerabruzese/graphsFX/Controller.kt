@@ -13,31 +13,45 @@ import javafx.beans.binding.Bindings
 import javafx.beans.property.DoubleProperty
 import javafx.beans.property.ReadOnlyDoubleProperty
 import javafx.beans.property.SimpleDoubleProperty
+import javafx.scene.control.TextField
 import javafx.scene.input.MouseEvent
 
 class Controller<E: Any> {
     @FXML
     private lateinit var pane: Pane
 
+    @FXML
+    private lateinit var fromVertexField: TextField
+    @FXML
+    private lateinit var toVertexField: TextField
+    @FXML
+    private lateinit var weightField: TextField
+
+
+
     private lateinit var paneWidth : ReadOnlyDoubleProperty
     private lateinit var paneHeight : ReadOnlyDoubleProperty
     private val CIRCLE_RADIUS = 20.0
 
     private lateinit var graph : Graph<E>
+    private val stringToEMap = HashMap<String, E>()
+    private val edges = ArrayList<Edge>()
+    private val vertices = ArrayList<Vertex>()
 
     @FXML
     fun initialize() {
-        println("Initialize")
         paneWidth = pane.widthProperty()
         paneHeight = pane.heightProperty()
     }
 
     fun graphInit(graph : Graph<E>){
         this.graph = graph
+        for(vertex in graph.getVerticies()){
+            stringToEMap[vertex.toString()] = vertex
+        }
     }
 
     fun draw() {
-        println("Draw")
         val vertices = graph.getVerticies().toList()
         val verticesElements = Array(vertices.size){ index -> Vertex(vertices[index].toString(), Math.random(), Math.random())}
         val edgeElements = ArrayList<Edge>()
@@ -48,26 +62,36 @@ class Controller<E: Any> {
                 edgeElements.add(Edge(verticesElements[i], verticesElements[j], weight))
             }
         }
-
+        edges.addAll(edgeElements)
+        this.vertices.addAll(verticesElements)
         pane.children.addAll(edgeElements)
         pane.children.addAll(verticesElements)
 
     }
 
     @FXML
-    private fun randomizePressed() {
+    private fun redrawPressed() {
         pane.children.clear()
         draw()
     }
 
     @FXML
     private fun editEdgePressed() {
-        println("Edit edge")
+        val from = stringToEMap[fromVertexField.text]!!
+        val to = stringToEMap[toVertexField.text]!!
+        val weight = weightField.text
+        graph[from, to] = weight.toInt()
+        for(edge in edges){
+            if(edge.checkMatch(from, to)){
+                println(edge.label)
+                edge.label.text = weight
+            }
+        }
     }
 
 
     //Precondition: x and y are between 0 and 1
-    inner class Vertex(name: String, x : Double, y : Double) : StackPane() {
+    inner class Vertex(val name: String, x : Double, y : Double) : StackPane() {
         //Components
         private val circle = Circle(CIRCLE_RADIUS, Color.BLUE)
         private val label = Label(name)
@@ -141,9 +165,9 @@ class Controller<E: Any> {
             ypos.set(y)
         }
     }
-    inner class Edge(from : Vertex, to : Vertex, weight : Int) : Pane() {
+    inner class Edge(private val from : Vertex, private val to : Vertex, weight : Int) : Pane() {
         private val line = Line()
-        private val label = Label(weight.toString())
+        var label = Label(weight.toString())
 
         init{
             //Binding endpoints
@@ -159,5 +183,7 @@ class Controller<E: Any> {
 
             children.addAll(line, label)
         }
+
+        fun checkMatch(from: E, to: E): Boolean = this.from.name.also{println(it)} == from.toString().also{println(it)} && this.to.name == to.toString()
     }
 }

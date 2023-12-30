@@ -208,9 +208,11 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<E>>?, weights 
         vlist[from].distFromSrc = 0
         val que = PriorityQueue<Vertex>()
         que.add(vlist[from])
+        var deadNodeCounter = 0
         while(to == null || !vlist[to].visited){
             val currVert = que.peek() ?: break
             if(currVert.visited) {
+                deadNodeCounter++
                 que.remove()
                 continue
             }
@@ -223,6 +225,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<E>>?, weights 
             }
             que.poll().visited = true
         }
+        println(deadNodeCounter)
         return Array(vlist.size) { i -> vlist[i].prev to vlist[i].distFromSrc}
     }
 
