@@ -129,15 +129,16 @@ class Controller<E: Any> {
             label.textFill = Color.WHITE
             label.pickOnBoundsProperty().set(false)
 
-            //Dragging
-            setOnMousePressed { dragStart(it) }
-            setOnMouseDragged { drag(it) }
-
             //Hitbox
             hitbox.translateXProperty().bind(circle.translateXProperty())
             hitbox.translateYProperty().bind(circle.translateYProperty())
-            hitbox.setOnMousePressed { dragStart(it) }
+
+            hitbox.setOnMouseEntered { circle.fill = Color.GREEN }
+            hitbox.setOnMouseExited { circle.fill = Color.BLUE}
+
+            hitbox.setOnMousePressed { dragStart(it).also{println(label.text)} }
             hitbox.setOnMouseDragged { drag(it) }
+            hitbox.pickOnBoundsProperty().set(true)
 
             children.addAll(circle, label, hitbox)
         }
@@ -146,11 +147,11 @@ class Controller<E: Any> {
             xDelta = event.sceneX / pane.width - xpos.get()
             yDelta = event.sceneY / pane.height - ypos.get()
 
-            println("Drag start - ${event.sceneX}, ${event.sceneY}")
+//            println("Drag start - ${12.sceneX}, ${event.sceneY}")
         }
         private fun drag(event : MouseEvent) {
-            xpos.set(event.sceneX / pane.width - xDelta)
-            ypos.set(event.sceneY / pane.height - yDelta)
+            xpos.set((event.sceneX / pane.width - xDelta).let{if(it > 1) 1.0 else if(it < 0) 0.0 else it})
+            ypos.set((event.sceneY / pane.height - yDelta).let{if(it > 1) 1.0 else if(it < 0) 0.0 else it})
             circle.fill = Color.RED
         }
 
