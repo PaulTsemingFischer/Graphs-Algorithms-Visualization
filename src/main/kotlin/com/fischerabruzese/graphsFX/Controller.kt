@@ -1,20 +1,20 @@
 package com.fischerabruzese.graphsFX
 
+import com.fischerabruzese.graph.Graph
+import javafx.beans.binding.Bindings
 import javafx.beans.binding.DoubleBinding
+import javafx.beans.property.DoubleProperty
+import javafx.beans.property.ReadOnlyDoubleProperty
+import javafx.beans.property.SimpleDoubleProperty
 import javafx.fxml.FXML
 import javafx.scene.control.Label
+import javafx.scene.control.TextField
+import javafx.scene.input.MouseEvent
 import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.shape.Circle
 import javafx.scene.shape.Line
-import com.fischerabruzese.graph.*
-import javafx.beans.binding.Bindings
-import javafx.beans.property.DoubleProperty
-import javafx.beans.property.ReadOnlyDoubleProperty
-import javafx.beans.property.SimpleDoubleProperty
-import javafx.scene.control.TextField
-import javafx.scene.input.MouseEvent
 
 class Controller<E: Any> {
     @FXML
@@ -133,11 +133,13 @@ class Controller<E: Any> {
             hitbox.translateXProperty().bind(circle.translateXProperty())
             hitbox.translateYProperty().bind(circle.translateYProperty())
 
+                //Listeners
             hitbox.setOnMouseEntered { circle.fill = Color.GREEN }
             hitbox.setOnMouseExited { circle.fill = Color.BLUE}
 
-            hitbox.setOnMousePressed { dragStart(it).also{println(label.text)} }
+            hitbox.setOnMousePressed { dragStart(it); greyNonAttached(this); circle.fill = Color.RED }
             hitbox.setOnMouseDragged { drag(it) }
+            hitbox.setOnMouseReleased { ungreyEverything(); circle.fill = Color.GREEN }
             hitbox.pickOnBoundsProperty().set(true)
 
             children.addAll(circle, label, hitbox)
@@ -152,9 +154,34 @@ class Controller<E: Any> {
         private fun drag(event : MouseEvent) {
             xpos.set((event.sceneX / pane.width - xDelta).let{if(it > 1) 1.0 else if(it < 0) 0.0 else it})
             ypos.set((event.sceneY / pane.height - yDelta).let{if(it > 1) 1.0 else if(it < 0) 0.0 else it})
-            circle.fill = Color.RED
         }
 
+        private fun greyNonAttached(vertex: Vertex){
+            for(vert in vertices){
+                vert.circle.fill = Color(0.0, 0.0, 1.0, 0.3)
+            }
+            for(edge in edges){
+                if(edge.from != vertex && edge.to != vertex){
+                    edge.label.textFill = Color.GREY
+                    edge.line.stroke = Color.rgb(192, 192, 192, 0.8)
+                }
+                else{
+                    edge.from.let{if(it != this) it.circle.fill = Color.BLUE}
+                    edge.to.let{if(it != this) it.circle.fill = Color.BLUE}
+                    edge.line.stroke = Color.RED
+                }
+            }
+        }
+
+        private fun ungreyEverything(){
+            for(edge in edges){
+                edge.label.textFill = Color.BLACK
+                edge.line.stroke = Color.BLACK
+            }
+            for (vert in vertices){
+                vert.circle.fill = Color.BLUE
+            }
+        }
         fun getCenterX() : DoubleBinding {
             return circle.translateXProperty().add(circle.radiusProperty())
         }
@@ -166,8 +193,8 @@ class Controller<E: Any> {
             ypos.set(y)
         }
     }
-    inner class Edge(private val from : Vertex, private val to : Vertex, weight : Int) : Pane() {
-        private val line = Line()
+    inner class Edge(val from : Vertex, val to : Vertex, weight : Int) : Pane() {
+        val line = Line()
         var label = Label(weight.toString())
 
         init{
