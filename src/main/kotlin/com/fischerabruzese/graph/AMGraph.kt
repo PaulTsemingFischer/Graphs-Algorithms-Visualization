@@ -19,6 +19,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<E>>?, weights 
     private var vertices : ArrayList<E> = ArrayList()
     var edgeMatrix : Array<IntArray> //TODO:make this private
     private val indexLookup = HashMap<E, Int>()
+    private val dijkstraTables = Array<Array<Pair<Int, Int>>?>(vertices.size){null}
 
     init {
         for(connections in outboundConnections){
@@ -131,29 +132,8 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<E>>?, weights 
         edgeMatrix = newEdgeMatrix
     }
     //Dijkstra
-    //Pre-condition: "from" is a valid vertex
-    fun getAllDijkstra(from : E) : Array<Pair<List<E>, Int>> {
-        val fromIndex = indexLookup[from]!!
-        return dikstra(fromIndex, null).let{
-            it.mapIndexed{ index, pair ->
-                getPath(fromIndex, index, it).map {vertex ->  vertices[vertex] } to pair.second
-            }
-        }.toTypedArray()
-    }
-
-    fun getAllDijkstra2(from : E) : Array<Pair<List<E>, Int>> {
-        val fromIndex = indexLookup[from]!!
-        return dikstra2(fromIndex, null).let{
-            it.mapIndexed{ index, pair ->
-                getPath(fromIndex, index, it).map {vertex ->  vertices[vertex] } to pair.second
-            }
-        }.toTypedArray()
-    }
-
     fun getDijkstraPath(from: E, to: E): List<E>{
-        val fromIndex = indexLookup[from]!!
-        val toIndex = indexLookup[to]!!
-        return getPath(fromIndex, toIndex, dikstra(fromIndex, toIndex)).map{vertex -> vertices[vertex]}
+        if()
     }
     fun getDijkstra(from: E, to: E) : Pair<List<E>, Int>{
         val fromIndex = indexLookup[from]!!
