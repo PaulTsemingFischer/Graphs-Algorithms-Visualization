@@ -15,9 +15,9 @@ class GraphApp : Application() {
         stage.title = "Graph"
         stage.scene = scene
 
-        val verts = Array(10){i -> i}
+        val verts = Array(10000){i -> i}
         val graph = AMGraph(*verts)
-        graph.randomize(0.5, 9)
+        graph.randomize(0.001, 9)
         controller.graphInit(graph)
 
 //        println("------------Dijkstra------------")

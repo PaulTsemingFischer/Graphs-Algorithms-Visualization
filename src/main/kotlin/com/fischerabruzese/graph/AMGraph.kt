@@ -150,6 +150,11 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<E>>?, weights 
         }.toTypedArray()
     }
 
+    fun getDijkstraPath(from: E, to: E): List<E>{
+        val fromIndex = indexLookup[from]!!
+        val toIndex = indexLookup[to]!!
+        return getPath(fromIndex, toIndex, dikstra(fromIndex, toIndex)).map{vertex -> vertices[vertex]}
+    }
     fun getDijkstra(from: E, to: E) : Pair<List<E>, Int>{
         val fromIndex = indexLookup[from]!!
         val toIndex = indexLookup[to]!!
