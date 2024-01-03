@@ -19,7 +19,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<E>>?, weights 
     private var vertices : ArrayList<E> = ArrayList()
     var edgeMatrix : Array<IntArray> //TODO:make this private
     private val indexLookup = HashMap<E, Int>()
-    private val dijkstraTables = Array<Array<Pair<Int, Int>>?>(vertices.size){null}
+    private var dijkstraTables : Array<Array<Pair<Int, Int>>?>
 
     init {
         for(connections in outboundConnections){
@@ -33,6 +33,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<E>>?, weights 
                 }
             }
         }
+        dijkstraTables = Array(vertices.size){null}
         edgeMatrix = Array(vertices.size) {IntArray(vertices.size) {-1} }
 
         for(connections in outboundConnections) {
@@ -70,6 +71,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<E>>?, weights 
     }
 
     private fun set(from : Int, to : Int, value : Int) : Int? {
+        dijkstraTables = Array(vertices.size){null}
         return get(from, to).also { edgeMatrix[from][to] = value }
     }
 
@@ -77,7 +79,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<E>>?, weights 
         TODO("Not yet implemented")
     }
 
-    override fun getVerticies(): Set<E> {
+    override fun getVertices(): Set<E> {
         return vertices.toSet()
     }
 
@@ -100,6 +102,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<E>>?, weights 
     }
 
     fun add(vararg additions : E){
+        dijkstraTables = Array(vertices.size){null}
         vertices.addAll(additions)
         val newEdgeMatrix = Array(additions.size) {IntArray(additions.size) {-1} }
         for(from in edgeMatrix.indices)
@@ -109,6 +112,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<E>>?, weights 
     }
 
     fun remove(vararg removals : E){
+        dijkstraTables = Array(vertices.size){null}
         val vertexToRemove = Array(vertices.size){false}
         for (vertex in removals.map { indexLookup[it]!! }){
             vertexToRemove[vertex] = true
@@ -133,28 +137,28 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<E>>?, weights 
     }
     //Dijkstra
     fun getDijkstraPath(from: E, to: E): List<E>{
-        if()
-    }
-
-    fun getDijkstra(from: E, to: E) : Pair<List<E>, Int>{
         val fromIndex = indexLookup[from]!!
         val toIndex = indexLookup[to]!!
-        return dikstra(fromIndex, toIndex).let{
-            getPath(fromIndex, toIndex, it).map{vertex -> vertices[vertex]} to it[toIndex].second
-        }
+        return getPath(fromIndex, toIndex, generateDijkstraTable(fromIndex)).map{ vertices[it] }
     }
 
     fun getDijkstraWeight(from: E, to: E) : Int{
         val fromIndex = indexLookup[from]!!
         val toIndex = indexLookup[to]!!
-        return dikstra(fromIndex, toIndex)[toIndex].second
+        return generateDijkstraTable(fromIndex)[toIndex].second
     }
 
 
+    private fun generateDijkstraTable(fromIndex : Int) : Array<Pair<Int, Int>> {
+        if(dijkstraTables[fromIndex] == null) {
+            dijkstraTables[fromIndex] = dijkstra(fromIndex)
+        }
+        return dijkstraTables[fromIndex]!!
+    }
     //Pre-condition: If "to" is null, finds every path from "from", else only the path from "from" to "to" is accurate
     //Post-condition: A Int.MAX_VALUE in distance indicates unreachable, a -1 in Prev indicates no path
     //Post-condition: Returns an array of (previous vertex index, distance)
-    private fun dikstra(from : Int, to : Int?) : Array<Pair<Int, Int>> {
+    private fun dijkstra(from : Int, to : Int? = null) : Array<Pair<Int, Int>> {
 
         val distance = IntArray(vertices.size) { Int.MAX_VALUE }
         val prev = IntArray(vertices.size) { -1 }

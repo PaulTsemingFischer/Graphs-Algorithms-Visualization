@@ -10,16 +10,28 @@ class GraphApp : Application() {
     override fun start(stage: Stage) {
         val fxmlLoader = FXMLLoader(GraphApp::class.java.getResource("graph.fxml"))
         val scene = Scene(fxmlLoader.load(), 600.0, 400.0)
-        val controller : Controller<Int> = fxmlLoader.getController()!!
+        val controller : Controller<Char> = fxmlLoader.getController()!!
 
         stage.title = "Graph"
         stage.scene = scene
 
-        val verts = Array(10000){i -> i}
-        val graph = AMGraph(*verts)
-        graph.randomize(0.001, 9)
-        controller.graphInit(graph)
+       // val verts = Array(10){i -> i}
 
+//        val graph = AMGraph(*verts)
+        val graph = AMGraph('a' ,'b','c','d', 'e', 'f', 'g')
+        graph.randomize(0.5, 9)
+        controller.graphInit(graph)
+        for(edge in graph.edgeMatrix){
+            for(weight in edge){
+                print("[$weight]")
+            }
+            println()
+        }
+
+        for(vert in graph.getVertices()){
+            println("Path $vert to 'b': " + graph.getDijkstraPath(vert, 'b'))
+            println("Weight $vert to 'b': " + graph.getDijkstraWeight(vert, 'b'))
+        }
 //        println("------------Dijkstra------------")
 //        println("From a:" + graph.getAllDijkstra('a').joinToString("\n"))
 //        println("From b:" + graph.getAllDijkstra('b').joinToString("\n"))

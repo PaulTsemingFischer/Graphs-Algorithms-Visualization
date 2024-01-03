@@ -46,18 +46,18 @@ class Controller<E: Any> {
 
     fun graphInit(graph : Graph<E>){
         this.graph = graph
-        for(vertex in graph.getVerticies()){
+        for(vertex in graph.getVertices()){
             stringToEMap[vertex.toString()] = vertex
         }
     }
 
     fun draw() {
-        val vertices = graph.getVerticies().toList()
+        val vertices = graph.getVertices().toList()
         val verticesElements = Array(vertices.size){ index -> Vertex(vertices[index].toString(), Math.random(), Math.random())}
         val edgeElements = ArrayList<Edge>()
 
         for(i in verticesElements.indices){
-            for(j in i..verticesElements.indices.last){
+            for(j in i until verticesElements.size){
                 val weight = graph[vertices[i], vertices[j]] ?: continue
                 edgeElements.add(Edge(verticesElements[i], verticesElements[j], weight))
             }
