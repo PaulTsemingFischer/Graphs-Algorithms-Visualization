@@ -5,6 +5,7 @@ import javafx.application.Application
 import javafx.fxml.FXMLLoader
 import javafx.scene.Scene
 import javafx.stage.Stage
+import kotlin.random.Random
 
 class GraphApp : Application() {
     override fun start(stage: Stage) {
@@ -19,7 +20,7 @@ class GraphApp : Application() {
 
 //        val graph = AMGraph(*verts)
         val graph = AMGraph('a' ,'b','c','d', 'e', 'f', 'g')
-        graph.randomize(0.5, 9)
+        graph.randomize(Random(249), 9)
         controller.graphInit(graph)
         for(edge in graph.edgeMatrix){
             for(weight in edge){
@@ -29,8 +30,8 @@ class GraphApp : Application() {
         }
 
         for(vert in graph.getVertices()){
-            println("Path $vert to 'b': " + graph.getDijkstraPath(vert, 'b'))
-            println("Weight $vert to 'b': " + graph.getDijkstraWeight(vert, 'b'))
+            println("Path $vert to 'b': " + graph.path(vert, 'b'))
+            println("Weight $vert to 'b': " + graph.distance(vert, 'b'))
         }
 //        println("------------Dijkstra------------")
 //        println("From a:" + graph.getAllDijkstra('a').joinToString("\n"))
