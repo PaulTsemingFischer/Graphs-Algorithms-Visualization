@@ -37,6 +37,7 @@ class Controller<E: Any> {
     private val stringToEMap = HashMap<String, E>()
     private val edges = ArrayList<Edge>()
     private val vertices = ArrayList<Vertex>()
+    private val hitboxes = ArrayList<Circle>()
 
     @FXML
     fun initialize() {
@@ -66,8 +67,9 @@ class Controller<E: Any> {
         this.vertices.addAll(verticesElements)
         pane.children.addAll(edgeElements)
         pane.children.addAll(verticesElements)
-
+        pane.children.addAll(hitboxes)
     }
+
 
     @FXML
     private fun redrawPressed() {
@@ -107,6 +109,7 @@ class Controller<E: Any> {
             paneHeight
         )
 
+        //xpos and ypos are between 0 and 1
         private var xpos : DoubleProperty = SimpleDoubleProperty(x)
         private var ypos : DoubleProperty = SimpleDoubleProperty(y)
 
@@ -127,11 +130,13 @@ class Controller<E: Any> {
             label.translateYProperty().bind(circle.translateYProperty())
 
             label.textFill = Color.WHITE
-            label.pickOnBoundsProperty().set(false)
 
             //Hitbox
             hitbox.translateXProperty().bind(circle.translateXProperty())
             hitbox.translateYProperty().bind(circle.translateYProperty())
+
+            hitbox.centerX = CIRCLE_RADIUS
+            hitbox.centerY = CIRCLE_RADIUS
 
                 //Listeners
             hitbox.setOnMouseEntered { circle.fill = Color.GREEN }
@@ -142,13 +147,20 @@ class Controller<E: Any> {
             hitbox.setOnMouseReleased { ungreyEverything(); circle.fill = Color.GREEN }
             hitbox.pickOnBoundsProperty().set(true)
 
-            children.addAll(circle, label, hitbox)
+            hitboxes.add(hitbox)
+
+            children.addAll(circle, label)
+            println("INIT Circle center: ${circle.translateX}, ${circle.translateY}")
+            println("INIT Hitbox center: ${hitbox.translateX}, ${hitbox.translateY}")
         }
 
         private fun dragStart(event : MouseEvent) {
             xDelta = event.sceneX / pane.width - xpos.get()
             yDelta = event.sceneY / pane.height - ypos.get()
 
+            println("Circle center: ${circle.translateX}, ${circle.translateY}")
+            println("Hitbox center: ${hitbox.translateX}, ${hitbox.translateY}")
+            println("Stack pane: ${pane.width}, ${pane.height}")
 //            println("Drag start - ${12.sceneX}, ${event.sceneY}")
         }
         private fun drag(event : MouseEvent) {
