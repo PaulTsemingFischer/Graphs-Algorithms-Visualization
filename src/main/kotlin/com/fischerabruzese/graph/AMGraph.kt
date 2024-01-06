@@ -86,7 +86,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<E>>?, weights 
     fun randomize(random: Random, maxWeight: Int){
         for(i in edgeMatrix.indices) {
             for (j in edgeMatrix.indices) {
-                if (0.01 > random.nextDouble()) {
+                if (random.nextBoolean()) {
                     set(i, j, (1..maxWeight).random())
                 } else {
                     set(i, j, -1)
