@@ -178,7 +178,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<E>>?, weights 
         return path
     }
 
-    private fun dijkstra(from : Int, to : Int? = null) : Array<Pair<Int, Int>> {
+    private fun dijkstra3(from : Int, to : Int? = null) : Array<Pair<Int, Int>> {
         //initialize default values
         data class Vertex(val id : Int, var prevId : Int, var dist : Int, var visited : Boolean) : Comparable<Vertex>{
             override fun compareTo(other: Vertex) = this.dist.compareTo(other.dist) //visitation will be based on distances from src
@@ -222,6 +222,50 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<E>>?, weights 
         return Array(vlist.size) { i -> vlist[i].prevId to vlist[i].dist}
     }
 
+    private fun dijkstra(from : Int, to : Int? = null) : Array<Pair<Int, Int>> {
+        //initialize default values
+        data class Vertex(val id : Int, var prevId : Int, var dist : Int, var visited : Boolean) : Comparable<Vertex>{
+            override fun compareTo(other: Vertex) = this.dist.compareTo(other.dist) //visitation will be based on distances from src
+        }
+
+        //sorted by id
+        val djkTable = List(size()) { i -> Vertex(i, -1, Int.MAX_VALUE, false)}
+        djkTable[from].dist = 0
+
+        //create an order of vertexes to visit
+        val heap = FibonacciHeap<Vertex>()
+        //store vertices for easy search/updates
+        val nodeCollection = Array<Node<Vertex>?>(size()) { null }
+        nodeCollection[from] = heap.insert(djkTable[from])
+
+        while(to == null || !djkTable[to].visited){ //exit if we mark our destination as visited
+
+            //store and remove next node, mark as visited, break if empty
+            val currVert = heap.extractMin()?.apply{visited = true} ?: break
+
+            //iterate through potential outbound connections
+            for((i,edge) in edgeMatrix[currVert.id].withIndex()){
+
+                //relax all existing connections
+                if(edge != -1
+                    //table update required if it's unvisited, and it's the shortest path (so far)
+                    && !djkTable[i].visited && currVert.dist + edge < djkTable[i].dist){
+
+                        //update
+                        djkTable[i].dist = currVert.dist + edge
+                        djkTable[i].prevId = currVert.id
+
+                        //re-prioritize node or create and add it
+                        if (nodeCollection[i] != null)
+                            heap.decreaseKey(nodeCollection[i]!!, djkTable[i])
+                        else nodeCollection[i] = heap.insert(djkTable[i])
+                }
+            }
+
+        }
+        //create array storing id (in index), previd, and distance from src
+        return Array(djkTable.size) { i -> djkTable[i].prevId to djkTable[i].dist}
+    }
 
     //Pre-condition: If "to" is null, finds every path from "from", else only the path from "from" to "to" is accurate
     //Post-condition: A Int.MAX_VALUE in distance indicates unreachable, a -1 in Prev indicates no path

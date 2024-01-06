@@ -3,26 +3,24 @@ package com.fischerabruzese.graph
 import kotlin.random.Random
 
 fun main() {
-    for(j in 10 until 300){
-        val verts2 = Array(j){i -> i}
-        val graph2 = AMGraph(*verts2)
-        graph2.randomize(Random(249), 9)
-        val start2 = System.nanoTime()
-        for (i in verts2.indices){
-            graph2.path2(i,0)
-        }
-        print(j to "${System.nanoTime() - start2}")
-        print(",")
-    }
-    println()
-
-    for(j in 10 until 300){
+    for(j in 10 until 400){
         val verts = Array(j){i -> i}
         val graph = AMGraph(*verts)
-        graph.randomize(Random(249), 9)
+        graph.randomize(Random(69), 9)
         val start1 = System.nanoTime()
         for (i in verts.indices){
             graph.path(i,0)
+        }
+        print(j to "${System.nanoTime() - start1}")
+        print(",")
+    }
+    for(j in 10 until 400){
+        val verts = Array(j){i -> i}
+        val graph = AMGraph(*verts)
+        graph.randomize(Random(69), 9)
+        val start1 = System.nanoTime()
+        for (i in verts.indices){
+            graph.path2(i,0)
         }
         print(j to "${System.nanoTime() - start1}")
         print(",")
