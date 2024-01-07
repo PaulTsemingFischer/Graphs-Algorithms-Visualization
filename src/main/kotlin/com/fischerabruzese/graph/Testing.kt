@@ -1,33 +1,21 @@
 package com.fischerabruzese.graph
 
-import kotlin.random.Random
-
 fun main() {
-    for(j in 10 until 400){
-        val verts = Array(j){i -> i}
+    val one = ArrayList<Pair<Int, String>>()
+    val two = ArrayList<Pair<Int, String>>()
+    for(j in 1 until 100){
+        val verts = Array(250){i -> i}
         val graph = AMGraph(*verts)
-        graph.randomize(Random(69), 9)
+        graph.randomize({ Math.random() > 0.5 }, 9)
         val start1 = System.nanoTime()
-        for (i in verts.indices){
-            graph.path(i,0)
-        }
-        print(j to "${System.nanoTime() - start1}")
-        print(",")
+        for(i in 0 until 1000) graph.dijkstraFibHeap(237)
+        one.add((j to "${System.nanoTime() - start1}"))
+        val start2 = System.nanoTime()
+        for(i in 0 until 1000) graph.dijkstra(237)
+        two.add((j to "${System.nanoTime() - start2}"))
     }
-    for(j in 10 until 400){
-        val verts = Array(j){i -> i}
-        val graph = AMGraph(*verts)
-        graph.randomize(Random(69), 9)
-        val start1 = System.nanoTime()
-        for (i in verts.indices){
-            graph.path2(i,0)
-        }
-        print(j to "${System.nanoTime() - start1}")
-        print(",")
-    }
-
-
-
+    println(one.joinToString(","))
+    println(two.joinToString(","))
 
 //    val graph = AMGraph('a' ,'b','c','d')
 ////
