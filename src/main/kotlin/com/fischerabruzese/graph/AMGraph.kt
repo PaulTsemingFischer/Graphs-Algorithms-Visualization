@@ -212,6 +212,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<E>>?, weights 
      * @param from The vertex to start from.
      * @param to The vertex to end at.
      * @return The distance between the two vertices.
+     * @precondition: If "to" is null, finds every path from "from", else only the path from "from" to "to" is accurate
      */
     fun distance(from: E, to: E) : Int{
         val fromIndex = indexLookup[from]!!
@@ -281,9 +282,10 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<E>>?, weights 
         return prev.zip(dist).toTypedArray()
     }
 
-    //Pre-condition: If "to" is null, finds every path from "from", else only the path from "from" to "to" is accurate
-    //Post-condition: A Int.MAX_VALUE in distance indicates unreachable, a -1 in Prev indicates no path
-    //Post-condition: Returns an array of (previous vertex index, distance)
+    /**
+     * @precondition: If "to" is null, finds every path from "from", else only the path from "from" to "to" is accurate
+     * @return An array of (previous vertex index, distance)
+     */
     fun dijkstra(from : Int, to : Int? = null) : Array<Pair<Int, Int>> {
         val distance = IntArray(size()) { Int.MAX_VALUE }
         val prev = IntArray(size()) { -1 }
