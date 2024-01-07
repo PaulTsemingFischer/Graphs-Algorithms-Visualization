@@ -284,6 +284,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<E>>?, weights 
 
     /**
      * @precondition: If "to" is null, finds every path from "from", else only the path from "from" to "to" is accurate
+     * @postcondition: Both Int.MAX_VALUE and -1 indicates no path
      * @return An array of (previous vertex index, distance)
      */
     fun dijkstra(from : Int, to : Int? = null) : Array<Pair<Int, Int>> {
