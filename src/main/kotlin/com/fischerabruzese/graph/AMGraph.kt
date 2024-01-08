@@ -1,28 +1,51 @@
 package com.fischerabruzese.graph
 
 import java.util.LinkedList
-import java.util.PriorityQueue
-import kotlin.random.Random
 
-/* Construct a graph with outboundConnections containing:
-        outboundConnection(Source, ArrayOf(Destination, Weight))
-*/
+/**
+ * Represents a graph data structure.
+ *
+ * @param E The type of the vertices in the graph.
+ */
 class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<E>>?, weights : List<Int>) : Graph<E>() {
 
+    /**
+     * Constructs a graph containing unconnected vertices.
+     *
+     * @param vertices The vertices to add to the graph.
+     */
     constructor(vararg vertices: E) : this(
         *vertices.map { it to emptyList<E>()}.toTypedArray(), weights = emptyList<Int>()
     )
 
+    /**
+     * Constructs an empty graph.
+     */
     internal constructor() : this(
         null, weights = emptyList<Int>()
     )
 
+
     private var vertices : ArrayList<E> = ArrayList()
-    var edgeMatrix : Array<IntArray> //TODO:make this private
+
+    //TODO: make this private
+    var edgeMatrix : Array<IntArray>
+
     private val indexLookup = HashMap<E, Int>()
+
     private var dijkstraTables : Array<Array<Pair<Int, Int>>?>
+
+    /**
+     * @return The number of vertices in the graph.
+     */
     fun size() = vertices.size
 
+    /**
+     * Represents a graph data structure.
+     *
+     * @param outboundConnections A list of pairs of vertices and their outbound connections.
+     * @param weights A list of weights corresponding to the outbound connections.
+     */
     init {
         for(connections in outboundConnections){
             if(connections == null) continue
@@ -51,6 +74,11 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<E>>?, weights 
         }
     }
 
+    /**
+     * @param from The vertex to start from.
+     * @param to The vertex to end at.
+     * @return The weight of the edge between the two vertices, or null if no edge exists.
+     */
     override operator fun get(from : E, to : E ) : Int? {
         return indexLookup[from]?.let { f ->
             indexLookup[to]?.let { t ->
@@ -64,6 +92,12 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<E>>?, weights 
         else edgeMatrix[from][to]
     }
 
+    /**
+     * @param from The vertex to start from.
+     * @param to The vertex to end at.
+     * @param value The weight of the edge between the two vertices.
+     * @return The previous weight of the edge between the two vertices, or null if no edge exists.
+     */
     override operator fun set(from: E, to: E, value: Int): Int? {
         return indexLookup[from]?.let { f ->
             indexLookup[to]?.let { t ->
@@ -77,16 +111,27 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<E>>?, weights 
         return get(from, to).also { edgeMatrix[from][to] = value }
     }
 
+    /**
+     * @return An iterator over the vertices in the graph. The order is not guaranteed.
+     */
     override fun iterator(): Iterator<E> = vertices.iterator()
 
+    /**
+     * @return A set of the vertices in the graph.
+     */
     override fun getVertices(): Set<E> {
         return vertices.toSet()
     }
 
-    fun randomize(random: Random, maxWeight: Int){
+    /**
+     * Sets random connections between vertices between 0 and maxWeight.
+     * @param func A function that sets the probability of a connection being made.
+     * @param maxWeight The maximum weight of a connection.
+     */
+    fun randomize(func : () -> Boolean, maxWeight: Int){
         for(i in edgeMatrix.indices) {
             for (j in edgeMatrix.indices) {
-                if (random.nextBoolean()) {
+                if (func()) {
                     set(i, j, (1..maxWeight).random())
                 } else {
                     set(i, j, -1)
@@ -95,11 +140,18 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<E>>?, weights 
         }
     }
 
+    /**
+     * Clears all edges in the graph.
+     */
     fun clearEdges(){
         edgeMatrix = Array(size()) {IntArray(size()) {-1} }
         dijkstraTables = Array(size()){null}
     }
 
+    /**
+     * Adds a vertex to the graph.
+     * @param verts The vertices to add to the graph.
+     */
     fun add(vararg verts : E){
         for(vert in verts) indexLookup[vert] = size()
         vertices.addAll(verts)
@@ -111,6 +163,10 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<E>>?, weights 
         }
     }
 
+    /**
+     * Removes a vertex from the graph.
+     * @param removals The vertices to remove from the graph.
+     */
     fun remove(vararg removals : E){
         val vertexToRemove = Array(size()){false}
         for (vertex in removals){
@@ -139,138 +195,99 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<E>>?, weights 
         dijkstraTables = Array(size()){null}
     }
 
+    /**
+     * Finds the shortest path between two vertices.
+     * @param from The vertex to start from.
+     * @param to The vertex to end at.
+     * @return A list of vertices representing the shortest path between the two vertices.
+     */
     fun path(from: E, to: E): List<E>{
         val fromIndex = indexLookup[from]!!
         val toIndex = indexLookup[to]!!
-        return tracePath(fromIndex, toIndex, generateDijkstraTable(fromIndex)).map { vertices[it] }
+        return tracePath(fromIndex, toIndex, getDijkstraTable(fromIndex)).map { vertices[it] }
     }
 
+    /**
+     * Finds the shortest distance between two vertices.
+     * @param from The vertex to start from.
+     * @param to The vertex to end at.
+     * @return The distance between the two vertices.
+     * @precondition: If "to" is null, finds every path from "from", else only the path from "from" to "to" is accurate
+     */
     fun distance(from: E, to: E) : Int{
         val fromIndex = indexLookup[from]!!
         val toIndex = indexLookup[to]!!
-        return (generateDijkstraTable(fromIndex)) [toIndex].second
+        return (getDijkstraTable(fromIndex)) [toIndex].second
     }
 
-    fun path2(from: E, to: E): List<E>{
-        val fromIndex = indexLookup[from]!!
-        val toIndex = indexLookup[to]!!
-        return tracePath(fromIndex, toIndex, generateDijkstraTable2(fromIndex)).map { vertices[it] }
-    }
-
-    private fun generateDijkstraTable(fromIndex : Int) : Array<Pair<Int, Int>> {
-        if (dijkstraTables[fromIndex] == null) dijkstraTables[fromIndex] = dijkstra(fromIndex)
+    private fun getDijkstraTable(fromIndex : Int) : Array<Pair<Int, Int>> {
+        if (dijkstraTables[fromIndex] == null) dijkstraTables[fromIndex] = dijkstraFibHeap(fromIndex)
         return dijkstraTables[fromIndex]!!
     }
 
-    private fun generateDijkstraTable2(fromIndex : Int) : Array<Pair<Int, Int>> {
-        if (dijkstraTables[fromIndex] == null) dijkstraTables[fromIndex] = dijkstra2(fromIndex)
-        return dijkstraTables[fromIndex]!!
-    }
-
-    private fun tracePath(from: Int, to: Int, pathingTable: Array<Pair<Int, Int>>): List<Int> {
+    private fun tracePath(from: Int, to: Int, dijkstraTable: Array<Pair<Int, Int>>): List<Int> {
         val path = LinkedList<Int>()
         path.add(to)
         var curr = to
         while(path.firstOrNull() != from){
-            path.addFirst(pathingTable[curr].run {curr = first; first})
+            path.addFirst(dijkstraTable[curr].run {curr = first; first})
             if(path[0] == -1) {path.removeFirst(); break}
         }
         return path
     }
 
-    private fun dijkstra3(from : Int, to : Int? = null) : Array<Pair<Int, Int>> {
-        //initialize default values
-        data class Vertex(val id : Int, var prevId : Int, var dist : Int, var visited : Boolean) : Comparable<Vertex>{
-            override fun compareTo(other: Vertex) = this.dist.compareTo(other.dist) //visitation will be based on distances from src
-        }
+    /**
+     * Implements a Fibonacci Heap in Dijkstra's algorithm to queue vertices.
+     */
+    fun dijkstraFibHeap(from : Int, to : Int? = null) : Array<Pair<Int, Int>> {
+        //Initialize each vertex's info mapped to ids
+        val prev = IntArray(size()) { -1 }
+        val dist = IntArray(size()) { Int.MAX_VALUE }
+        val visited = BooleanArray(size()) { false }
 
-        val vlist = List(size()) { i -> Vertex(i, -1, Int.MAX_VALUE, false)}
-        vlist[from].dist = 0
-        //create a que of vertexes to visit
-        val que = PriorityQueue<Vertex>()
-        que.add(vlist[from])
+        dist[from] = 0
 
-        //var deadNodes = 0 // for analysis purposes
-        while(to == null || !vlist[to].visited){ //exit if we mark our destination as visited
-            val currVert = que.peek() ?: break //exit if we've emptied the que
+        //PriorityQueue storing Priority = dist, Value = id
+        val heap = FibonacciHeap<Int, Int>()
 
-            //if a shorter path was already found (it's a dead node in que)
-            if(currVert.visited) {
-                //deadNodes++
-                que.remove()
-                continue //continue to next iteration
-            }
+        //store Queue's nodes for easy search/updates
+        val nodeCollection = Array<Node<Int,Int>?>(size()) { null }
+        nodeCollection[from] = heap.insert(dist[from],from)
 
-            //iterate through potential outbound connections
-            for((i,edge) in edgeMatrix[currVert.id].withIndex()){
-                /* relax edge.
-                update required if: edge exists, it's unvisited, it's the shortest path (so far) */
-                if(edge != -1 && !vlist[i].visited && currVert.dist + edge < vlist[i].dist){
-                    //update
-                    vlist[i].dist = currVert.dist + edge
-                    vlist[i].prevId = currVert.id
-                    //que unvisited node
-                    que.add(vlist[i])
-                }
-            }
-
-            //remove and mark as visited
-            que.poll().visited = true
-        }
-        //println(deadNodes)
-        //create array storing id (in index), previd, and distance from src
-        return Array(vlist.size) { i -> vlist[i].prevId to vlist[i].dist}
-    }
-
-    private fun dijkstra(from : Int, to : Int? = null) : Array<Pair<Int, Int>> {
-        //initialize default values
-        data class Vertex(val id : Int, var prevId : Int, var dist : Int, var visited : Boolean) : Comparable<Vertex>{
-            override fun compareTo(other: Vertex) = this.dist.compareTo(other.dist) //visitation will be based on distances from src
-        }
-
-        //sorted by id
-        val djkTable = List(size()) { i -> Vertex(i, -1, Int.MAX_VALUE, false)}
-        djkTable[from].dist = 0
-
-        //create an order of vertexes to visit
-        val heap = FibonacciHeap<Vertex>()
-        //store vertices for easy search/updates
-        val nodeCollection = Array<Node<Vertex>?>(size()) { null }
-        nodeCollection[from] = heap.insert(djkTable[from])
-
-        while(to == null || !djkTable[to].visited){ //exit if we mark our destination as visited
+        //loop forever, or until we mark destination (to) as visited
+        while(to == null || !visited[to]){
 
             //store and remove next node, mark as visited, break if empty
-            val currVert = heap.extractMin()?.apply{visited = true} ?: break
+            val cur = heap.extractMin()?.also{visited[it] = true} ?: break
 
             //iterate through potential outbound connections
-            for((i,edge) in edgeMatrix[currVert.id].withIndex()){
+            for((i,edge) in edgeMatrix[cur].withIndex()){
 
                 //relax all existing connections
                 if(edge != -1
                     //table update required if it's unvisited, and it's the shortest path (so far)
-                    && !djkTable[i].visited && currVert.dist + edge < djkTable[i].dist){
+                    && !visited[i] && dist[cur] + edge < dist[i]){
 
-                        //update
-                        djkTable[i].dist = currVert.dist + edge
-                        djkTable[i].prevId = currVert.id
+                    //update
+                        dist[i] = dist[cur] + edge
+                        prev[i] = cur
 
                         //re-prioritize node or create and add it
                         if (nodeCollection[i] != null)
-                            heap.decreaseKey(nodeCollection[i]!!, djkTable[i])
-                        else nodeCollection[i] = heap.insert(djkTable[i])
+                            heap.decreaseKey(nodeCollection[i]!!, dist[i])
+                        else nodeCollection[i] = heap.insert(dist[i],i)
                 }
             }
-
         }
-        //create array storing id (in index), previd, and distance from src
-        return Array(djkTable.size) { i -> djkTable[i].prevId to djkTable[i].dist}
+        return prev.zip(dist).toTypedArray()
     }
 
-    //Pre-condition: If "to" is null, finds every path from "from", else only the path from "from" to "to" is accurate
-    //Post-condition: A Int.MAX_VALUE in distance indicates unreachable, a -1 in Prev indicates no path
-    //Post-condition: Returns an array of (previous vertex index, distance)
-    private fun dijkstra2(from : Int, to : Int? = null) : Array<Pair<Int, Int>> {
+    /**
+     * @precondition: If "to" is null, finds every path from "from", else only the path from "from" to "to" is accurate
+     * @postcondition: Both Int.MAX_VALUE and -1 indicates no path
+     * @return An array of (previous vertex index, distance)
+     */
+    fun dijkstra(from : Int, to : Int? = null) : Array<Pair<Int, Int>> {
         val distance = IntArray(size()) { Int.MAX_VALUE }
         val prev = IntArray(size()) { -1 }
         val visited = BooleanArray(size()) { false }
@@ -299,6 +316,9 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<E>>?, weights 
         return prev.zip(distance).toTypedArray() //funky function
     }
 
+    /**
+     * @return A string representation of the graph.
+     */
     override fun toString(): String {
         val string = StringBuilder()
         for(destinations in edgeMatrix){

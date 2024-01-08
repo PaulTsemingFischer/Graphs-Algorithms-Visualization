@@ -5,11 +5,11 @@ package com.fischerabruzese.graph
  *
  * @param V The type of the value stored in the node, must implement Comparable.
  */
-class Node<V : Comparable<V>>(var value: V) {
-    var parent: Node<V>? = null
-    var child:  Node<V>? = null
-    var prev:   Node<V>? = null
-    var next:   Node<V>? = null
+class Node<P : Comparable<P>, V>(var priority : P, var value: V) {
+    var parent: Node<P, V>? = null
+    var child:  Node<P, V>? = null
+    var prev:   Node<P, V>? = null
+    var next:   Node<P, V>? = null
     var rank = 0
     var mark = false
 
@@ -18,7 +18,7 @@ class Node<V : Comparable<V>>(var value: V) {
      *
      * @param node The node to meld with.
      */
-    fun meld1(node: Node<V>) {
+    fun meld1(node: Node<P, V>) {
         this.prev?.next = node
         node.prev = this.prev
         node.next = this
@@ -30,7 +30,7 @@ class Node<V : Comparable<V>>(var value: V) {
      *
      * @param node The node to meld with.
      */
-    fun meld2(node: Node<V>) {
+    fun meld2(node: Node<P, V>) {
         this.prev?.next = node
         node.prev?.next = this
         val temp = this.prev
@@ -39,20 +39,13 @@ class Node<V : Comparable<V>>(var value: V) {
     }
 }
 
-/**
- * Creates and returns a new Fibonacci Heap.
- *
- * @param V The type of values to be stored in the heap, must implement Comparable.
- * @return A new Fibonacci Heap instance.
- */fun <V: Comparable<V>> makeHeap() = FibonacciHeap<V>()
-
  /**
  * Represents a Fibonacci Heap data structure.
  *
  * @param V The type of values stored in the heap, must implement Comparable.
- * @property node The root node of the heap.
+ * @property minNode The root node of the heap.
  */
-class FibonacciHeap<V: Comparable<V>>(var node: Node<V>? = null) {
+class FibonacciHeap<P : Comparable<P>, V>(var minNode: Node<P, V>? = null) {
 
     /**
      * Inserts a new value into the heap and returns the corresponding node.
@@ -60,16 +53,16 @@ class FibonacciHeap<V: Comparable<V>>(var node: Node<V>? = null) {
      * @param v The value to insert.
      * @return The node containing the inserted value.
      */
-    fun insert(v: V): Node<V> {
-        val x = Node(v)
-        if (this.node == null) {
+    fun insert(priority : P, value: V): Node<P, V> {
+        val x = Node(priority, value)
+        if (this.minNode == null) {
             x.next = x
             x.prev = x
-            this.node = x
+            this.minNode = x
         }
         else {
-            this.node!!.meld1(x)
-            if (x.value < this.node!!.value) this.node = x
+            this.minNode!!.meld1(x)
+            if (x.priority < this.minNode!!.priority) this.minNode = x
         }
         return x
     }
@@ -79,15 +72,15 @@ class FibonacciHeap<V: Comparable<V>>(var node: Node<V>? = null) {
      *
      * @param other The heap to union with.
      */
-    fun union(other: FibonacciHeap<V>) {
-        if (this.node == null) {
-            this.node = other.node
+    fun union(other: FibonacciHeap<P, V>) {
+        if (this.minNode == null) {
+            this.minNode = other.minNode
         }
-        else if (other.node != null) {
-            this.node!!.meld2(other.node!!)
-            if (other.node!!.value < this.node!!.value) this.node = other.node
+        else if (other.minNode != null) {
+            this.minNode!!.meld2(other.minNode!!)
+            if (other.minNode!!.priority < this.minNode!!.priority) this.minNode = other.minNode
         }
-        other.node = null
+        other.minNode = null
     }
 
     /**
@@ -95,7 +88,7 @@ class FibonacciHeap<V: Comparable<V>>(var node: Node<V>? = null) {
      *
      * @return The minimum value in the heap.
      */
-    fun minimum(): V? = this.node?.value
+    fun minimum(): V? = this.minNode?.value
 
     /**
      * Extracts and returns the minimum value from the heap.
@@ -103,18 +96,18 @@ class FibonacciHeap<V: Comparable<V>>(var node: Node<V>? = null) {
      * @return The extracted minimum value.
      */
     fun extractMin(): V? {
-        if (this.node == null) return null
+        if (this.minNode == null) return null
         val min = minimum()
-        val roots = mutableMapOf<Int, Node<V>>()
+        val roots = mutableMapOf<Int, Node<P,V>>()
 
-        fun add(r: Node<V>) {
+        fun add(r: Node<P,V>) {
             r.prev = r
             r.next = r
             var rr = r
             while (true) {
                 var x = roots[rr.rank] ?: break
                 roots.remove(rr.rank)
-                if (x.value < rr.value) {
+                if (x.priority < rr.priority) {
                     val t = rr
                     rr = x
                     x = t
@@ -134,13 +127,13 @@ class FibonacciHeap<V: Comparable<V>>(var node: Node<V>? = null) {
             roots[rr.rank] = rr
         }
 
-        var r = this.node!!.next
-        while (r != this.node) {
+        var r = this.minNode!!.next
+        while (r != this.minNode) {
             val n = r!!.next
             add(r)
             r = n
         }
-        val c = this.node!!.child
+        val c = this.minNode!!.child
         if (c != null) {
             c.parent = null
             var rr = c.next!!
@@ -153,7 +146,7 @@ class FibonacciHeap<V: Comparable<V>>(var node: Node<V>? = null) {
             }
         }
         if (roots.isEmpty()) {
-            this.node = null
+            this.minNode = null
             return min
         }
         val d = roots.keys.first()
@@ -166,9 +159,9 @@ class FibonacciHeap<V: Comparable<V>>(var node: Node<V>? = null) {
             rr.next = mv.next
             mv.next!!.prev = rr
             mv.next = rr
-            if (rr.value < mv.value) mv = rr
+            if (rr.priority < mv.priority) mv = rr
         }
-        this.node = mv
+        this.minNode = mv
         return min
     }
 
@@ -179,21 +172,21 @@ class FibonacciHeap<V: Comparable<V>>(var node: Node<V>? = null) {
      * @param v The new value for the node.
      * @throws IllegalArgumentException if the new value is greater than the existing value.
      */
-    fun decreaseKey(n: Node<V>, v: V) {
-        require (n.value >= v) {
+    fun decreaseKey(n: Node<P, V>, newPriority: P) {
+        require (n.priority >= newPriority) {
             "In 'decreaseKey' new value greater than existing value"
         }
-        n.value = v
-        if (n == this.node) return
+        n.priority = newPriority
+        if (n == this.minNode) return
         val p = n.parent
         if (p == null) {
-            if (v < this.node!!.value) this.node = n
+            if (newPriority < this.minNode!!.priority) this.minNode = n
             return
         }
         cutAndMeld(n)
     }
 
-    private fun cut(x: Node<V>) {
+    private fun cut(x: Node<P,V>) {
         val p = x.parent
         if (p == null) return
         p.rank--
@@ -213,10 +206,10 @@ class FibonacciHeap<V: Comparable<V>>(var node: Node<V>? = null) {
         cutAndMeld(p)
     }
 
-    private fun cutAndMeld(x: Node<V>) {
+    private fun cutAndMeld(x: Node<P,V>) {
         cut(x)
         x.parent = null
-        this.node?.meld1(x)
+        this.minNode?.meld1(x)
     }
 
     /**
@@ -224,10 +217,10 @@ class FibonacciHeap<V: Comparable<V>>(var node: Node<V>? = null) {
      *
      * @param n The node to delete.
      */
-    fun delete(n: Node<V>) {
+    fun delete(n: Node<P,V>) {
         val p = n.parent
         if (p == null) {
-            if (n == this.node) {
+            if (n == this.minNode) {
                 extractMin()
                 return
             }
@@ -244,19 +237,19 @@ class FibonacciHeap<V: Comparable<V>>(var node: Node<V>? = null) {
             c = c.next
             if (c == n.child) break
         }
-        this.node?.meld2(c!!)
+        this.minNode?.meld2(c!!)
     }
 
     /**
      * Visualizes the structure of the heap.
      */
     fun visualize() {
-        if (this.node == null) {
+        if (this.minNode == null) {
             println("<empty>")
             return
         }
 
-        fun f(n: Node<V>, pre: String) {
+        fun f(n: Node<P,V>, pre: String) {
             var pc = "│ "
             var x = n
             while (true) {
@@ -278,47 +271,47 @@ class FibonacciHeap<V: Comparable<V>>(var node: Node<V>? = null) {
                 x = x.next!!
             }
         }
-        f(this.node!!, "")
+        f(this.minNode!!, "")
     }
 }
 
-fun main(args: Array<String>) {
-    println("MakeHeap:")
-    val h = makeHeap<String>()
-    h.visualize()
-
-    println("\nInsert:")
-    h.insert("cat")
-    h.visualize()
-
-    println("\nUnion:")
-    val h2 = makeHeap<String>()
-    h2.insert("rat")
-    h.union(h2)
-    h.visualize()
-
-    println("\nMinimum:")
-    var m = h.minimum()
-    println(m)
-
-    println("\nExtractMin:")
-    // add a couple more items to demonstrate parent-child linking that
-    // happens on delete min.
-    h.insert("bat")
-    val x = h.insert("meerkat")  // save x for decrease key and delete demos.
-    m = h.extractMin()
-    println("(extracted $m)")
-    h.visualize()
-
-    println("\nDecreaseKey:")
-    h.decreaseKey(x, "gnat")
-    h.visualize()
-
-    println("\nDelete:")
-    // add a couple more items.
-    h.insert("bobcat")
-    h.insert("bat")
-    println("(deleting ${x.value})")
-    h.delete(x)
-    h.visualize()
-}
+//fun main(args: Array<String>) {
+//    println("MakeHeap:")
+//    val h = makeHeap<String>()
+//    h.visualize()
+//
+//    println("\nInsert:")
+//    h.insert("cat")
+//    h.visualize()
+//
+//    println("\nUnion:")
+//    val h2 = makeHeap<String>()
+//    h2.insert("rat")
+//    h.union(h2)
+//    h.visualize()
+//
+//    println("\nMinimum:")
+//    var m = h.minimum()
+//    println(m)
+//
+//    println("\nExtractMin:")
+//    // add a couple more items to demonstrate parent-child linking that
+//    // happens on delete min.
+//    h.insert("bat")
+//    val x = h.insert("meerkat")  // save x for decrease key and delete demos.
+//    m = h.extractMin()
+//    println("(extracted $m)")
+//    h.visualize()
+//
+//    println("\nDecreaseKey:")
+//    h.decreaseKey(x, "gnat")
+//    h.visualize()
+//
+//    println("\nDelete:")
+//    // add a couple more items.
+//    h.insert("bobcat")
+//    h.insert("bat")
+//    println("(deleting ${x.value})")
+//    h.delete(x)
+//    h.visualize()
+//}

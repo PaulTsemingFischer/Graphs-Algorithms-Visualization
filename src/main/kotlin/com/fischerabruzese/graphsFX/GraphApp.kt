@@ -20,7 +20,7 @@ class GraphApp : Application() {
 
 //        val graph = AMGraph(*verts)
         val graph = AMGraph('a' ,'b','c','d', 'e', 'f', 'g')
-        graph.randomize(Random(249), 9)
+        graph.randomize({Random.nextBoolean()}, 9)
         controller.graphInit(graph)
         for(edge in graph.edgeMatrix){
             for(weight in edge){
