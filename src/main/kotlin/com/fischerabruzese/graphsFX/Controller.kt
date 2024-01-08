@@ -16,6 +16,7 @@ import javafx.scene.paint.Color
 import javafx.scene.shape.Circle
 import javafx.scene.shape.Line
 import javafx.scene.shape.Polygon
+import kotlin.math.*
 
 class Controller<E: Any> {
     @FXML
@@ -70,7 +71,6 @@ class Controller<E: Any> {
         pane.children.addAll(edgeElements)
         pane.children.addAll(verticesElements)
         pane.children.addAll(hitboxes)
-        for(edge in edgeElements) edge.initialize()
     }
 
 
@@ -82,17 +82,17 @@ class Controller<E: Any> {
 
     @FXML
     private fun editEdgePressed() {
-        val from = stringToEMap[fromVertexField.text]!!
-        val to = stringToEMap[toVertexField.text]!!
-        val weight = weightField.text
-        graph[from, to] = weight.toInt()
-        for(edge in edges){
-            if(edge.checkMatch(from, to)){
-                edge.setLabelWeight(weight, true)
-            } else if(edge.checkMatch(to, from)){
-                edge.setLabelWeight(weight, false)
-            }
-        }
+//        val from = stringToEMap[fromVertexField.text]!!
+//        val to = stringToEMap[toVertexField.text]!!
+//        val weight = weightField.text
+//        graph[from, to] = weight.toInt()
+//        for(edge in edges){
+//            if(edge.checkMatch(from, to)){
+//                edge.setLabelWeight(weight, true)
+//            } else if(edge.checkMatch(to, from)){
+//                edge.setLabelWeight(weight, false)
+//            }
+//        }
     }
 
 
@@ -213,12 +213,25 @@ class Controller<E: Any> {
 
         inner class Arrow(fromVertex : Vertex, toVertex : Vertex, weight: Int, isOutbounds: Boolean) : Pane() {
             private val line = Line()
+//            private val director1 = Director()
+//            private val director2 = Director()
             private var label = Label(weight.toString())
             init{
-                line.startXProperty().bind(fromVertex.vtranslateXProperty.add(inverseSlope().multiply(if(isOutbounds) 1 else -1).multiply(CIRCLE_RADIUS).divide(2)))
-                line.startYProperty().bind(fromVertex.vtranslateYProperty)
-                line.endXProperty().bind(toVertex.vtranslateXProperty)
-                line.endYProperty().bind(toVertex.vtranslateYProperty)
+
+                //could be a source of error
+                val xPart = Bindings.createDoubleBinding(
+                    { (CIRCLE_RADIUS / 4.0) * (sin( atan( slope().get() ) )) },
+                    slope()
+                )
+                val yPart = Bindings.createDoubleBinding(
+                    { (CIRCLE_RADIUS / 4.0) * (cos( atan( slope().get() ) )) },
+                    slope()
+                )
+
+                line.startXProperty().bind(fromVertex.vtranslateXProperty.add(xPart))
+                line.startYProperty().bind(fromVertex.vtranslateYProperty.add(yPart))
+                line.endXProperty().bind(toVertex.vtranslateXProperty.add(xPart))
+                line.endYProperty().bind(toVertex.vtranslateYProperty.add(yPart))
 
                 label.translateXProperty().bind(line.startXProperty().add(line.endXProperty()).divide(2))
                 label.translateYProperty().bind(line.startYProperty().add(line.endYProperty()).divide(2))
@@ -226,16 +239,44 @@ class Controller<E: Any> {
                 children.addAll(line, label)
             }
 
+
             private fun inverseSlope(): DoubleBinding {
-                return Bindings.createDoubleBinding(
-                    { (line.endXProperty().get() - line.startXProperty().get()) / (line.endYProperty().get() - line.startYProperty().get()) },
-                    line.startXProperty(),
-                    line.startYProperty(),
-                    line.endXProperty(),
-                    line.endYProperty()
-                )
+                return (line.endXProperty().subtract(line.startXProperty())).divide((line.endYProperty().subtract(line.startYProperty())))
             }
-        }
+
+            private fun slope(): DoubleBinding {
+                return (line.endYProperty().subtract(line.startYProperty())).divide((line.endXProperty().subtract(line.startXProperty())))
+            }
+
+//            inner class Director(startX : DoubleBinding, startY : DoubleBinding) {
+//                private val line1 = Line()
+//                private val line2 = Line()
+//
+//                init {
+//                    line1.startXProperty().bind(startX)
+//                    line1.startYProperty().bind(startY)
+//
+//                    val xPart = Bindings.createDoubleBinding(
+//                        { (CIRCLE_RADIUS / 4.0) * (sin( atan( slope().get() ) )) },
+//                        slope()
+//                    )
+//                    val yPart = Bindings.createDoubleBinding(
+//                        { (CIRCLE_RADIUS / 4.0) * (cos( atan( slope().get() ) )) },
+//                        slope()
+//                    )
+//
+//                    line1.endXProperty().bind(startX.add(10).multiply(xDirection))
+//                    line1.endYProperty().bind(startY.add(10).multiply(yDirection))
+//
+//                    line2.startXProperty().bind(startX)
+//                    line2.startYProperty().bind(startY)
+//                    line2.endXProperty().bind(startX.add(10))
+//                    line2.endYProperty().bind(startY.add(-10))
+//
+//                    children.addAll(line1, line2)
+//                }
+//            }
+//        }
 
 //        init{
 //            //Initializing triangles
@@ -330,6 +371,6 @@ class Controller<E: Any> {
 //                point3.first, point3.second
 //            )
 //            println(triangle.points)
-//        }
-//    }
+        }
+    }
 }
