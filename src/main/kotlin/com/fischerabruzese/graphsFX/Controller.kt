@@ -202,104 +202,133 @@ class Controller<E: Any> {
         }
     }
     inner class Edge(private val from : Vertex, private val to : Vertex, outBoundWeight : Int, inBoundWeight: Int) : Pane() {
-        private val outBound = Polygon()
-        private val inBound = Polygon()
-        private var outBoundLabel = Label(outBoundWeight.toString())
-        private var inBoundLabel = Label(outBoundWeight.toString())
+//        private val outBound = Line()
+//        private val inBound = Line()
+//        private var outBoundLabel = Label(outBoundWeight.toString())
+//        private var inBoundLabel = Label(outBoundWeight.toString())
 
-        init{
-            //Initializing triangles
-            outBound.fill = Color.BLACK
-            inBound.fill = Color.BLACK
+        private val Arrow1 = Arrow(from, to, outBoundWeight, true)
+        private val Arrow2 = Arrow(to, from, inBoundWeight, false)
 
-            //Initializing labels
-            outBoundLabel.textFill = Color.BLACK
-            inBoundLabel.textFill = Color.BLACK
+        inner class Arrow(fromVertex : Vertex, toVertex : Vertex, weight: Int, isOutbounds: Boolean) : Pane() {
+            private val line = Line()
+            private var label = Label(weight.toString())
+            init{
+                line.startXProperty().bind(fromVertex.vtranslateXProperty.add(inverseSlope().multiply(if(isOutbounds) 1 else -1).multiply(CIRCLE_RADIUS).divide(2)))
+                line.startYProperty().bind(fromVertex.vtranslateYProperty)
+                line.endXProperty().bind(toVertex.vtranslateXProperty)
+                line.endYProperty().bind(toVertex.vtranslateYProperty)
 
-            //Binding triangle vertices and labels
-                //Outbound
-            from.vtranslateXProperty.addListener {_ ->updateTrianglePoints(true); updateLabelPosition(outBoundLabel) }
-            from.vtranslateXProperty.addListener {_ -> updateTrianglePoints(true); updateLabelPosition(outBoundLabel) }
+                label.translateXProperty().bind(line.startXProperty().add(line.endXProperty()).divide(2))
+                label.translateYProperty().bind(line.startYProperty().add(line.endYProperty()).divide(2))
 
-            to.vtranslateXProperty.addListener {_ -> updateTrianglePoints(true); updateLabelPosition(outBoundLabel) }
-            to.vtranslateXProperty.addListener {_ -> updateTrianglePoints(true); updateLabelPosition(outBoundLabel) }
+                children.addAll(line, label)
+            }
 
-                //Inbound
-            from.vtranslateXProperty.addListener {_ -> updateTrianglePoints(false); updateLabelPosition(inBoundLabel) }
-            from.vtranslateXProperty.addListener {_ -> updateTrianglePoints(false); updateLabelPosition(inBoundLabel) }
-
-            to.vtranslateXProperty.addListener {_ -> updateTrianglePoints(false); updateLabelPosition(inBoundLabel) }
-            to.vtranslateXProperty.addListener {_ -> updateTrianglePoints(false); updateLabelPosition(inBoundLabel) }
-
-            children.addAll(outBound, inBound, outBoundLabel, inBoundLabel)
-        }
-
-        fun initialize() {
-            updateTrianglePoints(true)
-            updateTrianglePoints(false)
-            updateLabelPosition(outBoundLabel)
-            updateLabelPosition(inBoundLabel)
-        }
-
-        fun checkMatch(from: E, to: E): Boolean = this.from.name.also{println(it)} == from.toString().also{println(it)} && this.to.name == to.toString()
-
-        fun setLabelColor(color: Color){
-            outBoundLabel.textFill = color
-            inBoundLabel.textFill = color
-        }
-
-        fun setLabelWeight(weight: String, isOutbounds: Boolean){
-            if(isOutbounds) outBoundLabel.text = weight
-            else inBoundLabel.text = weight
-        }
-
-        fun setTriangleColor(color: Color, isOutbounds: Boolean){
-            if(isOutbounds) outBound.fill = color
-            else inBound.fill = color
-        }
-
-        //Label helper methods
-        private fun updateLabelPosition(label: Label){
-            val midpoint = calculateMidpoint(outBound)
-            label.translateX = midpoint.first
-            label.translateY = midpoint.second
-        }
-
-        private fun calculateMidpoint(polygon: Polygon): Pair<Double, Double> {
-            val xSum = polygon.points.subList(0, polygon.points.size / 2).sum()
-            val ySum = polygon.points.subList(polygon.points.size / 2, polygon.points.size).sum()
-
-            val xMidpoint = xSum / (polygon.points.size / 2)
-            val yMidpoint = ySum / (polygon.points.size / 2)
-
-            return Pair(xMidpoint, yMidpoint)
-        }
-
-        //Triangle helper methods
-        private fun updateTrianglePoints(isOutbounds: Boolean){
-            println("From: ${from.vtranslateXProperty.get()} ${from.vtranslateYProperty.get()}")
-            println("To: ${to.vtranslateXProperty.get()} ${to.vtranslateYProperty.get()}")
-            if(isOutbounds){
-                updateTrianglePoints(outBound,
-                    from.vtranslateXProperty.get() to from.vtranslateYProperty.get(),
-                    from.vtranslateXProperty.get() + CIRCLE_RADIUS/2 to from.vtranslateYProperty.get() + CIRCLE_RADIUS/2,
-                    to.vtranslateXProperty.get() + CIRCLE_RADIUS/2 to to.vtranslateYProperty.get() + CIRCLE_RADIUS/2)
-            } else {
-                updateTrianglePoints(inBound,
-                    to.vtranslateXProperty.get() to to.vtranslateYProperty.get(),
-                    to.vtranslateXProperty.get() - CIRCLE_RADIUS/2 to to.vtranslateYProperty.get() - CIRCLE_RADIUS/2,
-                    from.vtranslateXProperty.get() - CIRCLE_RADIUS/2 to from.vtranslateYProperty.get() - CIRCLE_RADIUS/2)
+            private fun inverseSlope(): DoubleBinding {
+                return Bindings.createDoubleBinding(
+                    { (line.endXProperty().get() - line.startXProperty().get()) / (line.endYProperty().get() - line.startYProperty().get()) },
+                    line.startXProperty(),
+                    line.startYProperty(),
+                    line.endXProperty(),
+                    line.endYProperty()
+                )
             }
         }
 
-        private fun updateTrianglePoints(triangle: Polygon, point1: Pair<Double, Double>, point2: Pair<Double, Double>, point3: Pair<Double, Double>) {
-            triangle.points.clear()
-            triangle.points.addAll(
-                point1.first, point1.second,
-                point2.first, point2.second,
-                point3.first, point3.second
-            )
-            println(triangle.points)
-        }
-    }
+//        init{
+//            //Initializing triangles
+//            outBound.stroke = Color.BLACK
+//            inBound.stroke = Color.BLACK
+//
+//            //Initializing labels
+//            outBoundLabel.textFill = Color.BLACK
+//            inBoundLabel.textFill = Color.BLACK
+//
+//            //Binding triangle vertices and labels
+//                //Outbound
+//            from.vtranslateXProperty.addListener {_ ->updateTrianglePoints(true); updateLabelPosition(outBoundLabel) }
+//            from.vtranslateXProperty.addListener {_ -> updateTrianglePoints(true); updateLabelPosition(outBoundLabel) }
+//
+//            to.vtranslateXProperty.addListener {_ -> updateTrianglePoints(true); updateLabelPosition(outBoundLabel) }
+//            to.vtranslateXProperty.addListener {_ -> updateTrianglePoints(true); updateLabelPosition(outBoundLabel) }
+//
+//                //Inbound
+//            from.vtranslateXProperty.addListener {_ -> updateTrianglePoints(false); updateLabelPosition(inBoundLabel) }
+//            from.vtranslateXProperty.addListener {_ -> updateTrianglePoints(false); updateLabelPosition(inBoundLabel) }
+//
+//            to.vtranslateXProperty.addListener {_ -> updateTrianglePoints(false); updateLabelPosition(inBoundLabel) }
+//            to.vtranslateXProperty.addListener {_ -> updateTrianglePoints(false); updateLabelPosition(inBoundLabel) }
+//
+//            children.addAll(outBound, inBound, outBoundLabel, inBoundLabel)
+//        }
+//
+//        fun initialize() {
+//            updateTrianglePoints(true)
+//            updateTrianglePoints(false)
+//            updateLabelPosition(outBoundLabel)
+//            updateLabelPosition(inBoundLabel)
+//        }
+//
+//        fun checkMatch(from: E, to: E): Boolean = this.from.name.also{println(it)} == from.toString().also{println(it)} && this.to.name == to.toString()
+//
+//        fun setLabelColor(color: Color){
+//            outBoundLabel.textFill = color
+//            inBoundLabel.textFill = color
+//        }
+//
+//        fun setLabelWeight(weight: String, isOutbounds: Boolean){
+//            if(isOutbounds) outBoundLabel.text = weight
+//            else inBoundLabel.text = weight
+//        }
+//
+//        fun setTriangleColor(color: Color, isOutbounds: Boolean){
+//            if(isOutbounds) outBound.fill = color
+//            else inBound.fill = color
+//        }
+//
+//        //Label helper methods
+//        private fun updateLabelPosition(label: Label){
+//            val midpoint = calculateMidpoint(outBound)
+//            label.translateX = midpoint.first
+//            label.translateY = midpoint.second
+//        }
+//
+//        private fun calculateMidpoint(polygon: Polygon): Pair<Double, Double> {
+//            val xSum = polygon.points.subList(0, polygon.points.size / 2).sum()
+//            val ySum = polygon.points.subList(polygon.points.size / 2, polygon.points.size).sum()
+//
+//            val xMidpoint = xSum / (polygon.points.size / 2)
+//            val yMidpoint = ySum / (polygon.points.size / 2)
+//
+//            return Pair(xMidpoint, yMidpoint)
+//        }
+//
+//        //Triangle helper methods
+//        private fun updateTrianglePoints(isOutbounds: Boolean){
+//            println("From: ${from.vtranslateXProperty.get()} ${from.vtranslateYProperty.get()}")
+//            println("To: ${to.vtranslateXProperty.get()} ${to.vtranslateYProperty.get()}")
+//            if(isOutbounds){
+//                updateTrianglePoints(outBound,
+//                    from.vtranslateXProperty.get() to from.vtranslateYProperty.get(),
+//                    from.vtranslateXProperty.get() + CIRCLE_RADIUS/2 to from.vtranslateYProperty.get() + CIRCLE_RADIUS/2,
+//                    to.vtranslateXProperty.get() + CIRCLE_RADIUS/2 to to.vtranslateYProperty.get() + CIRCLE_RADIUS/2)
+//            } else {
+//                updateTrianglePoints(inBound,
+//                    to.vtranslateXProperty.get() to to.vtranslateYProperty.get(),
+//                    to.vtranslateXProperty.get() - CIRCLE_RADIUS/2 to to.vtranslateYProperty.get() - CIRCLE_RADIUS/2,
+//                    from.vtranslateXProperty.get() - CIRCLE_RADIUS/2 to from.vtranslateYProperty.get() - CIRCLE_RADIUS/2)
+//            }
+//        }
+//
+//        private fun updateTrianglePoints(triangle: Polygon, point1: Pair<Double, Double>, point2: Pair<Double, Double>, point3: Pair<Double, Double>) {
+//            triangle.points.clear()
+//            triangle.points.addAll(
+//                point1.first, point1.second,
+//                point2.first, point2.second,
+//                point3.first, point3.second
+//            )
+//            println(triangle.points)
+//        }
+//    }
 }
