@@ -217,17 +217,29 @@ class Controller<E: Any> {
 //            private val director2 = Director()
             private var label = Label(weight.toString())
             init{
-
+                //Debugging (print me stuff about the line plz)
+                println("Line: ${line.startXProperty().get()} - ${line.startYProperty().get()} || ${line.endXProperty().get()} - ${line.endYProperty().get()}")
                 //could be a source of error
+
                 val xPart = Bindings.createDoubleBinding(
-                    { (CIRCLE_RADIUS / 4.0) * (sin( atan( slope().get() ) )) },
-                    slope()
+                    { (CIRCLE_RADIUS / 4.0) * (sin( atan( (
+                            line.endYProperty().
+                            subtract(
+                                line.startYProperty())).
+                    divide(
+                        (line.
+                        endXProperty().
+                        subtract(
+                            line.
+                            startXProperty())
+                                )).
+                    get() ) )) },
+                    line.endYProperty(), line.startYProperty(), line.endXProperty(), line.startXProperty()
                 )
                 val yPart = Bindings.createDoubleBinding(
-                    { (CIRCLE_RADIUS / 4.0) * (cos( atan( slope().get() ) )) },
-                    slope()
+                    { (CIRCLE_RADIUS / 4.0) * (cos( atan( (line.endYProperty().subtract(line.startYProperty())).divide((line.endXProperty().subtract(line.startXProperty()))).get() ) )) },
+                    line.endYProperty(), line.startYProperty(), line.endXProperty(), line.startXProperty()
                 )
-
                 line.startXProperty().bind(fromVertex.vtranslateXProperty.add(xPart))
                 line.startYProperty().bind(fromVertex.vtranslateYProperty.add(yPart))
                 line.endXProperty().bind(toVertex.vtranslateXProperty.add(xPart))
@@ -239,14 +251,6 @@ class Controller<E: Any> {
                 children.addAll(line, label)
             }
 
-
-            private fun inverseSlope(): DoubleBinding {
-                return (line.endXProperty().subtract(line.startXProperty())).divide((line.endYProperty().subtract(line.startYProperty())))
-            }
-
-            private fun slope(): DoubleBinding {
-                return (line.endYProperty().subtract(line.startYProperty())).divide((line.endXProperty().subtract(line.startXProperty())))
-            }
 
 //            inner class Director(startX : DoubleBinding, startY : DoubleBinding) {
 //                private val line1 = Line()
