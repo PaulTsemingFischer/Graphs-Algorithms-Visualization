@@ -15,7 +15,6 @@ import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.shape.Circle
 import javafx.scene.shape.Line
-import javafx.scene.shape.Polygon
 import kotlin.math.*
 
 class Controller<E: Any> {
@@ -203,84 +202,80 @@ class Controller<E: Any> {
         }
     }
     inner class Edge(private val from : Vertex, private val to : Vertex, outBoundWeight : Int, inBoundWeight: Int) : Pane() {
-//        private val outBound = Line()
-//        private val inBound = Line()
-//        private var outBoundLabel = Label(outBoundWeight.toString())
-//        private var inBoundLabel = Label(outBoundWeight.toString())
+        private val outbound = Arrow(from, to, outBoundWeight, true)
+        private val inbound = Arrow(to, from, inBoundWeight, false)
 
-        private val Arrow1 = Arrow(from, to, outBoundWeight, true)
-        private val Arrow2 = Arrow(to, from, inBoundWeight, false)
-
-        inner class Arrow(fromVertex : Vertex, toVertex : Vertex, weight: Int, isOutbounds: Boolean) : Pane() {
+        inner class Arrow(fromVertex : Vertex, toVertex : Vertex, weight: Int, isOutbound : Boolean) : Pane() {
             private val line = Line()
-//            private val director1 = Director()
-//            private val director2 = Director()
+            private lateinit var director1 : Director
+            private lateinit var director2 : Director
             private var label = Label(weight.toString())
+
             init{
-                //Debugging (print me stuff about the line plz)
-                println("Line: ${line.startXProperty().get()} - ${line.startYProperty().get()} || ${line.endXProperty().get()} - ${line.endYProperty().get()}")
-                //could be a source of error
+                val dyTotal = to.vtranslateYProperty.subtract(from.vtranslateYProperty)
+                val dxTotal = to.vtranslateXProperty.subtract(from.vtranslateXProperty)
 
-                val xPart = Bindings.createDoubleBinding(
-                    { (CIRCLE_RADIUS / 4.0) * (sin( atan( (
-                            line.endYProperty().
-                            subtract(
-                                line.startYProperty())).
-                    divide(
-                        (line.
-                        endXProperty().
-                        subtract(
-                            line.
-                            startXProperty())
-                                )).
-                    get() ) )) },
-                    line.endYProperty(), line.startYProperty(), line.endXProperty(), line.startXProperty()
+                val length = Bindings.createDoubleBinding(
+                    {sqrt( dyTotal.get().pow(2) + dxTotal.get().pow(2) )},
+                    dyTotal, dxTotal
                 )
-                val yPart = Bindings.createDoubleBinding(
-                    { (CIRCLE_RADIUS / 4.0) * (cos( atan( (line.endYProperty().subtract(line.startYProperty())).divide((line.endXProperty().subtract(line.startXProperty()))).get() ) )) },
-                    line.endYProperty(), line.startYProperty(), line.endXProperty(), line.startXProperty()
-                )
-                line.startXProperty().bind(fromVertex.vtranslateXProperty.add(xPart))
-                line.startYProperty().bind(fromVertex.vtranslateYProperty.add(yPart))
-                line.endXProperty().bind(toVertex.vtranslateXProperty.add(xPart))
-                line.endYProperty().bind(toVertex.vtranslateYProperty.add(yPart))
 
-                label.translateXProperty().bind(line.startXProperty().add(line.endXProperty()).divide(2))
-                label.translateYProperty().bind(line.startYProperty().add(line.endYProperty()).divide(2))
+                val dy = dxTotal.multiply(CIRCLE_RADIUS/4).divide(length)
+                val dx = dyTotal.multiply(CIRCLE_RADIUS/4).divide(length)
 
-                children.addAll(line, label)
+                line.startXProperty().bind(from.vtranslateXProperty.add(dx.apply { if(!isOutbound) multiply(-1) }))
+                line.startYProperty().bind(from.vtranslateYProperty.add(dy.apply { if(!isOutbound) multiply(-1) }))
+                line.endXProperty().bind(to.vtranslateXProperty.add(dx.apply { if(!isOutbound) multiply(-1) }))
+                line.endYProperty().bind(to.vtranslateYProperty.add(dy.apply { if(!isOutbound) multiply(-1) }))
+
+                director1 = Director(line.startXProperty().add(length.multiply(0.33)), line.startYProperty().add(length.multiply(0.33)))
+                director2 = Director(line.startXProperty().add(length.multiply(0.66)), line.startYProperty().add(length.multiply(0.66)))
+
+                children.addAll(line, label, director1, director2)
             }
 
+            inner class Director(startposX : DoubleBinding, startposY : DoubleBinding) : javafx.scene.Node() {
+                private val line1 = Line()
+                private val line2 = Line()
 
-//            inner class Director(startX : DoubleBinding, startY : DoubleBinding) {
-//                private val line1 = Line()
-//                private val line2 = Line()
-//
-//                init {
-//                    line1.startXProperty().bind(startX)
-//                    line1.startYProperty().bind(startY)
-//
-//                    val xPart = Bindings.createDoubleBinding(
-//                        { (CIRCLE_RADIUS / 4.0) * (sin( atan( slope().get() ) )) },
-//                        slope()
-//                    )
-//                    val yPart = Bindings.createDoubleBinding(
-//                        { (CIRCLE_RADIUS / 4.0) * (cos( atan( slope().get() ) )) },
-//                        slope()
-//                    )
-//
-//                    line1.endXProperty().bind(startX.add(10).multiply(xDirection))
-//                    line1.endYProperty().bind(startY.add(10).multiply(yDirection))
-//
-//                    line2.startXProperty().bind(startX)
-//                    line2.startYProperty().bind(startY)
-//                    line2.endXProperty().bind(startX.add(10))
-//                    line2.endYProperty().bind(startY.add(-10))
-//
-//                    children.addAll(line1, line2)
-//                }
-//            }
-//        }
+                init {
+                    line1.startXProperty().bind(startposX)
+                    line1.startYProperty().bind(startposY)
+                    line2.startXProperty().bind(startposX)
+                    line2.startYProperty().bind(startposY)
+
+                    val dyTotal = to.vtranslateYProperty.subtract(from.vtranslateYProperty)
+                    val dxTotal = to.vtranslateXProperty.subtract(from.vtranslateXProperty)
+
+                    val theta = Bindings.createDoubleBinding(
+                        { atan2(dyTotal.get(), dxTotal.get()) * 180 / PI },
+                        dyTotal, dxTotal
+                    )
+
+                    val dx = Bindings.createDoubleBinding(
+                        { CIRCLE_RADIUS * cos(theta.get() + 45) },
+                        theta
+                    )
+                    val dy = Bindings.createDoubleBinding(
+                        { CIRCLE_RADIUS * sin(theta.get() + 45) },
+                        theta
+                    )
+
+
+                    val endx1 = startposX.add(dx)
+                    val endy1 = startposY.add(dy)
+                    val endx2 = startposX.subtract(dx)
+                    val endy2 = startposY.subtract(dy)
+
+                    line1.endXProperty().bind(endx1)
+                    line1.endYProperty().bind(endy1)
+                    line2.endXProperty().bind(endx2)
+                    line2.endYProperty().bind(endy2)
+
+                    children.addAll(line1, line2)
+                }
+            }
+        }
 
 //        init{
 //            //Initializing triangles
@@ -375,6 +370,5 @@ class Controller<E: Any> {
 //                point3.first, point3.second
 //            )
 //            println(triangle.points)
-        }
     }
 }
