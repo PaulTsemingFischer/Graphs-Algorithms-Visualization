@@ -201,14 +201,18 @@ class Controller<E: Any> {
             ypos.set(y)
         }
     }
-    inner class Edge(private val from : Vertex, private val to : Vertex, outBoundWeight : Int, inBoundWeight: Int) : Pane() {
-        private val outbound = Arrow(from, to, outBoundWeight, true)
-        private val inbound = Arrow(to, from, inBoundWeight, false)
+    inner class Edge(private val v1 : Vertex, private val v2 : Vertex, outBoundWeight : Int, inBoundWeight: Int) : Pane() {
+        private val outbound = Connection(v1, v2, outBoundWeight, true)
+        private val inbound = Connection(v2, v1, inBoundWeight, false)
 
-        inner class Arrow(fromVertex : Vertex, toVertex : Vertex, weight: Int, isOutbound : Boolean) : Pane() {
+        init {
+            //TODO
+        }
+
+        inner class Connection(from : Vertex, to : Vertex, weight: Int, isOutbound : Boolean) : Pane() {
             private val line = Line()
-            private lateinit var director1 : Director
-            private lateinit var director2 : Director
+            private var director1 : Director
+            private var director2 : Director
             private var label = Label(weight.toString())
 
             init{
@@ -244,8 +248,8 @@ class Controller<E: Any> {
                     line2.startXProperty().bind(startposX)
                     line2.startYProperty().bind(startposY)
 
-                    val dyTotal = to.vtranslateYProperty.subtract(from.vtranslateYProperty)
-                    val dxTotal = to.vtranslateXProperty.subtract(from.vtranslateXProperty)
+                    val dyTotal = v2.vtranslateYProperty.subtract(v1.vtranslateYProperty)
+                    val dxTotal = v2.vtranslateXProperty.subtract(v1.vtranslateXProperty)
 
                     val theta = Bindings.createDoubleBinding(
                         { atan2(dyTotal.get(), dxTotal.get()) * 180 / PI },
@@ -261,16 +265,15 @@ class Controller<E: Any> {
                         theta
                     )
 
+                    val endX1 = startposX.add(dx)
+                    val endY1 = startposY.add(dy)
+                    val endX2 = startposX.subtract(dx)
+                    val endY2 = startposY.subtract(dy)
 
-                    val endx1 = startposX.add(dx)
-                    val endy1 = startposY.add(dy)
-                    val endx2 = startposX.subtract(dx)
-                    val endy2 = startposY.subtract(dy)
-
-                    line1.endXProperty().bind(endx1)
-                    line1.endYProperty().bind(endy1)
-                    line2.endXProperty().bind(endx2)
-                    line2.endYProperty().bind(endy2)
+                    line1.endXProperty().bind(endX1)
+                    line1.endYProperty().bind(endY1)
+                    line2.endXProperty().bind(endX2)
+                    line2.endYProperty().bind(endY2)
 
                     children.addAll(line1, line2)
                 }
