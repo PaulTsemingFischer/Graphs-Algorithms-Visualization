@@ -116,8 +116,8 @@ class Controller<E: Any> {
         private var xpos : DoubleProperty = SimpleDoubleProperty(x)
         private var ypos : DoubleProperty = SimpleDoubleProperty(y)
 
-        var vtranslateXProperty : DoubleBinding = paneWidth.multiply(xpos).multiply(usablePercentPaneWidth)
-        var vtranslateYProperty : DoubleBinding = paneHeight.multiply(ypos).multiply(usablePercentPaneHeight)
+        var vtranslateXProperty : DoubleBinding = paneWidth.multiply(xpos).multiply(usablePercentPaneWidth).add(CIRCLE_RADIUS)
+        var vtranslateYProperty : DoubleBinding = paneHeight.multiply(ypos).multiply(usablePercentPaneHeight).add(CIRCLE_RADIUS)
 
         //Dragging
         private var xDelta : Double = 0.0
@@ -125,12 +125,12 @@ class Controller<E: Any> {
 
         init{
             //Circle
-            circle.translateXProperty().bind(vtranslateXProperty)
-            circle.translateYProperty().bind(vtranslateYProperty)
+            circle.translateXProperty().bind(vtranslateXProperty.subtract(CIRCLE_RADIUS))
+            circle.translateYProperty().bind(vtranslateYProperty.subtract(CIRCLE_RADIUS))
 
             //Label
-            label.translateXProperty().bind(vtranslateXProperty)
-            label.translateYProperty().bind(vtranslateYProperty)
+            label.translateXProperty().bind(vtranslateXProperty.subtract(CIRCLE_RADIUS))
+            label.translateYProperty().bind(vtranslateYProperty.subtract(CIRCLE_RADIUS))
 
             label.textFill = Color.WHITE
 
@@ -138,8 +138,8 @@ class Controller<E: Any> {
             hitbox.translateXProperty().bind(vtranslateXProperty)
             hitbox.translateYProperty().bind(vtranslateYProperty)
 
-            hitbox.centerX = CIRCLE_RADIUS
-            hitbox.centerY = CIRCLE_RADIUS
+//            hitbox.centerX = CIRCLE_RADIUS
+//            hitbox.centerY = CIRCLE_RADIUS
 
                 //Listeners
             hitbox.setOnMouseEntered { circle.fill = Color.GREEN }
@@ -209,7 +209,7 @@ class Controller<E: Any> {
             children.addAll(outbound, inbound)
         }
 
-        inner class Connection(from : Vertex, to : Vertex, weight: Int, isOutbound : Boolean) : StackPane() {
+        inner class Connection(from : Vertex, to : Vertex, weight: Int, isOutbound : Boolean) : Pane() {
             private val line = Line()
             private var director1 : Director
             private var director2 : Director
