@@ -201,15 +201,15 @@ class Controller<E: Any> {
             ypos.set(y)
         }
     }
-    inner class Edge(private val v1 : Vertex, private val v2 : Vertex, outBoundWeight : Int, inBoundWeight: Int) : Pane() {
+    inner class Edge(private val v1 : Vertex, private val v2 : Vertex, outBoundWeight : Int, inBoundWeight: Int) : StackPane() {
         private val outbound = Connection(v1, v2, outBoundWeight, true)
         private val inbound = Connection(v2, v1, inBoundWeight, false)
 
         init {
-            //TODO
+            children.addAll(outbound, inbound)
         }
 
-        inner class Connection(from : Vertex, to : Vertex, weight: Int, isOutbound : Boolean) : Pane() {
+        inner class Connection(from : Vertex, to : Vertex, weight: Int, isOutbound : Boolean) : StackPane() {
             private val line = Line()
             private var director1 : Director
             private var director2 : Director
@@ -238,7 +238,7 @@ class Controller<E: Any> {
                 children.addAll(line, label, director1, director2)
             }
 
-            inner class Director(startposX : DoubleBinding, startposY : DoubleBinding) : javafx.scene.Node() {
+            inner class Director(startposX : DoubleBinding, startposY : DoubleBinding) : Pane() {
                 private val line1 = Line()
                 private val line2 = Line()
 
