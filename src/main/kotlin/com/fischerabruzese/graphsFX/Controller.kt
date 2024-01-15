@@ -166,17 +166,6 @@ class Controller<E: Any> {
         fun setColor(color: Color) {
             circle.fill = color
         }
-
-//        fun getCenterX() : DoubleBinding {
-//            return circle.translateXProperty().add(circle.radiusProperty())
-//        }
-//        fun getCenterY() : DoubleBinding {
-//            return circle.translateYProperty().add(circle.radiusProperty())
-//        }
-//        fun move(x: Double, y: Double){
-//            xpos.set(x)
-//            ypos.set(y)
-//        }
     }
 
     private fun greyNonAttached(vertex: Vertex){
@@ -199,7 +188,7 @@ class Controller<E: Any> {
 
     private fun ungreyEverything(){
         for(edge in edges){
-            edge.setLineColor(Color.BLACK)
+            edge.setLineColor(Color.rgb(0, 0, 0, 0.6))
             edge.setLabelColor(Color.BLACK)
         }
         for (vert in vertices){
@@ -212,6 +201,8 @@ class Controller<E: Any> {
         val inbound = Connection(v2, v1, inBoundWeight, false)
 
         init {
+            outbound.setLineColor(Color.rgb(0, 0, 0, 0.6))
+            inbound.setLineColor(Color.rgb(0, 0, 0, 0.6))
             children.addAll(outbound, inbound)
         }
 
@@ -325,17 +316,12 @@ class Controller<E: Any> {
         }
 
         fun checkMatch(from: E, to: E): Boolean = this.v1.name.also{println(it)} == from.toString().also{println(it)} && this.v2.name == to.toString()
-//
-//        fun setLabelColor(color: Color){
-//            outBoundLabel.textFill = color
-//            inBoundLabel.textFill = color
-//        }
-//
+
         fun setLabelWeight(weight: String, isOutbounds: Boolean){
             if(isOutbounds) outbound.setWeight(weight)
             else inbound.setWeight(weight)
         }
-//
+
         fun setLineColor(color: Color) {
             outbound.setLineColor(color)
             inbound.setLineColor(color)
@@ -347,48 +333,5 @@ class Controller<E: Any> {
         }
 
 }
-//
-//        //Label helper methods
-//        private fun updateLabelPosition(label: Label){
-//            val midpoint = calculateMidpoint(outBound)
-//            label.translateX = midpoint.first
-//            label.translateY = midpoint.second
-//        }
-//
-//        private fun calculateMidpoint(polygon: Polygon): Pair<Double, Double> {
-//            val xSum = polygon.points.subList(0, polygon.points.size / 2).sum()
-//            val ySum = polygon.points.subList(polygon.points.size / 2, polygon.points.size).sum()
-//
-//            val xMidpoint = xSum / (polygon.points.size / 2)
-//            val yMidpoint = ySum / (polygon.points.size / 2)
-//
-//            return Pair(xMidpoint, yMidpoint)
-//        }
-//
-//        //Triangle helper methods
-//        private fun updateTrianglePoints(isOutbounds: Boolean){
-//            println("From: ${from.vtranslateXProperty.get()} ${from.vtranslateYProperty.get()}")
-//            println("To: ${to.vtranslateXProperty.get()} ${to.vtranslateYProperty.get()}")
-//            if(isOutbounds){
-//                updateTrianglePoints(outBound,
-//                    from.vtranslateXProperty.get() to from.vtranslateYProperty.get(),
-//                    from.vtranslateXProperty.get() + CIRCLE_RADIUS/2 to from.vtranslateYProperty.get() + CIRCLE_RADIUS/2,
-//                    to.vtranslateXProperty.get() + CIRCLE_RADIUS/2 to to.vtranslateYProperty.get() + CIRCLE_RADIUS/2)
-//            } else {
-//                updateTrianglePoints(inBound,
-//                    to.vtranslateXProperty.get() to to.vtranslateYProperty.get(),
-//                    to.vtranslateXProperty.get() - CIRCLE_RADIUS/2 to to.vtranslateYProperty.get() - CIRCLE_RADIUS/2,
-//                    from.vtranslateXProperty.get() - CIRCLE_RADIUS/2 to from.vtranslateYProperty.get() - CIRCLE_RADIUS/2)
-//            }
-//        }
-//
-//        private fun updateTrianglePoints(triangle: Polygon, point1: Pair<Double, Double>, point2: Pair<Double, Double>, point3: Pair<Double, Double>) {
-//            triangle.points.clear()
-//            triangle.points.addAll(
-//                point1.first, point1.second,
-//                point2.first, point2.second,
-//                point3.first, point3.second
-//            )
-//            println(triangle.points)
-    }
+}
 
