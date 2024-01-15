@@ -16,23 +16,23 @@ class GraphApp : Application() {
         stage.title = "Graph"
         stage.scene = scene
 
-       // val verts = Array(10){i -> i}
-
+//        val verts = Array(10){i -> i}
+//
 //        val graph = AMGraph(*verts)
         val graph = AMGraph('a' ,'b','c','d', 'e', 'f', 'g')
         graph.randomize({Random.nextBoolean()}, 9)
         controller.graphInit(graph)
-        for(edge in graph.edgeMatrix){
-            for(weight in edge){
-                print("[$weight]")
-            }
-            println()
-        }
-
-        for(vert in graph.getVertices()){
-            println("Path $vert to 'b': " + graph.path(vert, 'b'))
-            println("Weight $vert to 'b': " + graph.distance(vert, 'b'))
-        }
+//        for(edge in graph.edgeMatrix){
+//            for(weight in edge){
+//                print("[$weight]")
+//            }
+//            println()
+//        }
+//
+//        for(vert in graph.getVertices()){
+//            println("Path $vert to 'b': " + graph.path(vert, 'b'))
+//            println("Weight $vert to 'b': " + graph.distance(vert, 'b'))
+//        }
 //        println("------------Dijkstra------------")
 //        println("From a:" + graph.getAllDijkstra('a').joinToString("\n"))
 //        println("From b:" + graph.getAllDijkstra('b').joinToString("\n"))

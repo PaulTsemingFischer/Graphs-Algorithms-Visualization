@@ -243,8 +243,6 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<E>>?, weights 
         //Initialize each vertex's info mapped to ids
         val prev = IntArray(size()) { -1 }
         val dist = IntArray(size()) { Int.MAX_VALUE }
-        val visited = BooleanArray(size()) { false }
-
         dist[from] = 0
 
         //PriorityQueue storing Priority = dist, Value = id
@@ -254,19 +252,19 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<E>>?, weights 
         val nodeCollection = Array<Node<Int,Int>?>(size()) { null }
         nodeCollection[from] = heap.insert(dist[from],from)
 
-        //loop forever, or until we mark destination (to) as visited
-        while(to == null || !visited[to]){
+        //loop forever, or until we have visited to
+        while(to == null || heap.minimum() == to){
 
             //store and remove next node, mark as visited, break if empty
-            val cur = heap.extractMin()?.also{visited[it] = true} ?: break
+            val cur = heap.extractMin() ?: break
 
             //iterate through potential outbound connections
             for((i,edge) in edgeMatrix[cur].withIndex()){
 
                 //relax all existing connections
                 if(edge != -1
-                    //table update required if it's unvisited, and it's the shortest path (so far)
-                    && !visited[i] && dist[cur] + edge < dist[i]){
+                    //table update required if it's the shortest path (so far)
+                    && dist[cur] + edge < dist[i]){
 
                     //update
                         dist[i] = dist[cur] + edge

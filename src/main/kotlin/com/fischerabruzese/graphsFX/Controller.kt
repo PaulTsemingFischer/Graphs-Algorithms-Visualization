@@ -164,32 +164,7 @@ class Controller<E: Any> {
             ypos.set((event.sceneY / pane.height - yDelta).let{if(it > 1) 1.0 else if(it < 0) 0.0 else it})
         }
 
-        private fun greyNonAttached(vertex: Vertex){
-//            for(vert in vertices){
-//                vert.circle.fill = Color(0.0, 0.0, 1.0, 0.3)
-//            }
-//            for(edge in edges){
-//                if(edge.from != vertex && edge.to != vertex){
-//                    edge.label.textFill = Color.GREY
-//                    edge.line.stroke = Color.rgb(192, 192, 192, 0.8)
-//                }
-//                else{
-//                    edge.from.let{if(it != this) it.circle.fill = Color.BLUE}
-//                    edge.to.let{if(it != this) it.circle.fill = Color.BLUE}
-//                    edge.line.stroke = Color.RED
-//                }
-//            }
-        }
 
-        private fun ungreyEverything(){
-//            for(edge in edges){
-//                edge.label.textFill = Color.BLACK
-//                edge.line.stroke = Color.BLACK
-//            }
-//            for (vert in vertices){
-//                vert.circle.fill = Color.BLUE
-//            }
-        }
         fun getCenterX() : DoubleBinding {
             return circle.translateXProperty().add(circle.radiusProperty())
         }
@@ -201,9 +176,39 @@ class Controller<E: Any> {
             ypos.set(y)
         }
     }
-    inner class Edge(private val v1 : Vertex, private val v2 : Vertex, outBoundWeight : Int, inBoundWeight: Int) : StackPane() {
-        private val outbound = Connection(v1, v2, outBoundWeight, true)
-        private val inbound = Connection(v2, v1, inBoundWeight, false)
+
+    private fun greyNonAttached(vertex: Vertex){
+//        for(vert in vertices){
+//            vert.circle.fill = Color(0.0, 0.0, 1.0, 0.3)
+//        }
+//        for(edge in edges){
+//            if(edge.v1 != vertex && edge.v2 != vertex){
+//                edge.v1.getLabel().textFill = Color.GREY
+//                edge.line.stroke = Color.rgb(192, 192, 192, 0.8)
+//                edge.v2.getLabel().textFill = Color.GREY
+//                edge.line.stroke = Color.rgb(192, 192, 192, 0.8)
+//            }
+//            else{
+//                edge.from.let{if(it != this) it.circle.fill = Color.BLUE}
+//                edge.to.let{if(it != this) it.circle.fill = Color.BLUE}
+//                edge.line.stroke = Color.RED
+//            }
+//        }
+    }
+
+    private fun ungreyEverything(){
+//        for(edge in edges){
+//            edge.label.textFill = Color.BLACK
+//            edge.line.stroke = Color.BLACK
+//        }
+//        for (vert in vertices){
+//            vert.circle.fill = Color.BLUE
+//        }
+    }
+
+    inner class Edge(val v1 : Vertex, val v2 : Vertex, outBoundWeight : Int, inBoundWeight: Int) : StackPane() {
+        val outbound = Connection(v1, v2, outBoundWeight, true)
+        val inbound = Connection(v2, v1, inBoundWeight, false)
 
         init {
             children.addAll(outbound, inbound)
@@ -211,34 +216,43 @@ class Controller<E: Any> {
 
         inner class Connection(from : Vertex, to : Vertex, weight: Int, isOutbound : Boolean) : Pane() {
             private val line = Line()
+
             private var director1 : Director
             private var director2 : Director
             private var label = Label(weight.toString())
 
-            init{
+            fun getLabel() : Label {
+                return outbound.label
+            }
+
+            init {
                 val dyTotal = to.vtranslateYProperty.subtract(from.vtranslateYProperty)
                 val dxTotal = to.vtranslateXProperty.subtract(from.vtranslateXProperty)
 
                 val length = Bindings.createDoubleBinding(
-                    {sqrt( dyTotal.get().pow(2) + dxTotal.get().pow(2) )},
+                    { sqrt(dyTotal.get().pow(2) + dxTotal.get().pow(2)) },
                     dyTotal, dxTotal
                 )
 
-                val dy = dxTotal.multiply(CIRCLE_RADIUS/4).divide(length)
-                val dx = dyTotal.multiply(CIRCLE_RADIUS/4).divide(length)
+                val dy = dxTotal.multiply(CIRCLE_RADIUS / 4).divide(length).multiply(-1)
+                val dx = dyTotal.multiply(CIRCLE_RADIUS / 4).divide(length)
 
-                line.startXProperty().bind(from.vtranslateXProperty.add(dx.apply { if(!isOutbound) multiply(-1) }))
-                line.startYProperty().bind(from.vtranslateYProperty.add(dy.apply { if(!isOutbound) multiply(-1) }))
-                line.endXProperty().bind(to.vtranslateXProperty.add(dx.apply { if(!isOutbound) multiply(-1) }))
-                line.endYProperty().bind(to.vtranslateYProperty.add(dy.apply { if(!isOutbound) multiply(-1) }))
+                line.startXProperty().bind(from.vtranslateXProperty.add(dx))
+                line.startYProperty().bind(from.vtranslateYProperty.add(dy))
+                line.endXProperty().bind(to.vtranslateXProperty.add(dx))
+                line.endYProperty().bind(to.vtranslateYProperty.add(dy))
 
-                director1 = Director(line.startXProperty().add(length.multiply(0.33)), line.startYProperty().add(length.multiply(0.33)))
-                director2 = Director(line.startXProperty().add(length.multiply(0.66)), line.startYProperty().add(length.multiply(0.66)))
+                director1 = Director(line.startXProperty().add(dxTotal.multiply(0.33)), line.startYProperty().add(dyTotal.multiply(0.33)), isOutbound)
+                director2 = Director(line.startXProperty().add(dxTotal.multiply(0.66)), line.startYProperty().add(dyTotal.multiply(0.66)), isOutbound)
+
+                label.translateXProperty().bind((line.startXProperty().add(line.endXProperty())).divide(2))
+                label.translateYProperty().bind((line.startYProperty().add(line.endYProperty())).divide(2))
+                label.textFill = Color.BLACK
 
                 children.addAll(line, label, director1, director2)
             }
 
-            inner class Director(startposX : DoubleBinding, startposY : DoubleBinding) : Pane() {
+            inner class Director(startposX : DoubleBinding, startposY : DoubleBinding, isOutbound: Boolean) : Pane() {
                 private val line1 = Line()
                 private val line2 = Line()
 
@@ -252,23 +266,30 @@ class Controller<E: Any> {
                     val dxTotal = v2.vtranslateXProperty.subtract(v1.vtranslateXProperty)
 
                     val theta = Bindings.createDoubleBinding(
-                        { atan2(dyTotal.get(), dxTotal.get()) * 180 / PI },
+                        { atan2(dyTotal.get(), dxTotal.get()) },
                         dyTotal, dxTotal
                     )
 
-                    val dx = Bindings.createDoubleBinding(
-                        { CIRCLE_RADIUS * cos(theta.get() + 45) },
+                    val dx1 = Bindings.createDoubleBinding(
+                        { CIRCLE_RADIUS/4.8 * cos(theta.get() + (PI/4)) },
                         theta
                     )
-                    val dy = Bindings.createDoubleBinding(
-                        { CIRCLE_RADIUS * sin(theta.get() + 45) },
+                    val dy1 = Bindings.createDoubleBinding(
+                        { CIRCLE_RADIUS/4.8 * sin(theta.get() + (PI/4)) },
                         theta
                     )
-
-                    val endX1 = startposX.add(dx)
-                    val endY1 = startposY.add(dy)
-                    val endX2 = startposX.subtract(dx)
-                    val endY2 = startposY.subtract(dy)
+                    val dx2 = Bindings.createDoubleBinding(
+                        { CIRCLE_RADIUS/4.8 * cos(theta.get() - (PI/4)) },
+                        theta
+                    )
+                    val dy2 = Bindings.createDoubleBinding(
+                        { CIRCLE_RADIUS/4.8 * sin(theta.get() - (PI/4)) },
+                        theta
+                    )
+                    val endX1 = startposX.add(dx1.multiply(if(isOutbound) 1 else -1))
+                    val endY1 = startposY.add(dy1.multiply(if(isOutbound) 1 else -1))
+                    val endX2 = startposX.add(dx2.multiply(if(isOutbound) 1 else -1))
+                    val endY2 = startposY.add(dy2.multiply(if(isOutbound) 1 else -1))
 
                     line1.endXProperty().bind(endX1)
                     line1.endYProperty().bind(endY1)
