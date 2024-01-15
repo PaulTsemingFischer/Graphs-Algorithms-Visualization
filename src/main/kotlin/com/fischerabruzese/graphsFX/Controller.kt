@@ -15,6 +15,7 @@ import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.shape.Circle
 import javafx.scene.shape.Line
+import javafx.scene.text.Font
 import kotlin.math.*
 
 class Controller<E: Any> {
@@ -245,9 +246,12 @@ class Controller<E: Any> {
                 director1 = Director(line.startXProperty().add(dxTotal.multiply(0.33)), line.startYProperty().add(dyTotal.multiply(0.33)), isOutbound)
                 director2 = Director(line.startXProperty().add(dxTotal.multiply(0.66)), line.startYProperty().add(dyTotal.multiply(0.66)), isOutbound)
 
-                label.translateXProperty().bind((line.startXProperty().add(line.endXProperty())).divide(2))
-                label.translateYProperty().bind((line.startYProperty().add(line.endYProperty())).divide(2))
+                //Sets the label to the average of the line endpoints plus some offsets to ensure the label is centered
+                label.translateXProperty().bind((line.startXProperty().add(line.endXProperty())).divide(2).subtract(5))
+                label.translateYProperty().bind((line.startYProperty().add(line.endYProperty())).divide(2).subtract(10))
+
                 label.textFill = Color.BLACK
+                label.font = Font(15.0)
 
                 children.addAll(line, label, director1, director2)
             }
