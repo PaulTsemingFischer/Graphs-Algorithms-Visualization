@@ -28,8 +28,6 @@ class Controller<E: Any> {
     @FXML
     private lateinit var weightField: TextField
 
-
-
     private lateinit var paneWidth : ReadOnlyDoubleProperty
     private lateinit var paneHeight : ReadOnlyDoubleProperty
     private val CIRCLE_RADIUS = 20.0
@@ -81,17 +79,17 @@ class Controller<E: Any> {
 
     @FXML
     private fun editEdgePressed() {
-//        val from = stringToEMap[fromVertexField.text]!!
-//        val to = stringToEMap[toVertexField.text]!!
-//        val weight = weightField.text
-//        graph[from, to] = weight.toInt()
-//        for(edge in edges){
-//            if(edge.checkMatch(from, to)){
-//                edge.setLabelWeight(weight, true)
-//            } else if(edge.checkMatch(to, from)){
-//                edge.setLabelWeight(weight, false)
-//            }
-//        }
+        val from = stringToEMap[fromVertexField.text]!!
+        val to = stringToEMap[toVertexField.text]!!
+        val weight = weightField.text
+        graph[from, to] = weight.toInt()
+        for(edge in edges){
+            if(edge.checkMatch(from, to)){
+                edge.setLabelWeight(weight, true)
+            } else if(edge.checkMatch(to, from)){
+                edge.setLabelWeight(weight, false)
+            }
+        }
     }
 
 
@@ -164,46 +162,48 @@ class Controller<E: Any> {
             ypos.set((event.sceneY / pane.height - yDelta).let{if(it > 1) 1.0 else if(it < 0) 0.0 else it})
         }
 
+        fun setColor(color: Color) {
+            circle.fill = color
+        }
 
-        fun getCenterX() : DoubleBinding {
-            return circle.translateXProperty().add(circle.radiusProperty())
-        }
-        fun getCenterY() : DoubleBinding {
-            return circle.translateYProperty().add(circle.radiusProperty())
-        }
-        fun move(x: Double, y: Double){
-            xpos.set(x)
-            ypos.set(y)
-        }
+//        fun getCenterX() : DoubleBinding {
+//            return circle.translateXProperty().add(circle.radiusProperty())
+//        }
+//        fun getCenterY() : DoubleBinding {
+//            return circle.translateYProperty().add(circle.radiusProperty())
+//        }
+//        fun move(x: Double, y: Double){
+//            xpos.set(x)
+//            ypos.set(y)
+//        }
     }
 
     private fun greyNonAttached(vertex: Vertex){
-//        for(vert in vertices){
-//            vert.circle.fill = Color(0.0, 0.0, 1.0, 0.3)
-//        }
-//        for(edge in edges){
-//            if(edge.v1 != vertex && edge.v2 != vertex){
-//                edge.v1.getLabel().textFill = Color.GREY
-//                edge.line.stroke = Color.rgb(192, 192, 192, 0.8)
-//                edge.v2.getLabel().textFill = Color.GREY
-//                edge.line.stroke = Color.rgb(192, 192, 192, 0.8)
-//            }
-//            else{
-//                edge.from.let{if(it != this) it.circle.fill = Color.BLUE}
-//                edge.to.let{if(it != this) it.circle.fill = Color.BLUE}
-//                edge.line.stroke = Color.RED
-//            }
-//        }
+        for(vert in vertices){
+            vert.setColor(Color(0.0, 0.0, 1.0, 0.3))
+        }
+        for(edge in edges){
+            if(edge.v1 != vertex && edge.v2 != vertex){
+                edge.setLineColor(Color.rgb(192, 192, 192, 0.8))
+                edge.setLabelColor(Color.GREY)
+            }
+            else{
+                edge.v1.let{if(it != vertex) it.setColor(Color.BLUE)}
+                edge.v2.let{if(it != vertex) it.setColor(Color.BLUE)}
+                edge.setLineColor(Color.RED)
+                edge.setLabelColor(Color.RED)
+            }
+        }
     }
 
     private fun ungreyEverything(){
-//        for(edge in edges){
-//            edge.label.textFill = Color.BLACK
-//            edge.line.stroke = Color.BLACK
-//        }
-//        for (vert in vertices){
-//            vert.circle.fill = Color.BLUE
-//        }
+        for(edge in edges){
+            edge.setLineColor(Color.BLACK)
+            edge.setLabelColor(Color.BLACK)
+        }
+        for (vert in vertices){
+            vert.setColor(Color.BLUE)
+        }
     }
 
     inner class Edge(val v1 : Vertex, val v2 : Vertex, outBoundWeight : Int, inBoundWeight: Int) : StackPane() {
@@ -252,6 +252,20 @@ class Controller<E: Any> {
                 children.addAll(line, label, director1, director2)
             }
 
+            fun setLineColor(color : Color) {
+                line.stroke = color
+                director1.setColor(color)
+                director2.setColor(color)
+            }
+
+            fun setLabelColor(color : Color) {
+                label.textFill = color
+            }
+
+            fun setWeight(weight : String) {
+                label.text = weight
+            }
+
             inner class Director(startposX : DoubleBinding, startposY : DoubleBinding, isOutbound: Boolean) : Pane() {
                 private val line1 = Line()
                 private val line2 = Line()
@@ -298,59 +312,37 @@ class Controller<E: Any> {
 
                     children.addAll(line1, line2)
                 }
+
+                fun setColor(color: Color){
+                    line1.stroke = color
+                    line2.stroke = color
+                }
             }
         }
 
-//        init{
-//            //Initializing triangles
-//            outBound.stroke = Color.BLACK
-//            inBound.stroke = Color.BLACK
-//
-//            //Initializing labels
-//            outBoundLabel.textFill = Color.BLACK
-//            inBoundLabel.textFill = Color.BLACK
-//
-//            //Binding triangle vertices and labels
-//                //Outbound
-//            from.vtranslateXProperty.addListener {_ ->updateTrianglePoints(true); updateLabelPosition(outBoundLabel) }
-//            from.vtranslateXProperty.addListener {_ -> updateTrianglePoints(true); updateLabelPosition(outBoundLabel) }
-//
-//            to.vtranslateXProperty.addListener {_ -> updateTrianglePoints(true); updateLabelPosition(outBoundLabel) }
-//            to.vtranslateXProperty.addListener {_ -> updateTrianglePoints(true); updateLabelPosition(outBoundLabel) }
-//
-//                //Inbound
-//            from.vtranslateXProperty.addListener {_ -> updateTrianglePoints(false); updateLabelPosition(inBoundLabel) }
-//            from.vtranslateXProperty.addListener {_ -> updateTrianglePoints(false); updateLabelPosition(inBoundLabel) }
-//
-//            to.vtranslateXProperty.addListener {_ -> updateTrianglePoints(false); updateLabelPosition(inBoundLabel) }
-//            to.vtranslateXProperty.addListener {_ -> updateTrianglePoints(false); updateLabelPosition(inBoundLabel) }
-//
-//            children.addAll(outBound, inBound, outBoundLabel, inBoundLabel)
-//        }
-//
-//        fun initialize() {
-//            updateTrianglePoints(true)
-//            updateTrianglePoints(false)
-//            updateLabelPosition(outBoundLabel)
-//            updateLabelPosition(inBoundLabel)
-//        }
-//
-//        fun checkMatch(from: E, to: E): Boolean = this.from.name.also{println(it)} == from.toString().also{println(it)} && this.to.name == to.toString()
+        fun checkMatch(from: E, to: E): Boolean = this.v1.name.also{println(it)} == from.toString().also{println(it)} && this.v2.name == to.toString()
 //
 //        fun setLabelColor(color: Color){
 //            outBoundLabel.textFill = color
 //            inBoundLabel.textFill = color
 //        }
 //
-//        fun setLabelWeight(weight: String, isOutbounds: Boolean){
-//            if(isOutbounds) outBoundLabel.text = weight
-//            else inBoundLabel.text = weight
-//        }
+        fun setLabelWeight(weight: String, isOutbounds: Boolean){
+            if(isOutbounds) outbound.setWeight(weight)
+            else inbound.setWeight(weight)
+        }
 //
-//        fun setTriangleColor(color: Color, isOutbounds: Boolean){
-//            if(isOutbounds) outBound.fill = color
-//            else inBound.fill = color
-//        }
+        fun setLineColor(color: Color) {
+            outbound.setLineColor(color)
+            inbound.setLineColor(color)
+        }
+
+        fun setLabelColor(color: Color) {
+            outbound.setLabelColor(color)
+            inbound.setLabelColor(color)
+        }
+
+}
 //
 //        //Label helper methods
 //        private fun updateLabelPosition(label: Label){
@@ -395,4 +387,4 @@ class Controller<E: Any> {
 //            )
 //            println(triangle.points)
     }
-}
+
