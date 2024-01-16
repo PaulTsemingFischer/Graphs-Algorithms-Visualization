@@ -236,10 +236,38 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<E>>?, weights 
         return path
     }
 
+    fun depthFirstSearch(start : E, dest : E) : List<E> = search(true, start, dest)
+
+    fun breathFirstSearch(start : E, dest : E) : List<E> = search(false, start, dest)
+
+    private fun search(depth : Boolean, start : E, dest : E) : List<E>{
+        val dest = indexLookup[dest]
+        val visited = Array(size()){false}
+        val q = LinkedList<IntArray>()
+
+        q.addFirst(intArrayOf(indexLookup[start]!!))
+
+        while(!q.isEmpty()){
+            val curPath = q.pop().run{
+                if(last() == dest) return this.map { vertices[it] }; this
+            }
+            visited[curPath.last()] = true
+
+            for((ob,dist) in edgeMatrix[curPath.last()].withIndex()){
+                if(!visited[ob] && dist != -1)
+                    if(depth)
+                        q.addFirst( intArrayOf(*curPath,ob) )
+                    else //breath
+                        q.addLast( intArrayOf(*curPath,ob) )
+            }
+        }
+        return emptyList()
+    }
+
     /**
      * Implements a Fibonacci Heap in Dijkstra's algorithm to queue vertices.
      */
-    fun dijkstraFibHeap(from : Int, to : Int? = null) : Array<Pair<Int, Int>> {
+    private fun dijkstraFibHeap(from : Int, to : Int? = null) : Array<Pair<Int, Int>> {
         //Initialize each vertex's info mapped to ids
         val prev = IntArray(size()) { -1 }
         val dist = IntArray(size()) { Int.MAX_VALUE }
@@ -285,7 +313,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<E>>?, weights 
      * @postcondition: Both Int.MAX_VALUE and -1 indicates no path
      * @return An array of (previous vertex index, distance)
      */
-    fun dijkstra(from : Int, to : Int? = null) : Array<Pair<Int, Int>> {
+    private fun dijkstra(from : Int, to : Int? = null) : Array<Pair<Int, Int>> {
         val distance = IntArray(size()) { Int.MAX_VALUE }
         val prev = IntArray(size()) { -1 }
         val visited = BooleanArray(size()) { false }
