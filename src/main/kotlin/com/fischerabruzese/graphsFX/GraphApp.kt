@@ -16,7 +16,7 @@ class GraphApp : Application() {
         stage.title = "Graph"
         stage.scene = scene
 
-        val verts = Array(100){i -> i}
+        val verts = Array(5){i -> i}
 //
         val graph = AMGraph.graphOf(*verts)
 //        val test = AMGraph<Char>('a' to listOf('b' to 1,'c' to 5), 'd' to listOf('d' to 3), 'f' to listOf('c' to 3), 'd' to listOf('f' to 3))
@@ -29,7 +29,7 @@ class GraphApp : Application() {
                 graph.depthFirstSearchv2(from, to)
             }
         }
-        println("PTF: Time Elapsed: ${System.nanoTime() - start1}")
+        println("PTF DFS: ${System.nanoTime() - start1}")
 
         val start2 = System.nanoTime()
         for(from in verts){
@@ -37,8 +37,28 @@ class GraphApp : Application() {
                 graph.depthFirstSearch(from, to)
             }
         }
-        println("Sky: Time Elapsed: ${System.nanoTime() - start2}")
+        println("Sky DFS: ${System.nanoTime() - start2}")
 
+        val start3 = System.nanoTime()
+        for(from in verts){
+            for (to in verts){
+                graph.breadthFirstSearchv2(from, to)
+            }
+        }
+        println("PTF BFS: ${System.nanoTime() - start3}")
+
+        val start4 = System.nanoTime()
+        for(from in verts){
+            for (to in verts){
+                graph.breathFirstSearch(from, to)
+            }
+        }
+        println("Sky BFS: ${System.nanoTime() - start4}")
+
+        println("PTF DFS: ${graph.depthFirstSearchv2(0, 1)}")
+        println("Sky DFS: ${graph.depthFirstSearch(0, 1)}")
+        println("PTF BFS: ${graph.breadthFirstSearchv2(0, 1)}")
+        println("Sky BFS: ${graph.breathFirstSearch(0, 1)}")
 
 //        for(edge in graph.edgeMatrix){
 //            for(weight in edge){

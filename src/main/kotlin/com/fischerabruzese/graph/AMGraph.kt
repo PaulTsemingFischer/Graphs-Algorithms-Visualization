@@ -271,6 +271,35 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         return intArrayOf()
     }
 
+    fun breadthFirstSearchv2(start: E, dest : E) : List<E> {
+        return breadthFirstSearchv2(indexLookup[start]!!, indexLookup[dest]!!, BooleanArray(size())).map { vertices[it] }
+    }
+    private fun breadthFirstSearchv2(vertex : Int, dest : Int, visited: BooleanArray) : IntArray {
+        val q = LinkedList<Int>()
+        val prev = IntArray(size()){ -1 }
+        q.add(vertex)
+        visited[vertex] = true
+        while(!q.isEmpty()){
+            val currVer = q.pop()
+            for((ob,dist) in edgeMatrix[currVer].withIndex()){
+                if(!visited[ob] && dist != -1){
+                    q.addLast(ob)
+                    visited[ob] = true
+                    prev[ob] = currVer
+                }
+            }
+        }
+        val path = LinkedList<Int>()
+        var curr = dest
+        path.addFirst(dest)
+        while(prev[curr] != -1){
+            path.addFirst(prev[curr])
+            curr = prev[curr]
+        }
+        if(path.first == vertex) return path.toIntArray()
+        return intArrayOf()
+    }
+
     fun depthFirstSearch(start : E, dest : E) : List<E> = search(true, start, dest)
 
     fun breathFirstSearch(start : E, dest : E) : List<E> = search(false, start, dest)
@@ -284,23 +313,22 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
 
         while(!q.isEmpty()){
             val curPath = q.pop()
-            if(curPath.first == dest) break
 
             for((ob,dist) in edgeMatrix[curPath.first].withIndex()){
                 if(dq[ob] == -1 && dist != -1) {
-                    if (depth) {
+                    if (depth)
                         q.addFirst(ob to curPath.first)
-                    } else {//breath
+                    else //breath
                         q.addLast(ob to curPath.first)
-                    }
                     dq[curPath.first] = curPath.second
+                    if(ob == dest) break
                 }
             }
         }
         return LinkedList<E>().apply {
             var next : Int = dest
             while(dq[dest] != -1) {
-                add(vertices[next])
+                addFirst(vertices[next])
                 next = dq[next]
             }
         }
