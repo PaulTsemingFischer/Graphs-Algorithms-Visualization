@@ -57,11 +57,12 @@ class Controller<E: Any> {
         val verticesElements = Array(graphVertices.size){ index -> Vertex(graphVertices[index].toString(), Math.random(), Math.random())}
         val edgeElements = ArrayList<Edge>()
 
-        for(i in verticesElements.indices){
-            for(j in i until verticesElements.size){
-                val outBoundWeight = graph[graphVertices[i], graphVertices[j]] ?: continue
-                val inBoundWeight = graph[graphVertices[j], graphVertices[i]] ?: continue
-                edgeElements.add(Edge(verticesElements[i], verticesElements[j], outBoundWeight, inBoundWeight))
+        for(v1 in graphVertices.indices){
+            for(v2 in v1 until graphVertices.size){
+                val v1tov2 = graph[graphVertices[v1], graphVertices[v2]] ?: -1
+                val v2tov1 = graph[graphVertices[v2], graphVertices[v1]] ?: -1
+                if(v2tov1 > -1 || v1tov2 > -1)
+                    edgeElements.add(Edge(verticesElements[v1], verticesElements[v2], v1tov2, v2tov1))
             }
         }
         edges = edgeElements
@@ -196,17 +197,22 @@ class Controller<E: Any> {
         }
     }
 
-    inner class Edge(val v1 : Vertex, val v2 : Vertex, outBoundWeight : Int, inBoundWeight: Int) : StackPane() {
-        val outbound = Connection(v1, v2, outBoundWeight, true)
-        val inbound = Connection(v2, v1, inBoundWeight, false)
+    inner class Edge(val v1 : Vertex, val v2 : Vertex, v1tov2 : Int, v2tov1: Int) : StackPane() {
+        val v1tov2Connection = Connection(v1, v2, v1tov2, true)
+        val v2tov1Connection = Connection(v2, v1, v2tov1, false)
 
         init {
-            outbound.setLineColor(Color.rgb(0, 0, 0, 0.6))
-            inbound.setLineColor(Color.rgb(0, 0, 0, 0.6))
-            children.addAll(outbound, inbound)
+            if(v1tov2 > -1) {
+                v1tov2Connection.setLineColor(Color.rgb(0, 0, 0, 0.6))
+                children.add(v1tov2Connection)
+            }
+            if(v2tov1 > -1) {
+                v2tov1Connection.setLineColor(Color.rgb(0, 0, 0, 0.6))
+                children.add(v2tov1Connection)
+            }
         }
 
-        inner class Connection(from : Vertex, to : Vertex, weight: Int, isOutbound : Boolean) : Pane() {
+        inner class Connection(from : Vertex, to : Vertex, weight: Int, mirror : Boolean) : Pane() {
             private val line = Line()
 
             private var director1 : Director
@@ -214,7 +220,7 @@ class Controller<E: Any> {
             private var label = Label(weight.toString())
 
             fun getLabel() : Label {
-                return outbound.label
+                return v1tov2Connection.label
             }
 
             init {
@@ -234,8 +240,8 @@ class Controller<E: Any> {
                 line.endXProperty().bind(to.vtranslateXProperty.add(dx))
                 line.endYProperty().bind(to.vtranslateYProperty.add(dy))
 
-                director1 = Director(line.startXProperty().add(dxTotal.multiply(0.33)), line.startYProperty().add(dyTotal.multiply(0.33)), isOutbound)
-                director2 = Director(line.startXProperty().add(dxTotal.multiply(0.66)), line.startYProperty().add(dyTotal.multiply(0.66)), isOutbound)
+                director1 = Director(line.startXProperty().add(dxTotal.multiply(0.33)), line.startYProperty().add(dyTotal.multiply(0.33)), mirror)
+                director2 = Director(line.startXProperty().add(dxTotal.multiply(0.66)), line.startYProperty().add(dyTotal.multiply(0.66)), mirror)
 
                 //Sets the label to the average of the line endpoints plus some offsets to ensure the label is centered
                 label.translateXProperty().bind((line.startXProperty().add(line.endXProperty())).divide(2).subtract(5))
@@ -261,7 +267,7 @@ class Controller<E: Any> {
                 label.text = weight
             }
 
-            inner class Director(startposX : DoubleBinding, startposY : DoubleBinding, isOutbound: Boolean) : Pane() {
+            inner class Director(startposX : DoubleBinding, startposY : DoubleBinding, mirror: Boolean) : Pane() {
                 private val line1 = Line()
                 private val line2 = Line()
 
@@ -295,10 +301,10 @@ class Controller<E: Any> {
                         { CIRCLE_RADIUS/4.8 * sin(theta.get() - (PI/4)) },
                         theta
                     )
-                    val endX1 = startposX.add(dx1.multiply(if(isOutbound) 1 else -1))
-                    val endY1 = startposY.add(dy1.multiply(if(isOutbound) 1 else -1))
-                    val endX2 = startposX.add(dx2.multiply(if(isOutbound) 1 else -1))
-                    val endY2 = startposY.add(dy2.multiply(if(isOutbound) 1 else -1))
+                    val endX1 = startposX.add(dx1.multiply(if(mirror) -1 else 1))
+                    val endY1 = startposY.add(dy1.multiply(if(mirror) -1 else 1))
+                    val endX2 = startposX.add(dx2.multiply(if(mirror) -1 else 1))
+                    val endY2 = startposY.add(dy2.multiply(if(mirror) -1 else 1))
 
                     line1.endXProperty().bind(endX1)
                     line1.endYProperty().bind(endY1)
@@ -315,23 +321,23 @@ class Controller<E: Any> {
             }
         }
 
-        fun checkMatch(from: E, to: E): Boolean = this.v1.name.also{println(it)} == from.toString().also{println(it)} && this.v2.name == to.toString()
+        fun checkMatch(from: E, to: E): Boolean = this.v1.name == from.toString() && this.v2.name == to.toString()
 
         fun setLabelWeight(weight: String, isOutbounds: Boolean){
-            if(isOutbounds) outbound.setWeight(weight)
-            else inbound.setWeight(weight)
+            if(isOutbounds) v1tov2Connection.setWeight(weight)
+            else v2tov1Connection.setWeight(weight)
         }
 
         fun setLineColor(color: Color) {
-            outbound.setLineColor(color)
-            inbound.setLineColor(color)
+            v1tov2Connection.setLineColor(color)
+            v2tov1Connection.setLineColor(color)
         }
 
         fun setLabelColor(color: Color) {
-            outbound.setLabelColor(color)
-            inbound.setLabelColor(color)
+            v1tov2Connection.setLabelColor(color)
+            v2tov1Connection.setLabelColor(color)
         }
 
-}
+    }
 }
 

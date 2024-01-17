@@ -7,22 +7,39 @@ import java.util.LinkedList
  *
  * @param E The type of the vertices in the graph.
  */
-class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<E>>?, weights : List<Int>) : Graph<E>() {
+class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?) : Graph<E>() {
 
-    /**
-     * Constructs a graph containing unconnected vertices.
-     *
-     * @param vertices The vertices to add to the graph.
-     */
-    constructor(vararg vertices: E) : this(
-        *vertices.map { it to emptyList<E>()}.toTypedArray(), weights = emptyList<Int>()
-    )
+    /* I'm not sure how it infers which function to use because it doesn't work when these are alternative constructors, because what if I want my vertices type to be Pair<E,Iterable<E>?> how will it know which fun to call*/
+    companion object AlternateConstructors{
+
+        /**
+         * Constructs a graph containing vertices and their outbound connections.
+         *
+         * @param connections A list of pairs of vertices and their outbound connections with no weights.
+         */
+        fun<E : Any> graphOf(vararg connections : Pair<E,Iterable<E>?>) : AMGraph<E> {
+            return AMGraph(*connections.map {
+                it.first to ( it.second?.map { it2 -> it2 to 1 } ?: emptyList() )
+            }.toTypedArray())
+        }
+
+        /**
+         * Constructs a graph containing unconnected vertices.
+         *
+         * @param vertices The vertices to add to the graph.
+         */
+        fun<E : Any> graphOf(vararg vertices : E) : AMGraph<E> {
+            return AMGraph(*vertices.map {
+                it to emptyList<Pair<E,Int>>()
+            }.toTypedArray())
+        }
+    }
 
     /**
      * Constructs an empty graph.
      */
     internal constructor() : this(
-        null, weights = emptyList<Int>()
+        null
     )
 
 
@@ -43,8 +60,9 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<E>>?, weights 
     /**
      * Represents a graph data structure.
      *
-     * @param outboundConnections A list of pairs of vertices and their outbound connections.
-     * @param weights A list of weights corresponding to the outbound connections.
+     * Example: val graph = AMGraph('a' to listOf('b' to 1), ...)
+     *
+     * @param outboundConnections A list of pairs of vertices and their outbound connections and weights.
      */
     init {
         for(connections in outboundConnections){
@@ -53,8 +71,8 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<E>>?, weights 
                 vertices.add(connections.first)
             }
             for(outboundEdge in connections.second){
-                if(indexLookup.putIfAbsent(outboundEdge, vertices.size) == null){
-                    vertices.add(outboundEdge)
+                if(indexLookup.putIfAbsent(outboundEdge.first, vertices.size) == null){
+                    vertices.add(outboundEdge.first)
                 }
             }
         }
@@ -63,12 +81,12 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<E>>?, weights 
 
         for(connections in outboundConnections) {
             if(connections == null) continue
-            for((i, outboundEdge) in connections.second.withIndex()){
+            for(outboundEdge in connections.second){
                 try {
-                    if(weights[i] <= 0) throw Exception()
-                    else edgeMatrix[indexLookup[connections.first]!!][indexLookup[outboundEdge]!!] = weights[i]
-                } catch (e : Exception){
-                    edgeMatrix[indexLookup[connections.first]!!][indexLookup[outboundEdge]!!] = 1
+                    if(outboundEdge.second <= 0) throw IllegalArgumentException()
+                    else edgeMatrix[indexLookup[connections.first]!!][indexLookup[outboundEdge.first]!!] = outboundEdge.second
+                } catch (e : IllegalArgumentException){
+                    edgeMatrix[indexLookup[connections.first]!!][indexLookup[outboundEdge.first]!!] = 1
                 }
             }
         }

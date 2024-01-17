@@ -19,9 +19,11 @@ class GraphApp : Application() {
 //        val verts = Array(10){i -> i}
 //
 //        val graph = AMGraph(*verts)
-        val graph = AMGraph('a' ,'b','c','d', 'e', 'f', 'g')
-        graph.randomize({Random.nextBoolean()}, 9)
-        controller.graphInit(graph)
+        val test = AMGraph<Char>('a' to listOf('b' to 1,'d' to 5), 'b' to listOf('d' to 3), 'f' to listOf('c' to 3), 'd' to listOf('f' to 3))
+//        graph.randomize({Random.nextBoolean()}, 9)
+        controller.graphInit(test)
+        println(test)
+        print(test.depthFirstSearch('a','c'))
 //        for(edge in graph.edgeMatrix){
 //            for(weight in edge){
 //                print("[$weight]")
