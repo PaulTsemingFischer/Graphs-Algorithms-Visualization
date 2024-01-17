@@ -254,6 +254,23 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         return path
     }
 
+    fun depthFirstSearchv2(start: E, dest : E) : List<E> {
+        return depthFirstSearchv2(indexLookup[start]!!, indexLookup[dest]!!, BooleanArray(size())).map { vertices[it] }
+    }
+    private fun depthFirstSearchv2(vertex : Int, dest : Int, visited: BooleanArray) : IntArray {
+//        println("\n Curr Ver: ${vertices[vertex]}")
+        visited[vertex] = true
+        for((ob,dist) in edgeMatrix[vertex].withIndex()){
+//            println("$ob Looking at: " + vertices[ob])
+            if(!visited[ob] && dist != -1){
+//                println("Visiting: " + vertices[ob])
+                if(ob == dest) return intArrayOf(vertex, dest)
+                depthFirstSearchv2(ob, dest, visited).let{if(it.isNotEmpty()) return intArrayOf(vertex, *it)}
+            }
+        }
+        return intArrayOf()
+    }
+
     fun depthFirstSearch(start : E, dest : E) : List<E> = search(true, start, dest)
 
     fun breathFirstSearch(start : E, dest : E) : List<E> = search(false, start, dest)
