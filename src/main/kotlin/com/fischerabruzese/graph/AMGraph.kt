@@ -259,27 +259,34 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
     fun breathFirstSearch(start : E, dest : E) : List<E> = search(false, start, dest)
 
     private fun search(depth : Boolean, start : E, dest : E) : List<E>{
-        val dest = indexLookup[dest]
-        val visited = Array(size()){false}
-        val q = LinkedList<IntArray>()
+        val dest = indexLookup[dest]!!
+        val q = LinkedList<Pair<Int, Int>>()
+        val dq = IntArray(size()) { -1 }
 
-        q.addFirst(intArrayOf(indexLookup[start]!!))
+        q.addFirst(indexLookup[start]!! to -1)
 
         while(!q.isEmpty()){
-            val curPath = q.pop().run{
-                if(last() == dest) return this.map { vertices[it] }; this
-            }
-            visited[curPath.last()] = true
+            val curPath = q.pop()
+            if(curPath.first == dest) break
 
-            for((ob,dist) in edgeMatrix[curPath.last()].withIndex()){
-                if(!visited[ob] && dist != -1)
-                    if(depth)
-                        q.addFirst( intArrayOf(*curPath,ob) )
-                    else //breath
-                        q.addLast( intArrayOf(*curPath,ob) )
+            for((ob,dist) in edgeMatrix[curPath.first].withIndex()){
+                if(dq[ob] == -1 && dist != -1) {
+                    if (depth) {
+                        q.addFirst(ob to curPath.first)
+                    } else {//breath
+                        q.addLast(ob to curPath.first)
+                    }
+                    dq[curPath.first] = curPath.second
+                }
             }
         }
-        return emptyList()
+        return LinkedList<E>().apply {
+            var next : Int = dest
+            while(dq[dest] != -1) {
+                add(vertices[next])
+                next = dq[next]
+            }
+        }
     }
 
     /**
