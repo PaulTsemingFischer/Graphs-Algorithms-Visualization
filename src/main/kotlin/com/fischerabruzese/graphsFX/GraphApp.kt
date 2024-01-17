@@ -11,19 +11,35 @@ class GraphApp : Application() {
     override fun start(stage: Stage) {
         val fxmlLoader = FXMLLoader(GraphApp::class.java.getResource("graph.fxml"))
         val scene = Scene(fxmlLoader.load(), 600.0, 400.0)
-        val controller : Controller<Char> = fxmlLoader.getController()!!
+        val controller : Controller<Int> = fxmlLoader.getController()!!
 
         stage.title = "Graph"
         stage.scene = scene
 
-//        val verts = Array(10){i -> i}
+        val verts = Array(100){i -> i}
 //
-//        val graph = AMGraph(*verts)
-        val test = AMGraph<Char>('a' to listOf('b' to 1,'d' to 5), 'b' to listOf('d' to 3), 'f' to listOf('c' to 3), 'd' to listOf('f' to 3))
-//        graph.randomize({Random.nextBoolean()}, 9)
-        controller.graphInit(test)
-        println(test)
-        print(test.depthFirstSearch('a','c'))
+        val graph = AMGraph.graphOf(*verts)
+//        val test = AMGraph<Char>('a' to listOf('b' to 1,'c' to 5), 'd' to listOf('d' to 3), 'f' to listOf('c' to 3), 'd' to listOf('f' to 3))
+        graph.randomize({Random.nextBoolean()}, 9)
+        controller.graphInit(graph)
+
+        val start1 = System.nanoTime()
+        for(from in verts){
+            for (to in verts){
+                graph.depthFirstSearchv2(from, to)
+            }
+        }
+        println("PTF: Time Elapsed: ${System.nanoTime() - start1}")
+
+        val start2 = System.nanoTime()
+        for(from in verts){
+            for (to in verts){
+                graph.depthFirstSearch(from, to)
+            }
+        }
+        println("Sky: Time Elapsed: ${System.nanoTime() - start2}")
+
+
 //        for(edge in graph.edgeMatrix){
 //            for(weight in edge){
 //                print("[$weight]")
