@@ -50,7 +50,7 @@ class GraphApp : Application() {
         val start4 = System.nanoTime()
         for(from in verts){
             for (to in verts){
-                graph.breathFirstSearch(from, to)
+                graph.breadthFirstSearch(from, to)
             }
         }
         println("Sky BFS: ${System.nanoTime() - start4}")
@@ -58,7 +58,7 @@ class GraphApp : Application() {
         println("PTF DFS: ${graph.depthFirstSearchv2(0, 1)}")
         println("Sky DFS: ${graph.depthFirstSearch(0, 1)}")
         println("PTF BFS: ${graph.breadthFirstSearchv2(0, 1)}")
-        println("Sky BFS: ${graph.breathFirstSearch(0, 1)}")
+        println("Sky BFS: ${graph.breadthFirstSearch(0, 1)}")
 
 //        for(edge in graph.edgeMatrix){
 //            for(weight in edge){
