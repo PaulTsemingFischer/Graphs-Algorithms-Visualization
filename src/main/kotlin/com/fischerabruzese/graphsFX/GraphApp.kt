@@ -12,6 +12,7 @@ class GraphApp : Application() {
         val fxmlLoader = FXMLLoader(GraphApp::class.java.getResource("graph.fxml"))
         val scene = Scene(fxmlLoader.load(), 600.0, 400.0)
         val controller : Controller<Int> = fxmlLoader.getController()!!
+        scene.stylesheets.addAll(GraphApp::class.java.getResource("style.css").toExternalForm())
 
         stage.title = "Graph"
         stage.scene = scene

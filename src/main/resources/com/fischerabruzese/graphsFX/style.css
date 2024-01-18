@@ -1,0 +1,5 @@
+#pane{
+    -fx-background-image: url("background.png");
+    -fx-background-size: auto 100%;
+    -fx-background-position: center center;
+}

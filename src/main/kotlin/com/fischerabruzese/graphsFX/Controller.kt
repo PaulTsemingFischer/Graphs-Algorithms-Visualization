@@ -181,8 +181,8 @@ class Controller<E: Any> {
             else{
                 edge.v1.let{if(it != vertex) it.setColor(Color.BLUE)}
                 edge.v2.let{if(it != vertex) it.setColor(Color.BLUE)}
-                edge.setLineColor(Color.RED)
-                edge.setLabelColor(Color.RED)
+                edge.setLineColor(Color.GREEN, Color.RED, vertex)
+                edge.setLabelColor(Color.GREEN, Color.RED, vertex)
             }
         }
     }
@@ -333,9 +333,32 @@ class Controller<E: Any> {
             v2tov1Connection.setLineColor(color)
         }
 
+        fun setLineColor(outBoundColor: Color, inboundColor: Color, from: Vertex) {
+            if(v1 == from){
+                v1tov2Connection.setLineColor(outBoundColor)
+                v2tov1Connection.setLineColor(inboundColor)
+            } else{
+                v1tov2Connection.setLineColor(inboundColor)
+                v2tov1Connection.setLineColor(outBoundColor)
+            }
+        }
+
         fun setLabelColor(color: Color) {
             v1tov2Connection.setLabelColor(color)
             v2tov1Connection.setLabelColor(color)
+        }
+
+        fun setLabelColor(outBoundColor: Color, inboundColor: Color, from: Vertex) {
+            println("V1: ${v1.name} | V2: ${v2.name} } | From: ${from.name}")
+            if(v1 == from){ //oh i remember the issue, this equality is never true. even when it should be
+                println("v1-v2")
+                v1tov2Connection.setLabelColor(outBoundColor)
+                v2tov1Connection.setLabelColor(inboundColor)
+            } else{
+                println("v2-v1")
+                v1tov2Connection.setLabelColor(inboundColor)
+                v2tov1Connection.setLabelColor(outBoundColor)
+            }
         }
 
     }
