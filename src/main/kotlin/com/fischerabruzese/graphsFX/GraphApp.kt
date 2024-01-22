@@ -20,7 +20,7 @@ class GraphApp : Application() {
         val verts = Array(100){i -> i}
 
         val graph = AMGraph.graphOf(*verts)
-        graph.randomize(0.04, 9)
+        graph.randomize(0.03, 9)
         controller.graphInit(graph)
 
         val start1 = System.nanoTime()
