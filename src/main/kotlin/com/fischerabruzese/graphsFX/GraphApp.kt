@@ -10,7 +10,7 @@ import kotlin.random.Random
 class GraphApp : Application() {
     override fun start(stage: Stage) {
         val fxmlLoader = FXMLLoader(GraphApp::class.java.getResource("graph.fxml"))
-        val scene = Scene(fxmlLoader.load(), 600.0, 400.0)
+        val scene = Scene(fxmlLoader.load(), 1280.0, 820.0)
         val controller : Controller<Int> = fxmlLoader.getController()!!
         scene.stylesheets.addAll(GraphApp::class.java.getResource("style.css").toExternalForm())
 
@@ -25,16 +25,14 @@ class GraphApp : Application() {
 
         val start1 = System.nanoTime()
         for(from in verts){
-            graph.randomize({Random.nextBoolean()}, 9)
             for (to in verts){
-                graph.depthFirstSearchv2(from, to)
+                graph.depthFirstSearch2(from, to)
             }
         }
         println("PTF DFS: ${System.nanoTime() - start1}")
 
         val start2 = System.nanoTime()
         for(from in verts){
-            graph.randomize({Random.nextBoolean()}, 9)
             for (to in verts){
                 graph.depthFirstSearch(from, to)
             }
@@ -43,25 +41,23 @@ class GraphApp : Application() {
 
         val start3 = System.nanoTime()
         for(from in verts){
-            graph.randomize({Random.nextBoolean()}, 9)
             for (to in verts){
-                graph.breadthFirstSearchv2(from, to)
+                graph.breadthFirstSearch2(from, to)
             }
         }
         println("PTF BFS: ${System.nanoTime() - start3}")
 
         val start4 = System.nanoTime()
         for(from in verts){
-            graph.randomize({Random.nextBoolean()}, 9)
             for (to in verts){
                 graph.breadthFirstSearch(from, to)
             }
         }
         println("Sky BFS: ${System.nanoTime() - start4}")
 
-        println("PTF DFS: ${graph.depthFirstSearchv2(0, 1)}")
+        println("PTF DFS: ${graph.depthFirstSearch2(0, 1)}")
         println("Sky DFS: ${graph.depthFirstSearch(0, 1)}")
-        println("PTF BFS: ${graph.breadthFirstSearchv2(0, 1)}")
+        println("PTF BFS: ${graph.breadthFirstSearch2(0, 1)}")
         println("Sky BFS: ${graph.breadthFirstSearch(0, 1)}")
 
         controller.draw()
