@@ -39,7 +39,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
     /**
      * Constructs an empty graph.
      */
-    internal constructor() : this(
+    constructor() : this(
         null
     )
 
@@ -320,7 +320,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         val path = LinkedList<Int>()
         var curr = dest
         path.addFirst(dest)
-        while(prev[curr] != -2){
+        while(prev[curr] != -2 && prev[curr] != -1){
             path.addFirst(prev[curr])
             curr = prev[curr]
         }
