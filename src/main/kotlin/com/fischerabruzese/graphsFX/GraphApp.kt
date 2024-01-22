@@ -20,7 +20,7 @@ class GraphApp : Application() {
         val verts = Array(100){i -> i}
 
         val graph = AMGraph.graphOf(*verts)
-        graph.randomize({Random.nextBoolean()}, 9)
+        graph.randomizeSmart(3, 10)
         controller.graphInit(graph)
 
         val start1 = System.nanoTime()
@@ -55,10 +55,37 @@ class GraphApp : Application() {
         }
         println("Sky BFS: ${System.nanoTime() - start4}")
 
+//        for(from in verts){
+//            for (to in verts){
+//                graph.dijkstra(from, to)
+//                graph.dijkstraFibHeap(from, to)
+//            }
+//        }
+
+        val start5 = System.nanoTime()
+        for(from in verts){
+            for (to in verts){
+                graph.dijkstra(from, to)
+
+            }
+        }
+        println("PTF DSA: ${System.nanoTime() - start5}")
+
+        val start6 = System.nanoTime()
+        for(from in verts){
+            for (to in verts){
+                graph.dijkstraFibHeap(from, to)
+            }
+        }
+        println("Sky DSA: ${System.nanoTime() - start6}")
+
         println("PTF DFS: ${graph.depthFirstSearch2(0, 1)}")
         println("Sky DFS: ${graph.depthFirstSearch(0, 1)}")
         println("PTF BFS: ${graph.breadthFirstSearch2(0, 1)}")
         println("Sky BFS: ${graph.breadthFirstSearch(0, 1)}")
+        println("PTF DSA: ${graph.path(0, 1, true)}")
+        graph.clearDijkstraCache()
+        println("Sky DSA: ${graph.path(0, 1, false)}")
 
         controller.draw()
         stage.show()

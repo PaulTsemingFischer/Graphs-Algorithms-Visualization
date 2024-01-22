@@ -163,6 +163,11 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         randomize({Random.nextDouble() < probability}, maxWeight)
     }
 
+    fun randomizeSmart(avgConnectionsPerVertex: Int, maxWeight: Int){
+        val probability = avgConnectionsPerVertex.toDouble() / size()
+        randomize(probability, maxWeight)
+    }
+
     /**
      * Clears all edges in the graph.
      */
@@ -225,9 +230,13 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
      * @return A list of vertices representing the shortest path between the two vertices.
      */
     override fun path(from: E, to: E): List<E>{
+        return path(from, to, false)
+    }
+
+    fun path(from: E, to: E, useSimpleAlgorithm : Boolean = false): List<E>{
         val fromIndex = indexLookup[from]!!
         val toIndex = indexLookup[to]!!
-        return tracePath(fromIndex, toIndex, getDijkstraTable(fromIndex)).map { vertices[it] }
+        return tracePath(fromIndex, toIndex, if(useSimpleAlgorithm) getDijkstraTableSimple(fromIndex) else getDijkstraTable(fromIndex)).map { vertices[it] }
     }
 
     /**
@@ -244,6 +253,11 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
 
     private fun getDijkstraTable(fromIndex : Int) : Array<Pair<Int, Int>> {
         if (dijkstraTables[fromIndex] == null) dijkstraTables[fromIndex] = dijkstraFibHeap(fromIndex)
+        return dijkstraTables[fromIndex]!!
+    }
+
+    private fun getDijkstraTableSimple(fromIndex : Int) : Array<Pair<Int, Int>> {
+        if (dijkstraTables[fromIndex] == null) dijkstraTables[fromIndex] = dijkstra(fromIndex)
         return dijkstraTables[fromIndex]!!
     }
 
@@ -368,7 +382,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
     /**
      * Implements a Fibonacci Heap in Dijkstra's algorithm to queue vertices.
      */
-    private fun dijkstraFibHeap(from : Int, to : Int? = null) : Array<Pair<Int, Int>> {
+    internal fun dijkstraFibHeap(from : Int, to : Int? = null) : Array<Pair<Int, Int>> {
         //Initialize each vertex's info mapped to ids
         val prev = IntArray(size()) { -1 }
         val dist = IntArray(size()) { Int.MAX_VALUE }
@@ -414,7 +428,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
      * @postcondition: Both Int.MAX_VALUE and -1 indicates no path
      * @return An array of (previous vertex index, distance)
      */
-    private fun dijkstra(from : Int, to : Int? = null) : Array<Pair<Int, Int>> {
+    internal fun dijkstra(from : Int, to : Int? = null) : Array<Pair<Int, Int>> {
         val distance = IntArray(size()) { Int.MAX_VALUE }
         val prev = IntArray(size()) { -1 }
         val visited = BooleanArray(size()) { false }
@@ -441,6 +455,10 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
             visited[currVert] = true
         }
         return prev.zip(distance).toTypedArray() //funky function
+    }
+
+    internal fun clearDijkstraCache(){
+        dijkstraTables = Array(size()){null}
     }
 
     /**
