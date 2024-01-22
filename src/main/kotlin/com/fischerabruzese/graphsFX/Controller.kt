@@ -79,12 +79,13 @@ class Controller<E: Any> {
         draw()
     }
 
+    //Precondition: weight is a positive integer
     @FXML
     private fun editEdgePressed() {
-        val from = stringToEMap[fromVertexField.text]!!
-        val to = stringToEMap[toVertexField.text]!!
+        val from = stringToEMap[fromVertexField.text].let{ it ?: return }
+        val to = stringToEMap[toVertexField.text].let{ it ?: return }
         val weight = weightField.text
-        graph[from, to] = weight.toInt()
+        weight.toIntOrNull()?.takeIf { it > 0 }?.let { graph[from, to] = it }
         for(edge in edges){
             if(edge.checkMatch(from, to)){
                 edge.setLabelWeight(weight, true)
@@ -137,9 +138,6 @@ class Controller<E: Any> {
             //Hitbox
             hitbox.translateXProperty().bind(vtranslateXProperty)
             hitbox.translateYProperty().bind(vtranslateYProperty)
-
-//            hitbox.centerX = CIRCLE_RADIUS
-//            hitbox.centerY = CIRCLE_RADIUS
 
                 //Listeners
             hitbox.setOnMouseEntered { circle.fill = Color.GREEN }
@@ -349,13 +347,10 @@ class Controller<E: Any> {
         }
 
         fun setLabelColor(outBoundColor: Color, inboundColor: Color, from: Vertex) {
-            println("V1: ${v1.name} | V2: ${v2.name} } | From: ${from.name}")
-            if(v1 == from){ //oh i remember the issue, this equality is never true. even when it should be
-                println("v1-v2")
+            if(v1 == from){
                 v1tov2Connection.setLabelColor(outBoundColor)
                 v2tov1Connection.setLabelColor(inboundColor)
             } else{
-                println("v2-v1")
                 v1tov2Connection.setLabelColor(inboundColor)
                 v2tov1Connection.setLabelColor(outBoundColor)
             }
