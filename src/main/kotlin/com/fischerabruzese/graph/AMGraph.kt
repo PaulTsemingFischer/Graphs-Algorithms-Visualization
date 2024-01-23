@@ -379,7 +379,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
                     else //breadth
                         q.addLast(ob)
                     prev[ob] = curPath
-                    if(ob == dest) { prev[dest] = curPath; break }
+                    if(ob == dest) break
                 }
             }
         }
