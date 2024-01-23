@@ -21,7 +21,7 @@ class GraphApp : Application() {
 
         /* Customize your graph */
 
-        val verts = Array(100){i -> i}
+        val verts = Array(10){i -> i}
 
         val graph = AMGraph.graphOf(*verts)
         graph.randomizeSmart(3, 10)
@@ -75,7 +75,6 @@ class GraphApp : Application() {
         for(from in verts){
             for (to in verts){
                 graph.dijkstra(from, to)
-
             }
         }
         println("PTF DSA: ${(System.nanoTime() - start5).div(10000.0).roundToInt().div(10.0)} ms")
