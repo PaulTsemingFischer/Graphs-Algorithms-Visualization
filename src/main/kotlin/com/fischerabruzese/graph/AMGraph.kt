@@ -125,6 +125,19 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         return get(from, to).also { edgeMatrix[from][to] = value }
     }
 
+    private fun contains(vertex: E) : Boolean {
+        return indexLookup.containsKey(vertex)
+    }
+
+    private fun neighbors(vertex: E) : List<E>? {
+        return indexLookup[vertex]?.let {
+            ArrayList<E>().apply {
+                for((i,ob) in edgeMatrix[it].withIndex())
+                    if (ob != -1) add(vertices[i])
+            }
+        }
+    }
+
     /**
      * @return An iterator over the vertices in the graph. The order is not guaranteed.
      */
