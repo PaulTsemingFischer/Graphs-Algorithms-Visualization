@@ -236,7 +236,11 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
     fun path(from: E, to: E, useSimpleAlgorithm : Boolean = false): List<E>{
         val fromIndex = indexLookup[from]!!
         val toIndex = indexLookup[to]!!
-        return tracePath(fromIndex, toIndex, if(useSimpleAlgorithm) getDijkstraTableSimple(fromIndex) else getDijkstraTable(fromIndex)).map { vertices[it] }
+        return try {
+            tracePath(fromIndex, toIndex, if(useSimpleAlgorithm) getDijkstraTableSimple(fromIndex) else getDijkstraTable(fromIndex)).map { vertices[it] }
+        } catch (e : IndexOutOfBoundsException) {
+            emptyList()
+        }
     }
 
     /**
