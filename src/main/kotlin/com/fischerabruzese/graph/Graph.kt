@@ -8,6 +8,6 @@ abstract class Graph<E : Any> : Iterable<E> {
     abstract fun getVertices() : Set<E>
     abstract fun add(vararg verts : E)
     abstract fun remove(vararg verts : E)
-    abstract fun path(from : E, to : E) : List<E>
+    abstract fun path(from : E, to : E) : List<E>?
     abstract fun distance(from : E, to : E) : Int
 }
