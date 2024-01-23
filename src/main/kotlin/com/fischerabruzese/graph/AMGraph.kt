@@ -4,7 +4,7 @@ import java.util.LinkedList
 import kotlin.random.Random
 
 /**
- * Represents a graph data structure.
+ * Represents a directed graph with non-negative edge weights.
  *
  * @param E The type of the vertices in the graph.
  * @param outboundConnections A list of pairs of vertices and their outbound connections and weights.
@@ -193,16 +193,15 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
 
     /**
      * Removes a vertex from the graph.
-     * @param removals The vertices to remove from the graph.
+     * @param verts The vertices to remove from the graph.
      */
-    override fun remove(vararg removals : E){
+    override fun remove(vararg verts : E){
         val vertexToRemove = Array(size()){false}
-        for (vertex in removals){
+        for (vertex in verts){
             val id = indexLookup.remove(vertex) ?: continue
             vertexToRemove[id] = true
             vertices.removeAt(id)
         }
-
 
         val newEdgeMatrix = Array(size()) {IntArray(size()) {-1} }
         var fromOffset = 0
@@ -265,7 +264,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         return dijkstraTables[fromIndex]!!
     }
 
-    private fun tracePath(from: Int, to: Int, dijkstraTable: Array<Pair<Int, Int>>): List<Int> {
+    private fun tracePath(from: Int, to: Int, dijkstraTable: Array<Pair<Int, Int>>): List<Int>? {
         val path = LinkedList<Int>()
         path.add(to)
         var curr = to
@@ -273,7 +272,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
             path.addFirst(dijkstraTable[curr].run {curr = first; first})
             if(path[0] == -1) {path.removeFirst(); break}
         }
-        return path
+        return if(path.first() == from) path else null
     }
 
     /**
