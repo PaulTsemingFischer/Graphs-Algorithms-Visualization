@@ -1,7 +1,9 @@
 package com.fischerabruzese.graph
 
+import java.math.BigInteger
 import java.util.LinkedList
 import kotlin.random.Random
+import kotlin.math.pow
 
 /**
  * Represents a directed graph with non-negative edge weights.
@@ -476,6 +478,45 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
     internal fun clearDijkstraCache(){
         dijkstraTables = Array(size()){null}
     }
+
+    /**
+     * Colors the graph
+     */
+    private fun color(maxColors : Int) : Array<List<E>>?{
+        require(maxColors > 0)
+        val max = BigInteger(maxColors.toString()).pow(size())
+        var colors = BigInteger.ZERO //storing this array as an int for FANCY iteration
+
+        fun getColor(index : Int): Int {
+            return colors.divide(maxColors.toDouble().pow(index.toDouble()).toInt().toBigInteger()).mod(maxColors.toBigInteger()).toInt()
+        }
+
+        fun check() : Boolean {
+            for(vert in vertices){
+                for ((ob,w) in edgeMatrix[indexLookup[vert]!!].withIndex()){
+                    if (w != -1 && getColor(ob) == getColor(indexLookup[vert]!!)){
+                        return false
+                    }
+                }
+            }
+            return true
+        }
+
+        while(!check()){
+            if(colors == max) return null
+            colors = colors.plus(BigInteger.ONE)
+        }
+
+        return ArrayList<List<E>>().apply {
+            for (vert in vertices.indices) {
+                while (getColor(vert) >= size()) {
+                    add(emptyList())
+                }
+                this[getColor(vert)].addLast(vertices[vert])
+            }
+        }.toTypedArray()
+    }
+
 
     /**
      * @return A string representation of the graph.
