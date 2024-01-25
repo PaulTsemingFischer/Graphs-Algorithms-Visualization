@@ -484,7 +484,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
      */
     private fun color(maxColors : Int) : Array<List<E>>?{
         require(maxColors > 0)
-        val max = BigInteger(maxColors.toString()).pow(size())
+        val max = BigInteger(maxColors.toString()).pow(size()+1)
         var colors = BigInteger.ZERO //storing this array as an int for FANCY iteration
 
         fun getColor(index : Int): Int {
