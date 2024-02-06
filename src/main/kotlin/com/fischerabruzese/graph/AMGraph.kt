@@ -543,22 +543,39 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         return string.toString()
     }
 
-    fun minCut(): ArrayList<Pair<Int, Int>> {
-        val edgeList = ArrayList<Pair<Int, Int>>()
-        //Arr is a triangular matrix with j < i being undefined
-        val arr = Array(size()){IntArray(size()){0} }
-        for(i in 0 until size()){
-            for(j in 0 until size()){
-                if(j > i && edgeMatrix[i][j] != -1) arr[i][j]++
-                else if(j < i && edgeMatrix[j][i] != -1) arr[i][j]++
-                edgeList.add(Pair(i, j))
+    private fun mincut() : List<Pair<Int,Int>>{
+        //matrix[to][from] is how this is built, although it's bidirectional, so it doesn't matter. this is just so there's not wasted space
+        val matrix = Array(size()) { i -> IntArray(i+1) }
+        val edges = ArrayList<Pair<Int,Int>>()
+        val nodeRedirection = Array(size()){it}
+
+        for(from in 0 until size()) {
+            for (to in from+1 until size()) {
+                if(edgeMatrix[to][from] > -1){
+                    matrix[to][from]++
+                    edges.add(from to to)
+                }
+                if(edgeMatrix[to][from] > -1) {
+                    matrix[to][from]++
+                    edges.add(from to to)
+                }
             }
         }
-        val nodeReference = IntArray(size()) { it }
-        val liveNodes = nodeReference.size
-        while(liveNodes > 2){
 
+        fun cut() : List<Pair<Int,Int>> {
+            fun collapse(edge: Pair<Int,Int>) {
+                TODO()
+                //This fun will directly edit matrix and edges and redirect collapsed node to lower index
+            }
+            fun cutOptimal() : List<Pair<Int,Int>>{
+                TODO()
+            }
+            if(edges.size < 6) return cutOptimal()
+            collapse(edges[Random.nextInt(edges.size)])
+
+            return cut()
         }
 
+        return cut()
     }
 }
