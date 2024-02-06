@@ -555,7 +555,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
                     matrix[to][from]++
                     edges.add(from to to)
                 }
-                if(edgeMatrix[to][from] > -1) {
+                if(edgeMatrix[from][to] > -1) {
                     matrix[to][from]++
                     edges.add(from to to)
                 }
