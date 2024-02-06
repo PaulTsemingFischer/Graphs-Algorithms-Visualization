@@ -533,4 +533,38 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         }
         return string.toString()
     }
+
+    private fun mincut() : List<Pair<Int,Int>>{
+        val matrix = Array(edgeMatrix.size) { BooleanArray(size()) }
+        val edges = ArrayList<Pair<Int,Int>>()
+
+        for(from in 0 until size()) {
+            for (to in from+1 until size()) {
+                if(edgeMatrix[from][to] > -1){
+                    matrix[from][to] = true
+                    edges.add(from to to)
+                }
+                if(edgeMatrix[to][from] > -1) {
+                    matrix[to][from] = true
+                    edges.add(from to to)
+                }
+            }
+        }
+
+        fun cut() : List<Pair<Int,Int>> {
+            fun collapse(edge: Pair<Int,Int>) {
+                TODO()
+                //This fun will directly edit matrix and edges
+            }
+            fun cutOptimal() : List<Pair<Int,Int>>{
+                TODO()
+            }
+            if(edges.size < 6) return cutOptimal()
+            collapse(edges[Random.nextInt(edges.size)])
+
+            return cut()
+        }
+
+        return cut()
+    }
 }
