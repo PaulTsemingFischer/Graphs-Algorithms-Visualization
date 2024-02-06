@@ -34,7 +34,7 @@ class Controller<E: Any> {
     private val CIRCLE_RADIUS = 20.0
 
     private lateinit var graph : Graph<E>
-    private val stringToEMap = HashMap<String, E>()
+    private val stringToVMap = HashMap<String, Controller<E>.Vertex>()
     private var edges = ArrayList<Edge>()
     private var vertices = ArrayList<Vertex>()
     private val hitboxes = ArrayList<Circle>()
@@ -45,16 +45,13 @@ class Controller<E: Any> {
         paneHeight = pane.heightProperty()
     }
 
-    fun graphInit(graph : Graph<E>){
+    fun setGraph(graph : Graph<E>){
         this.graph = graph
-        for(vertex in graph.getVertices()){
-            stringToEMap[vertex.toString()] = vertex
-        }
     }
 
     fun draw() {
         val graphVertices = graph.getVertices().toList()
-        val verticesElements = Array(graphVertices.size){ index -> Vertex(graphVertices[index].toString(), Math.random(), Math.random())}
+        val verticesElements = Array(graphVertices.size){ index -> Vertex(graphVertices[index], Math.random(), Math.random()).also{stringToVMap[it.toString()] = it}}
         val edgeElements = ArrayList<Edge>()
 
         for(v1 in graphVertices.indices){
@@ -82,10 +79,10 @@ class Controller<E: Any> {
     //Precondition: weight is a positive integer
     @FXML
     private fun editEdgePressed() {
-        val from = stringToEMap[fromVertexField.text].let{ it ?: return }
-        val to = stringToEMap[toVertexField.text].let{ it ?: return }
+        val from = stringToVMap[fromVertexField.text].let{ it ?: return }
+        val to = stringToVMap[toVertexField.text].let{ it ?: return }
         val weight = weightField.text
-        weight.toIntOrNull()?.takeIf { it > 0 }?.let { graph[from, to] = it }
+        weight.toIntOrNull()?.takeIf { it > 0 }?.let { graph[from.v, to.v] = it }
         for(edge in edges){
             if(edge.checkMatch(from, to)){
                 edge.setLabelWeight(weight, true)
@@ -97,10 +94,10 @@ class Controller<E: Any> {
 
 
     //Precondition: x and y are between 0 and 1
-    inner class Vertex(val name: String, x : Double, y : Double) : StackPane() {
+    inner class Vertex(val v: E, x : Double, y : Double) : StackPane() {
         //Components
         private val circle = Circle(CIRCLE_RADIUS, Color.BLUE)
-        private val label = Label(name)
+        private val label = Label(v.toString())
         private val hitbox = Circle(CIRCLE_RADIUS, Color.TRANSPARENT)
 
         //Location Bindings
@@ -319,7 +316,7 @@ class Controller<E: Any> {
             }
         }
 
-        fun checkMatch(from: E, to: E): Boolean = this.v1.name == from.toString() && this.v2.name == to.toString()
+        fun checkMatch(from: Vertex, to: Vertex): Boolean = from == v1 && to == v2
 
         fun setLabelWeight(weight: String, isOutbounds: Boolean){
             if(isOutbounds) v1tov2Connection.setWeight(weight)

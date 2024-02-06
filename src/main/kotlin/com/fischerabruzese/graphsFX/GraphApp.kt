@@ -5,8 +5,6 @@ import javafx.application.Application
 import javafx.fxml.FXMLLoader
 import javafx.scene.Scene
 import javafx.stage.Stage
-import kotlin.math.roundToInt
-import kotlin.random.Random
 
 class GraphApp : Application() {
     override fun start(stage: Stage) {
@@ -25,11 +23,11 @@ class GraphApp : Application() {
 
         val graph = AMGraph.graphOf(*verts)
         graph.randomizeSmart(3, 10)
-        controller.graphInit(graph)
+        controller.setGraph(graph)
 
 
         /* Runtime testing with slightly different algorithms */
-
+/*
         println("--Time Trials--")
 
         val start1 = System.nanoTime()
@@ -99,7 +97,7 @@ class GraphApp : Application() {
 
 
         /* Launch the application */
-
+*/
         controller.draw()
         stage.show()
     }
