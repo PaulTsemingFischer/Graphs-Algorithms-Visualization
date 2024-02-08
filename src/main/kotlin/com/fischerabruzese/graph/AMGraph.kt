@@ -544,8 +544,8 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
     }
 
     private fun mincut() : List<Pair<Int,Int>>{
-        //matrix[to][from] is how this is built, although it's bidirectional, so it doesn't matter. this is just so there's not wasted space
-        val matrix = Array(size()) { i -> IntArray(i+1) }
+        //from > to in our matrix
+        val matrix = Array(size()) { i -> IntArray(i) }
         val edges = ArrayList<Pair<Int,Int>>()
         val nodeRedirection = Array(size()){it}
 
