@@ -544,11 +544,12 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
     }
 
     private fun mincut() : List<Pair<Int,Int>>{
-        //from > to in our matrix
+        //'from' > 'to' in matrix
         val matrix = Array(size()) { i -> IntArray(i) }
         var edges : MutableList<Pair<Int,Int>> = ArrayList()
         val nodeRedirection = Array(size()){it}
 
+        //Initializing matrix from edge matrix
         for(from in 1 until size()) {
             for (to in 0 until from) {
                 if(edgeMatrix[from][to] > -1) matrix[from][to]++
@@ -592,11 +593,17 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         return cutOptimal()
     }
 
-    private fun<T> randomizeList(list: MutableList<T>){
-        fun swap(index1: Int, index2:Int) = list[index1].let { list.set(index2,list[index1]) }
+    private fun<T> randomizeList(list: MutableList<T>) {
+        fun swap(index1: Int, index2: Int) {
+            list[index1] = list.set(index2,list[index1])
+        }
 
         for(i in list.indices){
             swap(i,Random.nextInt(i,list.size))
         }
     }
+}
+
+fun main() {
+
 }
