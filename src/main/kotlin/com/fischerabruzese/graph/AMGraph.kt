@@ -516,10 +516,10 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
             colors = colors.plus(BigInteger.ONE)
         }
 
-        return ArrayList<List<E>>().apply {
+        return ArrayList<ArrayList<E>>().apply {
             for (vert in vertices.indices) {
                 while (getColor(vert) >= size()) {
-                    add(emptyList())
+                    add(ArrayList())
                 }
                 this[getColor(vert)].addLast(vertices[vert])
             }
@@ -546,37 +546,50 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
     private fun mincut() : List<Pair<Int,Int>>{
         //from > to in our matrix
         val matrix = Array(size()) { i -> IntArray(i) }
-        val edges = ArrayList<Pair<Int,Int>>()
+        var edges : MutableList<Pair<Int,Int>> = ArrayList()
         val nodeRedirection = Array(size()){it}
 
         for(from in 1 until size()) {
             for (to in 0 until from) {
-                if(edgeMatrix[from][to] > -1){
-                    matrix[from][to]++
-                    edges.add(from to to)
-                }
-                if(edgeMatrix[to][from] > -1) {
-                    matrix[from][to]++
-                    edges.add(from to to)
-                }
+                if(edgeMatrix[from][to] > -1) matrix[from][to]++
+                if(edgeMatrix[to][from] > -1) matrix[from][to]++
+
+                if(matrix[from][to] > 0) edges.add(from to to)
             }
         }
 
-        fun cut() : List<Pair<Int,Int>> {
-            fun collapse(edge: Pair<Int,Int>) {
-                TODO()
-                //This fun will directly edit matrix and edges and redirect collapsed node to lower index
-            }
-            fun cutOptimal() : List<Pair<Int,Int>>{
-                TODO()
-            }
-            if(edges.size < 6) return cutOptimal()
-            collapse(edges[Random.nextInt(edges.size)])
+        //Randomize edge list
+        randomizeList(edges)
+        edges = LinkedList(edges)
 
-            return cut()
+        //Finding and cutting the (probably) min-cut
+        fun collapseLast() {
+            val edge = edges.removeFirst()
+            val from = nodeRedirection[edge.first]
+            val to = nodeRedirection[edge.second]
+
+            //Collapse 'to' into 'from' since it is always smaller
+            for(i in matrix[to]){ //Copy straight down
+                matrix[from][i] += matrix[to][i].also{ matrix[to][i] = 0 }
+            }
+            for(i in to+1 until from){ //Copy and flip
+                matrix[from][i] += matrix[i][to].also{ matrix[i][to] = 0 }
+            }
+            for(i in from+1 until edges.size){ //Copy to the right
+                matrix[i][from] += matrix[i][to].also{ matrix[i][to] = 0 }
+            }
+            matrix[from][to] = 0 //Self reference
+
+            //Making all references to the 2nd node lead to the first
+            nodeRedirection[to] = from
         }
+        fun cutOptimal() : List<Pair<Int,Int>>{
+            TODO()
+        }
+        while (edges.size <= 2)
+            collapseLast()
 
-        return cut()
+        return cutOptimal()
     }
 
     private fun<T> randomizeList(list: MutableList<T>){
