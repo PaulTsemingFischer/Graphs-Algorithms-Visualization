@@ -548,6 +548,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         val matrix = Array(size()) { i -> IntArray(i) }
         var edges : MutableList<Pair<Int,Int>> = ArrayList()
         val nodeRedirection = Array(size()){it}
+        var numNodes = size()
 
         //Initializing matrix from edge matrix
         for(from in 1 until size()) {
@@ -564,11 +565,12 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         edges = LinkedList(edges)
 
         //Finding and cutting the (probably) min-cut
-        fun collapseLast() {
+        fun collapseFirst() {
             val edge = edges.removeFirst()
             val from = nodeRedirection[edge.first]
             val to = nodeRedirection[edge.second]
 
+            if(from == to) return //Self reference
             //Collapse 'to' into 'from' since it is always smaller
             for(i in matrix[to]){ //Copy straight down
                 matrix[from][i] += matrix[to][i].also{ matrix[to][i] = 0 }
@@ -583,12 +585,13 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
 
             //Making all references to the 2nd node lead to the first
             nodeRedirection[to] = from
+            numNodes--
         }
         fun cutOptimal() : List<Pair<Int,Int>>{
             TODO()
         }
-        while (edges.size <= 2)
-            collapseLast()
+        while (numNodes > 2)
+            collapseFirst()
 
         return cutOptimal()
     }
