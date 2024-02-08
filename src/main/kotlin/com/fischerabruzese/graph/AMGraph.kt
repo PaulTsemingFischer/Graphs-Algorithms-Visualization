@@ -549,14 +549,14 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         val edges = ArrayList<Pair<Int,Int>>()
         val nodeRedirection = Array(size()){it}
 
-        for(from in 0 until size()) {
-            for (to in from+1 until size()) {
-                if(edgeMatrix[to][from] > -1){
-                    matrix[to][from]++
+        for(from in 1 until size()) {
+            for (to in 0 until from) {
+                if(edgeMatrix[from][to] > -1){
+                    matrix[from][to]++
                     edges.add(from to to)
                 }
-                if(edgeMatrix[from][to] > -1) {
-                    matrix[to][from]++
+                if(edgeMatrix[to][from] > -1) {
+                    matrix[from][to]++
                     edges.add(from to to)
                 }
             }
@@ -577,5 +577,13 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         }
 
         return cut()
+    }
+
+    private fun<T> randomizeList(list: MutableList<T>){
+        fun swap(index1: Int, index2:Int) = list[index1].let { list.set(index2,list[index1]) }
+
+        for(i in list.indices){
+            swap(i,Random.nextInt(i,list.size))
+        }
     }
 }
