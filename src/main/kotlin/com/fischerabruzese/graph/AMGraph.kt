@@ -547,7 +547,6 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         //'from' > 'to' in matrix
         var edges : MutableList<Pair<Int,Int>> = ArrayList()
         val nodeRedirection = Array(size()){it}
-        var dq : MutableList<Pair<Int,Int>>
         var numNodes = size()
 
         //Initializing matrix from edge matrix
