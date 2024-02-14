@@ -545,21 +545,16 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
 
     private fun mincut() : List<Pair<Int,Int>>{
         //'from' > 'to' in matrix
-        val matrix = Array(size()) { i -> IntArray(i) }
         var edges : MutableList<Pair<Int,Int>> = ArrayList()
         val nodeRedirection = Array(size()){it}
-        var dedges : MutableList<Pair<Int,Int>> = ()
+        var dq : MutableList<Pair<Int,Int>>
         var numNodes = size()
 
         //Initializing matrix from edge matrix
         for(from in 1 until size()) {
             for (to in 0 until from) {
-                if(edgeMatrix[from][to] > -1) matrix[from][to]++
-                if(edgeMatrix[to][from] > -1) matrix[from][to]++
-
-                repeat(matrix[from][to]) {
-                    edges.add(from to to)
-                }
+                if(edgeMatrix[from][to] > -1) edges.add(from to to)
+                if(edgeMatrix[to][from] > -1) edges.add(from to to)
             }
         }
 
@@ -574,18 +569,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
             val to = nodeRedirection[edge.second]
 
             if(from == to) return //Self reference
-            //Collapse 'to' into 'from' since it is always smaller
-            for(i in matrix[to]){ //Copy straight down
-                matrix[from][i] += matrix[to][i].also{ matrix[to][i] = 0 }
-            }
-            for(i in to+1 until from){ //Copy and flip
-                matrix[from][i] += matrix[i][to].also{ matrix[i][to] = 0 }
-            }
-            for(i in from+1 until edges.size){ //Copy to the right
-                matrix[i][from] += matrix[i][to].also{ matrix[i][to] = 0 }
-            }
-            matrix[from][to] = 0 //Self reference
-
+            dq.addLast(edge.first to edge.second)
             //Making all references to the 2nd node lead to the first
             nodeRedirection[to] = from
             numNodes--
