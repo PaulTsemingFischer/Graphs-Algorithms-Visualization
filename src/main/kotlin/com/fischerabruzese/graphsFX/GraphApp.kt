@@ -19,12 +19,12 @@ class GraphApp : Application() {
 
         /* Customize your graph */
 
-        val verts = Array(10){i -> i}
+        val verts = Array(4){i -> i}
 
         val graph = AMGraph.graphOf(*verts)
         graph.randomizeSmart(3, 10)
         controller.setGraph(graph)
-
+        println(graph.mincut())
 
         /* Runtime testing with slightly different algorithms */
 /*
