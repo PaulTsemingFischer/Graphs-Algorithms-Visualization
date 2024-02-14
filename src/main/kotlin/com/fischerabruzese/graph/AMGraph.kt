@@ -544,10 +544,9 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
     }
 
     private fun mincut() : List<Pair<Int,Int>>{
-        //'from' > 'to' in matrix
+        //'from' > 'to' in edges
         var edges : MutableList<Pair<Int,Int>> = ArrayList()
         val nodeRedirection = Array(size()){it}
-        var dq : MutableList<Pair<Int,Int>>
         var numNodes = size()
 
         //Initializing matrix from edge matrix
@@ -569,18 +568,46 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
             val to = nodeRedirection[edge.second]
 
             if(from == to) return //Self reference
-            dq.addLast(edge.first to edge.second)
             //Making all references to the 2nd node lead to the first
             nodeRedirection[to] = from
             numNodes--
         }
-        fun cutOptimal() : List<Pair<Int,Int>>{
-            TODO()
+        fun cut() : List<Pair<Int,Int>>{
+            val cutList = ArrayList<Pair<Int, Int>>()
+
+            var fromList = ArrayList<Int>()
+            var toList = ArrayList<Int>()
+            var from : Int = -1
+            var to : Int = -1
+            for((original, redirected) in nodeRedirection.withIndex()){
+                when(-1){
+                    from -> from = original
+                    to -> to = original
+                }
+                when (redirected) {
+                    from -> fromList
+                    to -> toList
+                    else -> continue
+                }.add(original)
+            }
+
+            if(from < to) {
+                to = from.also { from = to }
+                fromList = toList.also { toList = fromList }
+            }
+
+            for(f in fromList){
+                for(t in toList){
+                    if(edgeMatrix[from][to] > -1) cutList.add(f to t)
+                    if(edgeMatrix[to][from] > -1) cutList.add(t to f)
+                }
+            }
+            return cutList
         }
         while (numNodes > 2)
             collapse()
 
-        return cutOptimal()
+        return cut()
     }
 
     private fun<T> randomizeList(list: MutableList<T>) {
