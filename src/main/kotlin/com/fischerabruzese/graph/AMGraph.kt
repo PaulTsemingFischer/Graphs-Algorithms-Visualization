@@ -546,7 +546,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
     fun mincut() : List<Pair<Int,Int>>{
         //'from' > 'to' in edges
         var edges : MutableList<Pair<Int,Int>> = ArrayList()
-        val nodeRedirection = Array(size()){it}
+        val nodeRedirection = Array(size()){-it} //Negative numbers are self links
         var numNodes = size()
 
         //Initializing edges from edge-matrix
@@ -570,11 +570,22 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
 
             if(from == to) return //Self reference
             //Making all references to the 2nd node lead to the first
-            nodeRedirection[to] = from
+            nodeRedirection[if(to < 0) -to else to] = from
             numNodes--
         }
         fun cut() : List<Pair<Int,Int>>{
             println("Cut")
+            //Preparing node redirection so it only contains 2 numbers
+            fun getLink(node : Int) : Int{
+                if(nodeRedirection[node] == -node) return node
+                return getLink(-nodeRedirection[node])
+            }
+            for (node in nodeRedirection.indices) {
+                println("node: " + node)
+                nodeRedirection[node] = getLink(node)
+            }
+            println("Fixed Node Redirection: " + nodeRedirection.toList())
+            //Splitting node redirection into two lists
             var from : Int = -1; val fromList = ArrayList<Int>()
             var to : Int = -1; val toList = ArrayList<Int>()
 
@@ -583,19 +594,21 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
                     from -> from = original
                     to -> to = original
                 }
-                when (redirected) {
+                when (-redirected) {
                     from -> fromList
                     to -> toList
                     else -> continue
                 }.add(original)
             }
-            print("fromlist: " + fromList)
-            print("tolist: " + toList)
+
+            println("fromlist: " + fromList)
+            println("tolist: " + toList)
+            //Checking all combos of edges to return the cut
             return ArrayList<Pair<Int,Int>>().apply{
                 for(f in fromList){
                     for(t in toList){
-                        if(edgeMatrix[from][to] > -1) add(f to t)
-                        if(edgeMatrix[to][from] > -1) add(t to f)
+                        if(edgeMatrix[f][t] > -1) add(f to t)
+                        if(edgeMatrix[t][f] > -1) add(t to f)
                     }
                 }
             }
