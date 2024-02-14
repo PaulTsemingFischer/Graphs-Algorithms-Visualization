@@ -543,7 +543,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         return string.toString()
     }
 
-    private fun mincut() : List<Pair<Int,Int>>{
+    fun mincut() : List<Pair<Int,Int>>{
         //'from' > 'to' in edges
         var edges : MutableList<Pair<Int,Int>> = ArrayList()
         val nodeRedirection = Array(size()){it}
@@ -573,7 +573,9 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
             numNodes--
         }
         fun cut() : List<Pair<Int,Int>>{
-            val cutList = ArrayList<Pair<Int, Int>>()
+            println("Cut")
+            var from : Int = -1; val fromList = ArrayList<Int>()
+            var to : Int = -1; val toList = ArrayList<Int>()
 
             var fromList = ArrayList<Int>()
             var toList = ArrayList<Int>()
@@ -590,23 +592,20 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
                     else -> continue
                 }.add(original)
             }
-
-            if(from < to) {
-                to = from.also { from = to }
-                fromList = toList.also { toList = fromList }
-            }
-
-            for(f in fromList){
-                for(t in toList){
-                    if(edgeMatrix[from][to] > -1) cutList.add(f to t)
-                    if(edgeMatrix[to][from] > -1) cutList.add(t to f)
+            print("fromlist: " + fromList)
+            print("tolist: " + toList)
+            return ArrayList<Pair<Int,Int>>().apply{
+                for(f in fromList){
+                    for(t in toList){
+                        if(edgeMatrix[from][to] > -1) add(f to t)
+                        if(edgeMatrix[to][from] > -1) add(t to f)
+                    }
                 }
             }
-            return cutList
         }
         while (numNodes > 2)
             collapse()
-
+        println("Node redirection: ${nodeRedirection.toList()}")
         return cut()
     }
 
