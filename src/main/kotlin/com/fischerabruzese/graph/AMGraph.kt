@@ -590,17 +590,20 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
             var to : Int = -1; val toList = ArrayList<Int>()
 
             for((original, redirected) in nodeRedirection.withIndex()) {
-                when (-1) {
-                    from -> from = original
-                    to -> to = original
-                }
-                when (-redirected) {
+                println("original: " + original + " redirected: " + redirected)
+
+                if(from == -1) from = redirected
+                else if(to == -1 && redirected != from) to = redirected
+
+                when (redirected) {
                     from -> fromList
                     to -> toList
                     else -> continue
                 }.add(original)
-            }
 
+
+            }
+            println("From: $from To: $to")
             println("fromlist: " + fromList)
             println("tolist: " + toList)
             //Checking all combos of edges to return the cut
