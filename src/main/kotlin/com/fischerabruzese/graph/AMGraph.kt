@@ -556,8 +556,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         //'from' > 'to' in edges
         var edges : MutableList<Pair<Int,Int>> = ArrayList()
 
-        val nodeRedirection = Array(size()){it}
-        val selfLinks = Array(size()){true}
+        var nodeRedirection = IntArray(size()){it}
 
         var numNodes = size()
 
@@ -572,31 +571,35 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         //Randomize edge list
         randomizeList(edges)
         edges = LinkedList(edges)
+        println("edges ${edges.toString()}")
+
+        fun getLink(node : Int) : Int{
+            if(nodeRedirection[node] == node) return node
+            return getLink(nodeRedirection[node])
+        }
 
         //Finding and cutting the (probably) min-cut
         fun collapse() {
             val edge = edges.pop()
-            val from = nodeRedirection[edge.first]
-            val to = nodeRedirection[edge.second]
+            print("collapsing: $edge ||  ")
+            val from = getLink(edge.first)
+            val to = getLink(edge.second)
 
-            if(from == to) return //Self reference
+            if(from == to) return.also{ println("self-reference") } //Self reference
             //Making references to the 2nd node lead to the first
             nodeRedirection[edge.second] = from
-            selfLinks[to] = false
-            numNodes--
+            numNodes--.also{println("New numNodes: $numNodes")}
         }
         fun cut() : List<Pair<Int,Int>>{
             //Preparing node redirection so it only contains 2 numbers
-            println("nr: " + nodeRedirection.contentToString())
 
-            //Returns the base node a node is merged onto
-            fun getLink(node : Int) : Int{
-                if(selfLinks[node]) return node
-                return getLink(nodeRedirection[node])
-            }
+            //update references to be concrete values
+            val temp = IntArray(nodeRedirection.size)
             for (node in nodeRedirection.indices) {
-                nodeRedirection[node] = getLink(node)
+                temp[node] = getLink(node)
             }
+            nodeRedirection = temp
+            println("nr: " + nodeRedirection.contentToString())
 
             //Splitting node redirection into two lists
             var from : Int = -1; val fromList = ArrayList<Int>() //-1 indicates uninitialized
