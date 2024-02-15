@@ -543,10 +543,22 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         return string.toString()
     }
 
+    fun multipleMinCut(numAttempts: Int) : List<Pair<Int,Int>>{
+        var bestCut = mincut()
+        repeat(numAttempts - 1){
+            val minCut = mincut()
+            if(minCut.size < bestCut.size) bestCut = minCut
+        }
+        return mincut()
+    }
+
     fun mincut() : List<Pair<Int,Int>>{
         //'from' > 'to' in edges
         var edges : MutableList<Pair<Int,Int>> = ArrayList()
-        val nodeRedirection = Array(size()){-it} //Negative numbers are self links
+
+        val nodeRedirection = Array(size()){it}
+        val selfLinks = Array(size()){true}
+
         var numNodes = size()
 
         //Initializing edges from edge-matrix
@@ -566,46 +578,42 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
             val edge = edges.pop()
             val from = nodeRedirection[edge.first]
             val to = nodeRedirection[edge.second]
-            println("Collapsing: ${edge.second} ($to) into ${edge.first} ($from)")
 
             if(from == to) return //Self reference
-            //Making all references to the 2nd node lead to the first
-            nodeRedirection[if(to < 0) -to else to] = from
+            //Making references to the 2nd node lead to the first
+            nodeRedirection[edge.second] = from
+            selfLinks[to] = false
             numNodes--
         }
         fun cut() : List<Pair<Int,Int>>{
-            println("Cut")
             //Preparing node redirection so it only contains 2 numbers
+            println("nr: " + nodeRedirection.contentToString())
+
+            //Returns the base node a node is merged onto
             fun getLink(node : Int) : Int{
-                if(nodeRedirection[node] == -node) return node
-                return getLink(-nodeRedirection[node])
+                if(selfLinks[node]) return node
+                return getLink(nodeRedirection[node])
             }
             for (node in nodeRedirection.indices) {
-                println("node: " + node)
                 nodeRedirection[node] = getLink(node)
             }
-            println("Fixed Node Redirection: " + nodeRedirection.toList())
+
             //Splitting node redirection into two lists
-            var from : Int = -1; val fromList = ArrayList<Int>()
+            var from : Int = -1; val fromList = ArrayList<Int>() //-1 indicates uninitialized
             var to : Int = -1; val toList = ArrayList<Int>()
 
             for((original, redirected) in nodeRedirection.withIndex()) {
-                println("original: " + original + " redirected: " + redirected)
-
+                //Initialize from/to if needed
                 if(from == -1) from = redirected
                 else if(to == -1 && redirected != from) to = redirected
 
+                //Add to the correct list
                 when (redirected) {
                     from -> fromList
                     to -> toList
                     else -> continue
                 }.add(original)
-
-
             }
-            println("From: $from To: $to")
-            println("fromlist: " + fromList)
-            println("tolist: " + toList)
             //Checking all combos of edges to return the cut
             return ArrayList<Pair<Int,Int>>().apply{
                 for(f in fromList){
@@ -619,7 +627,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
 
         while (numNodes > 2)
             collapse()
-        println("Node redirection: ${nodeRedirection.toList()}")
+        //println("Node redirection: ${nodeRedirection.toList()}")
         return cut()
     }
 

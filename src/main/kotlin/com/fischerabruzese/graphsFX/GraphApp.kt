@@ -24,7 +24,8 @@ class GraphApp : Application() {
         val graph = AMGraph.graphOf(*verts)
         graph.randomizeSmart(3, 10)
         controller.setGraph(graph)
-        println(graph.mincut())
+        println(graph.multipleMinCut(10))
+
 
         /* Runtime testing with slightly different algorithms */
 /*
