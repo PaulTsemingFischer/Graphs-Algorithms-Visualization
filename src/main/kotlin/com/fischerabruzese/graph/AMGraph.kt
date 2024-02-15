@@ -556,11 +556,17 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         //'from' > 'to' in edges
         var edges : MutableList<Pair<Int,Int>> = ArrayList()
 
-        var nodeRedirection = IntArray(size()){it}
+        //everything that is not equal to it's index is a reference on where to find your value
+        val nodeRedirection = IntArray(size()){it}
+        //navigates through references until it finds the redirected value
+        fun getLink(node : Int) : Int{
+            if(nodeRedirection[node] == node) return node
+            return getLink(nodeRedirection[node])
+        }
 
         var numNodes = size()
 
-        //Initializing edges from edge-matrix
+        //Initializing edges from edge-matrix, triangular to ensure from > to
         for(from in 1 until size()) {
             for (to in 0 until from) {
                 if(edgeMatrix[from][to] > -1) edges.add(from to to)
@@ -570,54 +576,50 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
 
         //Randomize edge list
         randomizeList(edges)
-        edges = LinkedList(edges)
-        println("edges ${edges.toString()}")
-
-        fun getLink(node : Int) : Int{
-            if(nodeRedirection[node] == node) return node
-            return getLink(nodeRedirection[node])
-        }
+        edges = LinkedList(edges) //turn into a queue so we can pop
 
         //Finding and cutting the (probably) min-cut
         fun collapse() {
             val edge = edges.pop()
-            print("collapsing: $edge ||  ")
+            //from and to are the merged values (if they've previously been merged)
             val from = getLink(edge.first)
             val to = getLink(edge.second)
 
-            if(from == to) return.also{ println("self-reference") } //Self reference
-            //Making references to the 2nd node lead to the first
+            if(from == to) return //If they've been merged together the edge doesn't exist anymore
+
+            //Redirect the 2nd node so it becomes the first
             nodeRedirection[edge.second] = from
-            numNodes--.also{println("New numNodes: $numNodes")}
+            //finished collapsing 2 nodes into 1
+            numNodes--
         }
         fun cut() : List<Pair<Int,Int>>{
-            //Preparing node redirection so it only contains 2 numbers
-
-            //update references to be concrete values
-            val temp = IntArray(nodeRedirection.size)
+            //Make a concrete version of node redirection where there are no references for efficiency
+            val concreteRedirection = IntArray(nodeRedirection.size)
             for (node in nodeRedirection.indices) {
-                temp[node] = getLink(node)
+                concreteRedirection[node] = getLink(node)
             }
-            nodeRedirection = temp
-            println("nr: " + nodeRedirection.contentToString())
 
-            //Splitting node redirection into two lists
-            var from : Int = -1; val fromList = ArrayList<Int>() //-1 indicates uninitialized
-            var to : Int = -1; val toList = ArrayList<Int>()
+            //'from' and 'to' are the 2 remaining nodes on our graph (no distinction between them)
+            var from : Int = -1 //-1 is uninitialized
+            var to : Int = -1
+            //stores all the original nodes that collapsed to from/to
+            val fromList = ArrayList<Int>() //-1 indicates
+            val toList = ArrayList<Int>()
 
-            for((original, redirected) in nodeRedirection.withIndex()) {
-                //Initialize from/to if needed
-                if(from == -1) from = redirected
-                else if(to == -1 && redirected != from) to = redirected
+            //find the actual edges that exist between the 2 remaining nodes on our collapsed graph
+            for((original, new) in concreteRedirection.withIndex()) {
+                //Initialize from/to with first appearance of
+                if(from == -1) from = new
+                else if(to == -1 && new != from) to = new
 
                 //Add to the correct list
-                when (redirected) {
+                when (new) {
                     from -> fromList
                     to -> toList
                     else -> continue
                 }.add(original)
             }
-            //Checking all combos of edges to return the cut
+            //Checking all possible original connections between our collapsed graph to return the necessary cut
             return ArrayList<Pair<Int,Int>>().apply{
                 for(f in fromList){
                     for(t in toList){
@@ -628,9 +630,9 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
             }
         }
 
+        //we cut the connections when we've collapsed everything into 2 nodes
         while (numNodes > 2)
             collapse()
-        //println("Node redirection: ${nodeRedirection.toList()}")
         return cut()
     }
 
