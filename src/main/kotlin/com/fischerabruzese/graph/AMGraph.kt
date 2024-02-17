@@ -172,16 +172,26 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
 
     /**
      * Sets random connections between vertices between 0 and maxWeight.
-     * @param probability The probability of a connection being made. Must be between 0 and 1.
+     * @param probability The probability of a connection being made. Must be between 0 and 1. If fully connected is set to true, it will be the chance of additional connections per vertex
      * @param maxWeight The maximum weight of a connection.
+     * @param fullyConnected Makes sure that there's always at least one connection per vertex
+     * @param random A random object that determines what graph is constructed
      */
-    fun randomize(probability: Double, maxWeight: Int) {
-        randomize({ Random.nextDouble() < probability }, maxWeight)
+    fun randomize(probability: Double, maxWeight: Int, fullyConnected: Boolean = false, random: Random = Random) {
+        randomize({ random.nextDouble() < probability }, maxWeight)
+        if(fullyConnected) randomFullyConnect(maxWeight, random)
     }
 
-    fun randomizeSmart(avgConnectionsPerVertex: Int, maxWeight: Int) {
-        val probability = avgConnectionsPerVertex.toDouble() / size()
-        randomize(probability, maxWeight)
+    /**
+     * Sets random connections with a probability that will average a certain amount of connections per vertex
+     * @param avgConnectionsPerVertex The average amount of a connections per vertex. If fully connected is set to true, it must be greater than or equal to 1.
+     * @param maxWeight The maximum weight of a connection.
+     * @param fullyConnected Makes sure that there's always at least one connection per vertex
+     * @param random A random object that determines what graph is constructed
+     */
+    fun randomize(avgConnectionsPerVertex: Int, maxWeight: Int, fullyConnected: Boolean = false, random: Random = Random) {
+        val probability = ( avgConnectionsPerVertex.toDouble() + (if(fullyConnected) -1 else 0) ) / size()
+        randomize(probability, maxWeight, fullyConnected, random)
     }
 
     /**
@@ -543,7 +553,11 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         return string.toString()
     }
 
-    fun multipleMinCut(numAttempts: Int) : List<Pair<Int,Int>>{
+    fun clusters() : List<AMGraph<E>>{
+        return TODO()
+    }
+
+    fun karger(numAttempts: Int) : List<Pair<Int,Int>>{
         var bestCut = mincut()
         repeat(numAttempts - 1){
             val minCut = mincut()
@@ -552,25 +566,26 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         return mincut()
     }
 
-    fun mincut() : List<Pair<Int,Int>>{
+    private fun mincut() : List<Pair<Int,Int>> {
         //'from' > 'to' in edges
-        var edges : MutableList<Pair<Int,Int>> = ArrayList()
+        var edges: MutableList<Pair<Int, Int>> = ArrayList()
 
         //everything that is not equal to it's index is a reference on where to find your value
-        val nodeRedirection = IntArray(size()){it}
+        val nodeRedirection = IntArray(size()) { it }
+
         //navigates through references until it finds the redirected value
-        fun getLink(node : Int) : Int{
-            if(nodeRedirection[node] == node) return node
+        fun getLink(node: Int): Int {
+            if (nodeRedirection[node] == node) return node
             return getLink(nodeRedirection[node])
         }
 
         var numNodes = size()
 
         //Initializing edges from edge-matrix, triangular to ensure from > to
-        for(from in 1 until size()) {
+        for (from in 1 until size()) {
             for (to in 0 until from) {
-                if(edgeMatrix[from][to] > -1) edges.add(from to to)
-                if(edgeMatrix[to][from] > -1) edges.add(from to to)
+                if (edgeMatrix[from][to] > -1) edges.add(from to to)
+                if (edgeMatrix[to][from] > -1) edges.add(from to to)
             }
         }
 
@@ -585,14 +600,15 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
             val from = getLink(edge.first)
             val to = getLink(edge.second)
 
-            if(from == to) return //If they've been merged together the edge doesn't exist anymore
+            if (from == to) return //If they've been merged together the edge doesn't exist anymore
 
             //Redirect the 2nd node so it becomes the first
             nodeRedirection[edge.second] = from
             //finished collapsing 2 nodes into 1
             numNodes--
         }
-        fun cut() : List<Pair<Int,Int>>{
+
+        fun cut(): List<Pair<Int, Int>> {
             //Make a concrete version of node redirection where there are no references for efficiency
             val concreteRedirection = IntArray(nodeRedirection.size)
             for (node in nodeRedirection.indices) {
@@ -600,17 +616,17 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
             }
 
             //'from' and 'to' are the 2 remaining nodes on our graph (no distinction between them)
-            var from : Int = -1 //-1 is uninitialized
-            var to : Int = -1
+            var from: Int = -1 //-1 is uninitialized
+            var to: Int = -1
             //stores all the original nodes that collapsed to from/to
             val fromList = ArrayList<Int>() //-1 indicates
             val toList = ArrayList<Int>()
 
             //find the actual edges that exist between the 2 remaining nodes on our collapsed graph
-            for((original, new) in concreteRedirection.withIndex()) {
+            for ((original, new) in concreteRedirection.withIndex()) {
                 //Initialize from/to with first appearance of
-                if(from == -1) from = new
-                else if(to == -1 && new != from) to = new
+                if (from == -1) from = new
+                else if (to == -1 && new != from) to = new
 
                 //Add to the correct list
                 when (new) {
@@ -620,20 +636,23 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
                 }.add(original)
             }
             //Checking all possible original connections between our collapsed graph to return the necessary cut
-            return ArrayList<Pair<Int,Int>>().apply{
-                for(f in fromList){
-                    for(t in toList){
-                        if(edgeMatrix[f][t] > -1) add(f to t)
-                        if(edgeMatrix[t][f] > -1) add(t to f)
+            return ArrayList<Pair<Int, Int>>().apply {
+                for (f in fromList) {
+                    for (t in toList) {
+                        if (edgeMatrix[f][t] > -1) add(f to t)
+                        if (edgeMatrix[t][f] > -1) add(t to f)
                     }
                 }
             }
         }
 
         //we cut the connections when we've collapsed everything into 2 nodes
-        while (numNodes > 2)
+        while (numNodes > 2){
+//            if (edges.isEmpty())
+//                throw IllegalStateException("")
             collapse()
-        return cut()
+        }
+        return cut()//.also{println(it)}
     }
 
     private fun<T> randomizeList(list: MutableList<T>) {

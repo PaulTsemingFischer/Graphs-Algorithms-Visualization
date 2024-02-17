@@ -5,6 +5,7 @@ import javafx.application.Application
 import javafx.fxml.FXMLLoader
 import javafx.scene.Scene
 import javafx.stage.Stage
+import kotlin.random.Random
 
 class GraphApp : Application() {
     override fun start(stage: Stage) {
@@ -19,12 +20,12 @@ class GraphApp : Application() {
 
         /* Customize your graph */
 
-        val verts = Array(4){i -> i}
+        val verts = Array(10){i -> i}
 
         val graph = AMGraph.graphOf(*verts)
         graph.randomizeSmart(3, 10)
         controller.setGraph(graph)
-        println(graph.multipleMinCut(10))
+        println(graph.karger(10))
 
 
         /* Runtime testing with slightly different algorithms */
