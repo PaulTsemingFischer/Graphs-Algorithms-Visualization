@@ -23,7 +23,7 @@ class GraphApp : Application() {
         val verts = Array(10){i -> i}
 
         val graph = AMGraph.graphOf(*verts)
-        graph.randomizeSmart(3, 10)
+        graph.randomize(2, 9, true, Random(69))
         controller.setGraph(graph)
         println(graph.karger(10))
 

@@ -158,7 +158,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
      * @param func A function that sets the probability of a connection being made.
      * @param maxWeight The maximum weight of a connection.
      */
-    fun randomize(func: () -> Boolean, maxWeight: Int) {
+    private fun randomize(func: () -> Boolean, maxWeight: Int) {
         for (i in edgeMatrix.indices) {
             for (j in edgeMatrix.indices) {
                 if (func()) {
@@ -192,6 +192,17 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
     fun randomize(avgConnectionsPerVertex: Int, maxWeight: Int, fullyConnected: Boolean = false, random: Random = Random) {
         val probability = ( avgConnectionsPerVertex.toDouble() + (if(fullyConnected) -1 else 0) ) / size()
         randomize(probability, maxWeight, fullyConnected, random)
+    }
+
+    private fun randomFullyConnect(maxWeight: Int, random: Random = Random){
+        val randomEdgeList = Array(size()) {it}.toMutableList()
+        randomizeList(randomEdgeList)
+        for (i in edgeMatrix.indices) {
+            if (!edgeMatrix[randomEdgeList[i]].takeWhile{it < i}.any { it != -1 || edgeMatrix[it][i] != -1}) {
+                val acceptableConnection = randomEdgeList[random.nextInt(i + 1)]
+                edgeMatrix[randomEdgeList[i]][acceptableConnection] = Random.nextInt(maxWeight)
+            }
+        }
     }
 
     /**
