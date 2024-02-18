@@ -12,7 +12,6 @@ import kotlin.math.pow
 
 /**
  * Represents a directed graph with non-negative edge weights.
- *
  * @param E The type of the vertices in the graph.
  * @param outboundConnections A list of pairs of vertices and their outbound connections and weights.
  */
@@ -46,9 +45,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
     /**
      * Constructs an empty graph.
      */
-    constructor() : this(
-        null
-    )
+    constructor() : this(null)
 
     private var vertices: ArrayList<E> = ArrayList()// Vert index --> E
     private var edgeMatrix: Array<IntArray> // [Vert index][Vert index] --> edge weight
@@ -134,11 +131,11 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         return get(from, to).also { edgeMatrix[from][to] = value }
     }
 
-    private fun contains(vertex: E): Boolean {
+    override fun contains(vertex: E): Boolean {
         return indexLookup.containsKey(vertex)
     }
 
-    private fun neighbors(vertex: E): List<E>? {
+    override fun neighbors(vertex: E): List<E>? {
         return indexLookup[vertex]?.let {
             ArrayList<E>().apply {
                 for ((i, ob) in edgeMatrix[it].withIndex())
@@ -211,6 +208,23 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         }
         edgeMatrix = newEdgeMatrix
         dijkstraTables = Array(size()) { null }
+    }
+
+    /**
+     * @return A copy of this graph with every connection being bidirectional with a weight of 1
+     */
+    fun getBidirectionalUnweighted() : AMGraph<E>{
+        val newGraph = AMGraph<E>()
+        for(v in vertices) newGraph.add(v)
+        for(src in edgeMatrix.indices){
+            for(dest in edgeMatrix[src].indices){
+                if(get(src, dest) != null){
+                    newGraph.set(src, dest, 1)
+                    newGraph.set(dest, src, 1)
+                }
+            }
+        }
+        return newGraph
     }
 
     /**
@@ -423,7 +437,6 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
     override fun path(from: E, to: E): List<E> {
         return path(from, to, false)
     }
-
     fun path(from: E, to: E, useSimpleAlgorithm: Boolean = false): List<E> {
         val fromIndex = indexLookup[from]!!
         val toIndex = indexLookup[to]!!
@@ -451,6 +464,85 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         return (getDijkstraTable(fromIndex))[toIndex].second
     }
 
+    /**
+     * Implements a Fibonacci Heap in Dijkstra's algorithm to queue vertices.
+     */
+    private fun dijkstraFibHeap(from: Int, to: Int? = null): Array<Pair<Int, Int>> {
+        //Initialize each vertex's info mapped to ids
+        val prev = IntArray(size()) { -1 }
+        val dist = IntArray(size()) { Int.MAX_VALUE }
+        dist[from] = 0
+
+        //PriorityQueue storing Priority = dist, Value = id
+        val heap = FibonacciHeap<Int, Int>()
+
+        //Store Queue's nodes for easy search/updates
+        val nodeCollection = Array<Node<Int, Int>?>(size()) { null }
+        nodeCollection[from] = heap.insert(dist[from], from)
+
+        //loop forever, or until we have visited to
+        while (to == null || heap.minimum() == to) {
+
+            //store and remove next node, mark as visited, break if empty
+            val cur = heap.extractMin() ?: break
+
+            //iterate through potential outbound connections
+            for ((i, edge) in edgeMatrix[cur].withIndex()) {
+
+                //relax all existing connections
+                if (edge != -1
+                    //table update required if it's the shortest path (so far)
+                    && dist[cur] + edge < dist[i]
+                ) {
+
+                    //update
+                    dist[i] = dist[cur] + edge
+                    prev[i] = cur
+
+                    //re-prioritize node or create and add it
+                    if (nodeCollection[i] != null)
+                        heap.decreaseKey(nodeCollection[i]!!, dist[i])
+                    else nodeCollection[i] = heap.insert(dist[i], i)
+                }
+            }
+        }
+        return prev.zip(dist).toTypedArray()
+    }
+
+    /**
+     * @precondition: If "to" is null, finds every path from "from", else only the path from "from" to "to" is accurate
+     * @postcondition: Both Int.MAX_VALUE and -1 indicates no path
+     * @return An array of (previous vertex index, distance)
+     */
+    private fun dijkstra(from: Int, to: Int? = null): Array<Pair<Int, Int>> {
+        val distance = IntArray(size()) { Int.MAX_VALUE }
+        val prev = IntArray(size()) { -1 }
+        val visited = BooleanArray(size()) { false }
+
+        distance[from] = 0
+        while (to == null || !visited[to]) {
+            //Determine the next vertex to visit
+            var currVert = visited.indexOfFirst { !it } //Finds first unvisited
+            if (currVert == -1 || distance[currVert] == Int.MAX_VALUE) break //All visited
+            for (i in currVert + 1 until visited.size) {
+                if (!visited[i] && distance[i] < distance[currVert]) {
+                    currVert = i
+                }
+            }
+            //Update distances and previous
+            val currDist = distance[currVert]
+            for ((i, edge) in edgeMatrix[currVert].withIndex()) {
+                if (!visited[i] && edge != -1 && currDist + edge < distance[i]) {
+                    distance[i] = (currDist + edgeMatrix[currVert][i])
+                    prev[i] = currVert
+                }
+            }
+            //Update visited
+            visited[currVert] = true
+        }
+        return prev.zip(distance).toTypedArray() //funky function
+    }
+
     private fun getDijkstraTable(fromIndex: Int): Array<Pair<Int, Int>> {
         if (dijkstraTables[fromIndex] == null) dijkstraTables[fromIndex] = dijkstraFibHeap(fromIndex)
         return dijkstraTables[fromIndex]!!
@@ -465,11 +557,12 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
      *  Goes through the Dijkstra's table and returns a list of the path between from and to if it exists, and returns an empty list otherwise.
      */
     private fun tracePath(from: Int, to: Int, dijkstraTable: Array<Pair<Int, Int>>): List<Int> {
+        //println("from: $from to: $to ${dijkstraTable.contentDeepToString()}")
         val path = LinkedList<Int>()
         path.add(to)
         var curr = to
         while (path.firstOrNull() != from) {
-            path.addFirst(dijkstraTable[curr].run { curr = first; first })
+            path.addFirst(dijkstraTable[curr].run { curr = first; first })//.also{println("curr path: $path")}
             if (path[0] == -1) {
                 path.removeFirst(); break
             }
@@ -633,8 +726,4 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
             swap(i,Random.nextInt(i,list.size))
         }
     }
-}
-
-fun main() {
-
 }

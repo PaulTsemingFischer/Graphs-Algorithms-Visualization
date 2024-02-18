@@ -12,6 +12,17 @@ abstract class Graph<E : Any> : Iterable<E> {
     abstract fun getVertices() : Set<E>
     abstract fun add(vararg verts : E)
     abstract fun remove(vararg verts : E)
+    abstract fun contains(vertex: E): Boolean
+
+    open fun neighbors(vertex: E): List<E>? {
+        val neighbors = mutableListOf<E>()
+        val vertices = getVertices()
+        for (vert in vertices){
+            if (get(vertex, vert) != -1) neighbors.add(vert)
+        }
+        return neighbors
+    }
+
     abstract fun path(from : E, to : E) : List<E>?
     abstract fun distance(from : E, to : E) : Int
 }
