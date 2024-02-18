@@ -49,6 +49,7 @@ class Controller<E: Any> {
         this.graph = graph
     }
 
+    //Redraws the GUI from the graph
     fun draw() {
         val graphVertices = graph.getVertices().toList()
         val verticesElements = Array(graphVertices.size){ index -> Vertex(graphVertices[index], Math.random(), Math.random()).also{stringToVMap[it.toString()] = it}}
@@ -68,7 +69,6 @@ class Controller<E: Any> {
         pane.children.addAll(verticesElements)
         pane.children.addAll(hitboxes)
     }
-
 
     @FXML
     private fun redrawPressed() {
@@ -92,6 +92,57 @@ class Controller<E: Any> {
         }
     }
 
+    @FXML
+    private fun mf0Pressed(){
+    }
+
+    @FXML
+    private fun randomizePressed(){
+        graph.randomize(0.0, 9, true)
+        redrawPressed()
+    }
+
+    //Graph presets
+    @FXML
+    private fun preset1Pressed(){}
+    @FXML
+    private fun preset2Pressed(){}
+    @FXML
+    private fun preset3Pressed(){}
+    @FXML
+    private fun preset4Pressed(){}
+    @FXML
+    private fun preset5Pressed(){}
+    @FXML
+    private fun preset6Pressed(){}
+
+    private fun greyNonAttached(vertex: Vertex){
+        for(vert in vertices){
+            vert.setColor(Color(0.0, 0.0, 1.0, 0.3))
+        }
+        for(edge in edges){
+            if(edge.v1 != vertex && edge.v2 != vertex){
+                edge.setLineColor(Color.rgb(192, 192, 192, 0.8))
+                edge.setLabelColor(Color.GREY)
+            }
+            else{
+                edge.v1.let{if(it != vertex) it.setColor(Color.BLUE)}
+                edge.v2.let{if(it != vertex) it.setColor(Color.BLUE)}
+                edge.setLineColor(Color.GREEN, Color.RED, vertex)
+                edge.setLabelColor(Color.GREEN, Color.RED, vertex)
+            }
+        }
+    }
+
+    private fun ungreyEverything(){
+        for(edge in edges){
+            edge.setLineColor(Color.rgb(0, 0, 0, 0.6))
+            edge.setLabelColor(Color.BLACK)
+        }
+        for (vert in vertices){
+            vert.setColor(Color.BLUE)
+        }
+    }
 
     //Precondition: x and y are between 0 and 1
     inner class Vertex(val v: E, x : Double, y : Double) : StackPane() {
@@ -136,7 +187,7 @@ class Controller<E: Any> {
             hitbox.translateXProperty().bind(vtranslateXProperty)
             hitbox.translateYProperty().bind(vtranslateYProperty)
 
-                //Listeners
+            //Listeners
             hitbox.setOnMouseEntered { circle.fill = Color.GREEN }
             hitbox.setOnMouseExited { circle.fill = Color.BLUE}
 
@@ -161,34 +212,6 @@ class Controller<E: Any> {
 
         fun setColor(color: Color) {
             circle.fill = color
-        }
-    }
-
-    private fun greyNonAttached(vertex: Vertex){
-        for(vert in vertices){
-            vert.setColor(Color(0.0, 0.0, 1.0, 0.3))
-        }
-        for(edge in edges){
-            if(edge.v1 != vertex && edge.v2 != vertex){
-                edge.setLineColor(Color.rgb(192, 192, 192, 0.8))
-                edge.setLabelColor(Color.GREY)
-            }
-            else{
-                edge.v1.let{if(it != vertex) it.setColor(Color.BLUE)}
-                edge.v2.let{if(it != vertex) it.setColor(Color.BLUE)}
-                edge.setLineColor(Color.GREEN, Color.RED, vertex)
-                edge.setLabelColor(Color.GREEN, Color.RED, vertex)
-            }
-        }
-    }
-
-    private fun ungreyEverything(){
-        for(edge in edges){
-            edge.setLineColor(Color.rgb(0, 0, 0, 0.6))
-            edge.setLabelColor(Color.BLACK)
-        }
-        for (vert in vertices){
-            vert.setColor(Color.BLUE)
         }
     }
 

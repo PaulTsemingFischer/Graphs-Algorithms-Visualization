@@ -1,7 +1,11 @@
 package com.fischerabruzese.graph
 
+import kotlin.random.Random
+
 abstract class Graph<E : Any> : Iterable<E> {
 
+    abstract fun randomize(probability: Double, maxWeight: Int, fullyConnected: Boolean = false, random: Random = Random)
+    abstract fun randomize(avgConnectionsPerVertex: Int, maxWeight: Int, fullyConnected: Boolean = false, random: Random = Random)
     abstract fun size() : Int
     abstract operator fun get(from : E, to : E) : Int?
     abstract operator fun set(from : E, to : E, value : Int) : Int?

@@ -1,3 +1,8 @@
+//TODO: Separate randomize avg connections and probability so that you can do decimal avg connections
+//TODO: Make randomize depend on the toggle
+//TODO: Graph presets
+//TODO: Figure out the issue with OG dijkstra
+
 package com.fischerabruzese.graph
 
 import java.math.BigInteger
@@ -48,8 +53,9 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
     private var vertices: ArrayList<E> = ArrayList()// Vert index --> E
     private var edgeMatrix: Array<IntArray> // [Vert index][Vert index] --> edge weight
     private val indexLookup = HashMap<E, Int>() // E --> Vert index
-    private var dijkstraTables: Array<Array<Pair<Int, Int>>?> // Vert index --> cached dijkstra table
+    private var dijkstraTables: Array<Array<Pair<Int, Int>>?> // Vert index --> cached dijkstra table(pair of previous, distance to every vertex)
 
+    /*------------------ FUNCTIONALITY ------------------*/
     /**
      * @return The number of vertices in the graph.
      */
@@ -154,58 +160,6 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
     }
 
     /**
-     * Sets random connections between vertices between 0 and maxWeight.
-     * @param func A function that sets the probability of a connection being made.
-     * @param maxWeight The maximum weight of a connection.
-     */
-    private fun randomize(func: () -> Boolean, maxWeight: Int) {
-        for (i in edgeMatrix.indices) {
-            for (j in edgeMatrix.indices) {
-                if (func()) {
-                    set(i, j, (1..maxWeight).random())
-                } else {
-                    set(i, j, -1)
-                }
-            }
-        }
-    }
-
-    /**
-     * Sets random connections between vertices between 0 and maxWeight.
-     * @param probability The probability of a connection being made. Must be between 0 and 1. If fully connected is set to true, it will be the chance of additional connections per vertex
-     * @param maxWeight The maximum weight of a connection.
-     * @param fullyConnected Makes sure that there's always at least one connection per vertex
-     * @param random A random object that determines what graph is constructed
-     */
-    fun randomize(probability: Double, maxWeight: Int, fullyConnected: Boolean = false, random: Random = Random) {
-        randomize({ random.nextDouble() < probability }, maxWeight)
-        if(fullyConnected) randomFullyConnect(maxWeight, random)
-    }
-
-    /**
-     * Sets random connections with a probability that will average a certain amount of connections per vertex
-     * @param avgConnectionsPerVertex The average amount of a connections per vertex. If fully connected is set to true, it must be greater than or equal to 1.
-     * @param maxWeight The maximum weight of a connection.
-     * @param fullyConnected Makes sure that there's always at least one connection per vertex
-     * @param random A random object that determines what graph is constructed
-     */
-    fun randomize(avgConnectionsPerVertex: Int, maxWeight: Int, fullyConnected: Boolean = false, random: Random = Random) {
-        val probability = ( avgConnectionsPerVertex.toDouble() + (if(fullyConnected) -1 else 0) ) / size()
-        randomize(probability, maxWeight, fullyConnected, random)
-    }
-
-    private fun randomFullyConnect(maxWeight: Int, random: Random = Random){
-        val randomEdgeList = Array(size()) {it}.toMutableList()
-        randomizeList(randomEdgeList)
-        for (i in edgeMatrix.indices) {
-            if (!edgeMatrix[randomEdgeList[i]].takeWhile{it < i}.any { it != -1 || edgeMatrix[it][i] != -1}) {
-                val acceptableConnection = randomEdgeList[random.nextInt(i + 1)]
-                edgeMatrix[randomEdgeList[i]][acceptableConnection] = Random.nextInt(maxWeight)
-            }
-        }
-    }
-
-    /**
      * Clears all edges in the graph.
      */
     fun clearEdges() {
@@ -260,136 +214,102 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
     }
 
     /**
-     * Finds the shortest path between two vertices using dijkstra's algorithm. If dijkstra's algorithm has already been run, the cached table is used.
-     * @param from The vertex to start from.
-     * @param to The vertex to end at.
-     * @return A list of vertices representing the shortest path between the two vertices.
+     * @return A string representation of the graph.
      */
-    override fun path(from: E, to: E): List<E> {
-        return path(from, to, false)
-    }
-
-    fun path(from: E, to: E, useSimpleAlgorithm: Boolean = false): List<E> {
-        val fromIndex = indexLookup[from]!!
-        val toIndex = indexLookup[to]!!
-        return try {
-            tracePath(
-                fromIndex,
-                toIndex,
-                if (useSimpleAlgorithm) getDijkstraTableSimple(fromIndex) else getDijkstraTable(fromIndex)
-            ).map { vertices[it] }
-        } catch (e: IndexOutOfBoundsException) {
-            emptyList()
-        }
-    }
-
-    /**
-     * Finds the shortest distance between two vertices using dijkstra's algorithm. If dijkstra's algorithm has already been run, the cached table is used.
-     * @param from The vertex to start from.
-     * @param to The vertex to end at.
-     * @return The distance between the two vertices.
-     */
-    override fun distance(from: E, to: E): Int {
-        val fromIndex = indexLookup[from]!!
-        val toIndex = indexLookup[to]!!
-        return (getDijkstraTable(fromIndex))[toIndex].second
-    }
-
-    private fun getDijkstraTable(fromIndex: Int): Array<Pair<Int, Int>> {
-        if (dijkstraTables[fromIndex] == null) dijkstraTables[fromIndex] = dijkstraFibHeap(fromIndex)
-        return dijkstraTables[fromIndex]!!
-    }
-
-    private fun getDijkstraTableSimple(fromIndex: Int): Array<Pair<Int, Int>> {
-        if (dijkstraTables[fromIndex] == null) dijkstraTables[fromIndex] = dijkstra(fromIndex)
-        return dijkstraTables[fromIndex]!!
-    }
-
-    private fun tracePath(from: Int, to: Int, dijkstraTable: Array<Pair<Int, Int>>): List<Int> {
-        val path = LinkedList<Int>()
-        path.add(to)
-        var curr = to
-        while (path.firstOrNull() != from) {
-            path.addFirst(dijkstraTable[curr].run { curr = first; first })
-            if (path[0] == -1) {
-                path.removeFirst(); break
+    override fun toString(): String {
+        val string = StringBuilder()
+        for (destinations in edgeMatrix) {
+            string.append("[")
+            for (weight in destinations) {
+                string.append("${weight.let { if (it == -1) " " else it }}][")
             }
+            string.deleteRange(string.length - 2, string.length)
+            string.append("]\n")
         }
-        return if (path.first() == from) path else emptyList()
+        return string.toString()
     }
+
+    /*------------------ RANDOMIZATION ------------------*/
+    /**
+     * Sets random connections between vertices between 0 and maxWeight.
+     * @param func A function that sets the probability of a connection being made.
+     * @param maxWeight The maximum weight of a connection.
+     */
 
     /**
-     * Finds a path between two vertices using a depth first search.
-     * @param start The vertex to start from.
-     * @param dest The vertex to end at.
-     * @return A list of vertices representing the path between the two vertices.
+     * Sets random connections with a probability that will average a certain amount of connections per vertex
+     * @param avgConnectionsPerVertex The average amount of a connections per vertex. If fully connected is set to true, it must be greater than or equal to 1.
+     * @param maxWeight The maximum weight of a connection.
+     * @param fullyConnected Makes sure that there's always at least one connection per vertex
+     * @param random A random object that determines what graph is constructed
      */
-    fun depthFirstSearch2(start: E, dest: E): List<E> {
-        return depthFirstSearch2(indexLookup[start]!!, indexLookup[dest]!!, BooleanArray(size())).map { vertices[it] }
+    override fun randomize(avgConnectionsPerVertex: Int, maxWeight: Int, fullyConnected: Boolean, random: Random) { //when inheritance removed add default values
+        val probability = ( avgConnectionsPerVertex.toDouble() + (if(fullyConnected) -1 else 0) ) / size()
+        randomize(probability, maxWeight, fullyConnected, random)
     }
-
-    private fun depthFirstSearch2(vertex: Int, dest: Int, visited: BooleanArray): LinkedList<Int> {
-        visited[vertex] = true
-        for ((ob, dist) in edgeMatrix[vertex].withIndex()) {
-            if (!visited[ob] && dist != -1) {
-                if (ob == dest) return LinkedList<Int>().apply { addFirst(ob); addFirst(vertex) }
-                depthFirstSearch2(ob, dest, visited).let { if (it.isNotEmpty()) return it.apply { addFirst(vertex) } }
-            }
-        }
-        return LinkedList()
-    }
-
     /**
-     * Finds a path between two vertices using a breadth first search.
-     * @param start The vertex to start from.
-     * @param dest The vertex to end at.
-     * @return A list of vertices representing the path between the two vertices.
+     * Sets random connections between vertices between 0 and maxWeight.
+     * @param probability The probability of a connection being made. Must be between 0 and 1. If fully connected is set to true, it will be the chance of additional connections per vertex
+     * @param maxWeight The maximum weight of a connection.
+     * @param fullyConnected Makes sure that there's always at least one connection per vertex
+     * @param random A random object that determines what graph is constructed
      */
-    fun breadthFirstSearch2(start: E, dest: E): List<E> {
-        return breadthFirstSearch2(indexLookup[start]!!, indexLookup[dest]!!).map { vertices[it] }
+    override fun randomize(probability: Double, maxWeight: Int, fullyConnected: Boolean, random: Random) { //when removed add default values
+        randomize({ random.nextDouble() < probability }, maxWeight)
+        if(fullyConnected) randomFullyConnect(maxWeight, random)
     }
-
-    private fun breadthFirstSearch2(vertex: Int, dest: Int): List<Int> {
-        val q = LinkedList<Int>()
-        val prev = IntArray(size()) { -1 }
-        prev[vertex] = -2 //-2 represents start
-        q.add(vertex)
-        while (!q.isEmpty()) {
-            val currVer = q.pop()
-            for ((ob, dist) in edgeMatrix[currVer].withIndex()) {
-                if (prev[ob] == -1 && dist != -1) {
-                    q.addLast(ob)
-                    prev[ob] = currVer
+    private fun randomize(func: () -> Boolean, maxWeight: Int, random: Random = Random) {
+        for (i in edgeMatrix.indices) {
+            for (j in edgeMatrix.indices) {
+                if (func()) {
+                    set(i, j, random.nextInt(1,maxWeight))
+                } else {
+                    set(i, j, -1)
                 }
             }
         }
-        val path = LinkedList<Int>()
-        var curr = dest
-        path.addFirst(dest)
-        while (prev[curr] != -2 && prev[curr] != -1) {
-            path.addFirst(prev[curr])
-            curr = prev[curr]
-        }
-        if (path.first() == vertex) return path
-        return emptyList()
     }
 
     /**
-     * Finds a path between two vertices using a depth first search.
-     * @param start The vertex to start from.
-     * @param dest The vertex to end at.
-     * @return A list of vertices representing the path between the two vertices.
+     *  Adds edges so that the graph is fully-connected
      */
-    fun depthFirstSearch(start: E, dest: E): List<E> = search(true, start, dest)
+    private fun randomFullyConnect(maxWeight: Int, random: Random){
+        val bidirectional = getBidirectionalUnweighted()
+        var vertex = random.nextInt(size())
+        var unreachables : List<Int>
 
+        //Runs while there are any unreachable vertices from `vertex` (store all the unreachable ones in `unreachables`)
+        //Vertices --> Unreachable non-self vertices --> Unreachable non-self id's
+        while(vertices.filter { indexLookup[it] != vertex && bidirectional.path(vertices[vertex], it, false).isEmpty() }.map{indexLookup[it]!!}.also{ unreachables = it }.isNotEmpty()){
+            val from : Int
+            val to : Int
+            val weight = random.nextInt(maxWeight)
+            if(random.nextBoolean()) {
+                from = vertex
+                to = unreachables.random(random)
+            }
+            else {
+                from = unreachables.random(random)
+                to = vertex
+            }
+            edgeMatrix[from][to] = weight
+            bidirectional.set(from, to, 1)
+            bidirectional.set(to, from, 1)
+
+            vertex = random.nextInt(size())
+            unreachables = emptyList()
+        }
+    }
+
+    /*------------------ PATHING ------------------*/
+    /*BFS and DFS */
     /**
-     * Finds a path between two vertices using a breadth first search.
+     * Finds a path between two vertices using either depth or breadth.
+     * @param depth true will use depth first search false will use breadth first search
      * @param start The vertex to start from.
      * @param dest The vertex to end at.
      * @return A list of vertices representing the path between the two vertices.
      */
-    fun breadthFirstSearch(start: E, dest: E): List<E> = search(false, start, dest)
-
     private fun search(depth: Boolean, start: E, dest: E): List<E> {
         val dest = indexLookup[dest]!!
         val q = LinkedList<Int>()
@@ -424,90 +344,144 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
             }
         }
     }
+    /**
+     * Finds a path between two vertices using a depth first search.
+     * @param start The vertex to start from.
+     * @param dest The vertex to end at.
+     * @return A list of vertices representing the path between the two vertices.
+     */
+    fun depthFirstSearch(start: E, dest: E): List<E> = search(true, start, dest)
+    /**
+     * Finds a path between two vertices using a breadth first search.
+     * @param start The vertex to start from.
+     * @param dest The vertex to end at.
+     * @return A list of vertices representing the path between the two vertices.
+     */
+    fun breadthFirstSearch(start: E, dest: E): List<E> = search(false, start, dest)
 
     /**
-     * Implements a Fibonacci Heap in Dijkstra's algorithm to queue vertices.
+     * Finds a path between two vertices using a depth first search.
+     * @param start The vertex to start from.
+     * @param dest The vertex to end at.
+     * @return A list of vertices representing the path between the two vertices.
      */
-    internal fun dijkstraFibHeap(from: Int, to: Int? = null): Array<Pair<Int, Int>> {
-        //Initialize each vertex's info mapped to ids
-        val prev = IntArray(size()) { -1 }
-        val dist = IntArray(size()) { Int.MAX_VALUE }
-        dist[from] = 0
-
-        //PriorityQueue storing Priority = dist, Value = id
-        val heap = FibonacciHeap<Int, Int>()
-
-        //Store Queue's nodes for easy search/updates
-        val nodeCollection = Array<Node<Int, Int>?>(size()) { null }
-        nodeCollection[from] = heap.insert(dist[from], from)
-
-        //loop forever, or until we have visited to
-        while (to == null || heap.minimum() == to) {
-
-            //store and remove next node, mark as visited, break if empty
-            val cur = heap.extractMin() ?: break
-
-            //iterate through potential outbound connections
-            for ((i, edge) in edgeMatrix[cur].withIndex()) {
-
-                //relax all existing connections
-                if (edge != -1
-                    //table update required if it's the shortest path (so far)
-                    && dist[cur] + edge < dist[i]
-                ) {
-
-                    //update
-                    dist[i] = dist[cur] + edge
-                    prev[i] = cur
-
-                    //re-prioritize node or create and add it
-                    if (nodeCollection[i] != null)
-                        heap.decreaseKey(nodeCollection[i]!!, dist[i])
-                    else nodeCollection[i] = heap.insert(dist[i], i)
-                }
+    fun depthFirstSearch2(start: E, dest: E): List<E> {
+        return depthFirstSearch2(indexLookup[start]!!, indexLookup[dest]!!, BooleanArray(size())).map { vertices[it] }
+    }
+    private fun depthFirstSearch2(vertex: Int, dest: Int, visited: BooleanArray): LinkedList<Int> {
+        visited[vertex] = true
+        for ((ob, dist) in edgeMatrix[vertex].withIndex()) {
+            if (!visited[ob] && dist != -1) {
+                if (ob == dest) return LinkedList<Int>().apply { addFirst(ob); addFirst(vertex) }
+                depthFirstSearch2(ob, dest, visited).let { if (it.isNotEmpty()) return it.apply { addFirst(vertex) } }
             }
         }
-        return prev.zip(dist).toTypedArray()
+        return LinkedList()
     }
 
     /**
-     * @precondition: If "to" is null, finds every path from "from", else only the path from "from" to "to" is accurate
-     * @postcondition: Both Int.MAX_VALUE and -1 indicates no path
-     * @return An array of (previous vertex index, distance)
+     * Finds a path between two vertices using a breadth first search.
+     * @param start The vertex to start from.
+     * @param dest The vertex to end at.
+     * @return A list of vertices representing the path between the two vertices.
      */
-    internal fun dijkstra(from: Int, to: Int? = null): Array<Pair<Int, Int>> {
-        val distance = IntArray(size()) { Int.MAX_VALUE }
+    fun breadthFirstSearch2(start: E, dest: E): List<E> {
+        return breadthFirstSearch2(indexLookup[start]!!, indexLookup[dest]!!).map { vertices[it] }
+    }
+    private fun breadthFirstSearch2(vertex: Int, dest: Int): List<Int> {
+        val q = LinkedList<Int>()
         val prev = IntArray(size()) { -1 }
-        val visited = BooleanArray(size()) { false }
-
-        distance[from] = 0
-        while (to == null || !visited[to]) {
-            //Determine the next vertex to visit
-            var currVert = visited.indexOfFirst { !it } //Finds first unvisited
-            if (currVert == -1) break //All visited
-            for (i in currVert + 1 until visited.size) {
-                if (!visited[i] && distance[i] < distance[currVert]) {
-                    currVert = i
+        prev[vertex] = -2 //-2 represents start
+        q.add(vertex)
+        while (!q.isEmpty()) {
+            val currVer = q.pop()
+            for ((ob, dist) in edgeMatrix[currVer].withIndex()) {
+                if (prev[ob] == -1 && dist != -1) {
+                    q.addLast(ob)
+                    prev[ob] = currVer
                 }
             }
-            //Update distances and previous
-            val currDist = distance[currVert]
-            for ((i, edge) in edgeMatrix[currVert].withIndex()) {
-                if (!visited[i] && edge != -1 && currDist + edge < distance[i]) {
-                    distance[i] = (currDist + edgeMatrix[currVert][i])
-                    prev[i] = currVert
-                }
-            }
-            //Update visited
-            visited[currVert] = true
         }
-        return prev.zip(distance).toTypedArray() //funky function
+        val path = LinkedList<Int>()
+        var curr = dest
+        path.addFirst(dest)
+        while (prev[curr] != -2 && prev[curr] != -1) {
+            path.addFirst(prev[curr])
+            curr = prev[curr]
+        }
+        if (path.first() == vertex) return path
+        return emptyList()
+    }
+
+    /* DIJKSTRAS */
+    /**
+     * Finds the shortest path between two vertices using dijkstra's algorithm. If dijkstra's algorithm has already been run, the cached table is used.
+     * @param from The vertex to start from.
+     * @param to The vertex to end at.
+     * @return A list of vertices representing the shortest path between the two vertices.
+     */
+    override fun path(from: E, to: E): List<E> {
+        return path(from, to, false)
+    }
+
+    fun path(from: E, to: E, useSimpleAlgorithm: Boolean = false): List<E> {
+        val fromIndex = indexLookup[from]!!
+        val toIndex = indexLookup[to]!!
+        //println("SD Table: ${clearDijkstraCache()} ${getDijkstraTableSimple(fromIndex).contentDeepToString()}\n FD Table:${clearDijkstraCache()} ${getDijkstraTable(fromIndex).contentDeepToString()} \n")
+        return try {
+            tracePath(
+                fromIndex,
+                toIndex,
+                if (useSimpleAlgorithm) getDijkstraTableSimple(fromIndex) else getDijkstraTable(fromIndex)
+            ).map { vertices[it] }
+        } catch (e: IndexOutOfBoundsException) { //More nodes were added that are disjoint and not in cached tables (we know there's no path)
+            emptyList()
+        }
+    }
+
+    /**
+     * Finds the shortest distance between two vertices using dijkstra's algorithm. If dijkstra's algorithm has already been run, the cached table is used.
+     * @param from The vertex to start from.
+     * @param to The vertex to end at.
+     * @return The distance between the two vertices.
+     */
+    override fun distance(from: E, to: E): Int {
+        val fromIndex = indexLookup[from]!!
+        val toIndex = indexLookup[to]!!
+        return (getDijkstraTable(fromIndex))[toIndex].second
+    }
+
+    private fun getDijkstraTable(fromIndex: Int): Array<Pair<Int, Int>> {
+        if (dijkstraTables[fromIndex] == null) dijkstraTables[fromIndex] = dijkstraFibHeap(fromIndex)
+        return dijkstraTables[fromIndex]!!
+    }
+
+    private fun getDijkstraTableSimple(fromIndex: Int): Array<Pair<Int, Int>> {
+        if (dijkstraTables[fromIndex] == null) dijkstraTables[fromIndex] = dijkstra(fromIndex)
+        return dijkstraTables[fromIndex]!!
+    }
+
+    /**
+     *  Goes through the Dijkstra's table and returns a list of the path between from and to if it exists, and returns an empty list otherwise.
+     */
+    private fun tracePath(from: Int, to: Int, dijkstraTable: Array<Pair<Int, Int>>): List<Int> {
+        val path = LinkedList<Int>()
+        path.add(to)
+        var curr = to
+        while (path.firstOrNull() != from) {
+            path.addFirst(dijkstraTable[curr].run { curr = first; first })
+            if (path[0] == -1) {
+                path.removeFirst(); break
+            }
+        }
+        return if (path.first() == from) path else emptyList()
     }
 
     internal fun clearDijkstraCache() {
         dijkstraTables = Array(size()) { null }
     }
 
+    /*------------------ COLORING ------------------*/
     /**
      * Colors the graph
      */
@@ -547,23 +521,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         }.toTypedArray()
     }
 
-
-    /**
-     * @return A string representation of the graph.
-     */
-    override fun toString(): String {
-        val string = StringBuilder()
-        for (destinations in edgeMatrix) {
-            string.append("[")
-            for (weight in destinations) {
-                string.append("${weight.let { if (it == -1) " " else it }}][")
-            }
-            string.deleteRange(string.length - 2, string.length)
-            string.append("]\n")
-        }
-        return string.toString()
-    }
-
+    /*------------------ CLUSTERING ------------------*/
     fun clusters() : List<AMGraph<E>>{
         return TODO()
     }
