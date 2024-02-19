@@ -168,14 +168,14 @@ abstract class Graph<E : Any> : Iterable<E> {
     }
 
     /**
-     * Sets random connections with a probability that will average a certain amount of connections per vertex
+     * Sets random connections with a probability that will average a certain amount of connections per vertex. When [allowDisjoint] is false, it tries to accommodate the probability if edges to join the graphs.
      * @param avgConnectionsPerVertex The average amount of a connections per vertex. If fully connected is set to true, it must be greater than or equal to 1.
      * @param maxWeight The maximum weight of a connection.
-     * @param fullyConnected Makes sure that there's always at least one connection per vertex
+     * @param allowDisjoint allows vertices to have zero inbound/outbound connections
      * @param random A random object that determines what graph is constructed
      */
     open fun randomize(avgConnectionsPerVertex: Int, maxWeight: Int, allowDisjoint: Boolean = true, random: Random = Random){
-        val probability = ( avgConnectionsPerVertex.toDouble() + (if(!allowDisjoint) -1 else 0) ) / size()
+        val probability = ( avgConnectionsPerVertex.toDouble() + (if(!allowDisjoint && avgConnectionsPerVertex*5 < size()) -1 else 0) ) / size()
         randomize(probability, maxWeight, allowDisjoint, random)
     }
 

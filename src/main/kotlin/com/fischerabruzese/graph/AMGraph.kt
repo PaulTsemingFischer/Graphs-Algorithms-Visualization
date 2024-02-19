@@ -17,27 +17,34 @@ import kotlin.math.pow
  * @param E The type of the vertices in the graph.
  * @param outboundConnections A list of pairs of vertices and their outbound connections and weights.
  */
-class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?) : Graph<E>() {
+class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<Pair<E,Iterable<Pair<E,Int>>>?>) : Graph<E>() { //dummy is to avoid conflicting signatures, the constructor is private, so it never sees the light of day
 
-    constructor(outboundConnectionsList: List<Pair<E, Iterable<Pair<E, Int>>>?>) : this(*outboundConnectionsList.toTypedArray())
-
-    constructor(connectionsList: List<Pair<E, Iterable<E>?>>): this(
-        *connectionsList.map {
-            it.first to (it.second?.map { it2 -> it2 to 1 } ?: emptyList())
-        }.toTypedArray()
-    )
-    constructor(verticesList: List<E>): this(
-        *verticesList.map {
-            it to emptyList<Pair<E, Int>>()
-        }.toTypedArray()
+    constructor(vararg vertex: E) : this(0,
+        vertex.map { it to emptyList<Pair<E, Int>>() }
     )
 
-    constructor() : this(null)
+    companion object {
+//        fun <E:Any> fromWeightedConnections(vararg outboundConnections: Pair<E, Iterable<Pair<E, Int>>>) = fromWeightedConnections(outboundConnections.toList())
+//
+        private fun <E:Any> fromWeightedConnections(outboundConnectionsList: List<Pair<E, Iterable<Pair<E, Int>>>?>) = AMGraph(0,outboundConnectionsList)
+//
+//        fun <E:Any> fromConnections(vararg connections: Pair<E, Iterable<E>?>) = fromConnections(connections.toList())
+//
+//        fun <E:Any> fromConnections(connectionsList: List<Pair<E, Iterable<E>?>>) = AMGraph(0,
+//            connectionsList.map {
+//                it.first to (it.second?.map { it2 -> it2 to 1 } ?: emptyList())
+//            }
+//        )
+
+        fun <E:Any> fromCollection(verticesList: Collection<E>) = AMGraph(0, verticesList.map { it to emptyList() })
+    }
+    constructor() : this(0, emptyList())
+
 
     private var vertices: ArrayList<E> = ArrayList()// Vert index --> E
     private var edgeMatrix: Array<IntArray> // [Vert index][Vert index] --> edge weight
     private val indexLookup = HashMap<E, Int>() // E --> Vert index
-    private var dijkstraTables: Array<Array<Pair<Int, Int>>?> // Vert index --> cached dijkstra table(pair of previous, distance to every vertex)
+    private var dijkstraTables: Array<Array<Pair<Int, Int>>?>? // Vert index --> cached dijkstra table(pair of previous, distance to every vertex)
 
     /*------------------ FUNCTIONALITY ------------------*/
 
@@ -190,7 +197,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         return subgraph(vertices.map { indexLookup[it]!! })
     }
     private fun subgraph(verts : List<Int>):AMGraph<E>{ //This could be so much clearer, but I just love inline function 💕
-        return AMGraph(outboundConnectionsList = verts.map { from ->
+        return fromWeightedConnections(verts.map { from ->
             vertices[from] to ArrayList<Pair<E,Int>>().apply{verts.forEach{ t ->
                 get(from,t)?.let{ add(vertices[t] to it) }
             }}
@@ -427,13 +434,15 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
     }
 
     private fun getDijkstraTable(fromIndex: Int): Array<Pair<Int, Int>> {
-        if (dijkstraTables[fromIndex] == null) dijkstraTables[fromIndex] = dijkstraFibHeap(fromIndex)
-        return dijkstraTables[fromIndex]!!
+        if(dijkstraTables == null) dijkstraTables = Array(size()) {null}
+        if (dijkstraTables!![fromIndex] == null) dijkstraTables!![fromIndex] = dijkstraFibHeap(fromIndex)
+        return dijkstraTables!![fromIndex]!!
     }
 
     private fun getDijkstraTableSimple(fromIndex: Int): Array<Pair<Int, Int>> {
-        if (dijkstraTables[fromIndex] == null) dijkstraTables[fromIndex] = dijkstra(fromIndex)
-        return dijkstraTables[fromIndex]!!
+        if(dijkstraTables == null) dijkstraTables = Array(size()) {null}
+        if (dijkstraTables!![fromIndex] == null) dijkstraTables!![fromIndex] = dijkstra(fromIndex)
+        return dijkstraTables!![fromIndex]!!
     }
 
     /**
@@ -454,7 +463,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
     }
 
     internal fun clearDijkstraCache() {
-        dijkstraTables = Array(size()) { null }
+        dijkstraTables = null
     }
 
     override fun getConnected(vertex: E): List<E> {
@@ -640,8 +649,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
 }
 
 fun main() {
-    val graph = AMGraph<Int>(2 to arrayListOf(1 to 1, 3 to 3, 5 to 2), 0 to arrayListOf(1 to 1, 3 to 3, 5 to 2))
-    graph.add(7)
-    println(graph.path(2, 5, true))
-
+//    val graph = AMGraph.fromWeightedConnections(2 to arrayListOf(1 to 1, 3 to 3, 5 to 2), 0 to arrayListOf(1 to 1, 3 to 3, 5 to 2))
+//    graph.add(7)
+//    println(graph.path(2, 5, true))
 }
