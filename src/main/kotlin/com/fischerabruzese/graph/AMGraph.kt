@@ -17,6 +17,9 @@ import kotlin.math.pow
  */
 class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?) : Graph<E>() {
 
+    constructor(outboundConnectionsList: List<Pair<E, Iterable<Pair<E, Int>>>?>) : this(*outboundConnectionsList.toTypedArray())
+
+    @Deprecated("These things are stupid and always caused problems and have been replaced by constructors taking in a list of either connections or vertices")
     companion object AlternateConstructors {
 
         /**
@@ -41,6 +44,17 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
             }.toTypedArray())
         }
     }
+
+    constructor(connectionsList: List<Pair<E, Iterable<E>?>>): this(
+        *connectionsList.map {
+            it.first to (it.second?.map { it2 -> it2 to 1 } ?: emptyList())
+        }.toTypedArray()
+    )
+    constructor(verticesList: List<E>): this(
+        *verticesList.map {
+            it to emptyList<Pair<E, Int>>()
+        }.toTypedArray()
+    )
 
     /**
      * Constructs an empty graph.
@@ -119,11 +133,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
      * @return The previous weight of the edge between the two vertices, or null if no edge existed.
      */
     override operator fun set(from: E, to: E, value: Int): Int? {
-        return indexLookup[from]?.let { f ->
-            indexLookup[to]?.let { t ->
-                set(f, t, value)
-            }
-        }
+        return set(indexLookup[from]!!, indexLookup[to]!!, value)
     }
 
     private fun set(from: Int, to: Int, value: Int): Int? {
@@ -131,16 +141,26 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         return get(from, to).also { edgeMatrix[from][to] = value }
     }
 
+    override fun remove(from: E, to: E): Int? {
+        return remove(indexLookup[from]!!, indexLookup[to]!!)
+    }
+
+    private fun remove(from: Int, to: Int): Int? {
+        return set(from, to, -1)
+    }
+
     override fun contains(vertex: E): Boolean {
         return indexLookup.containsKey(vertex)
     }
 
     override fun neighbors(vertex: E): List<E>? {
-        return indexLookup[vertex]?.let {
-            ArrayList<E>().apply {
-                for ((i, ob) in edgeMatrix[it].withIndex())
-                    if (ob != -1) add(vertices[i])
-            }
+        return indexLookup[vertex]?.let{neighbors(it)}?.map{vertices[it]}
+    }
+
+    private fun neighbors(vertex: Int): List<Int> {
+        return ArrayList<Int>().apply {
+            for ((i, ob) in edgeMatrix[vertex].withIndex())
+                if (ob != -1) add(i)
         }
     }
 
@@ -243,6 +263,44 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         return string.toString()
     }
 
+    override fun copy(): AMGraph<E> {
+        val newGraph = AMGraph<E>()
+        for(v in vertices) newGraph.add(v)
+        for(src in edgeMatrix.indices){
+            for(dest in edgeMatrix[src].indices){
+                if(get(src, dest) != null){
+                    newGraph.set(src, dest, get(src, dest)!!)
+                }
+            }
+        }
+        return newGraph
+    }
+
+//    inline fun <E:Any> filter(graph: AMGraph<E>, predicate: (vertex : E) -> Boolean): Graph<E> {
+//        val list = ArrayList<Int>().apply{
+//            for(v in graph.getVertices())
+//                if(predicate(v)) add(indexLookup[v])
+//        }
+//    }
+
+
+    //This could be so much clearer, but I just love inline function 💕
+    private fun subgraph(verts : List<Int>):AMGraph<E>{
+        return AMGraph(outboundConnectionsList = verts.map { from ->
+            vertices[from] to ArrayList<Pair<E,Int>>().apply{verts.forEach{ t ->
+                get(from,t)?.let{ add(vertices[t] to it) }
+            }}
+        })
+
+        /*Equivalent to
+        val subgraph = AMGraph(verts.map { vertices[it] })
+        for(f in verts)
+            for(t in verts)
+                get(f,t)?.let{ subgraph.set(f,t,it) }
+        return subgraph
+        */
+    }
+
     /*------------------ RANDOMIZATION ------------------*/
     /**
      * Sets random connections between vertices between 0 and maxWeight.
@@ -294,7 +352,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
 
         //Runs while there are any unreachable vertices from `vertex` (store all the unreachable ones in `unreachables`)
         //Vertices --> Unreachable non-self vertices --> Unreachable non-self id's
-        while(vertices.filter { indexLookup[it] != vertex && bidirectional.path(vertices[vertex], it, false).isEmpty() }.map{indexLookup[it]!!}.also{ unreachables = it }.isNotEmpty()){
+        while(vertices.filterIndexed { id, _ -> id != vertex && bidirectional.path(vertex, id).isEmpty() }.map{indexLookup[it]!!}.also{ unreachables = it }.isNotEmpty()){
             val from : Int
             val to : Int
             val weight = random.nextInt(maxWeight)
@@ -427,7 +485,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         return emptyList()
     }
 
-    /* DIJKSTRAS */
+    /* DIJKSTRA'S */
     /**
      * Finds the shortest path between two vertices using dijkstra's algorithm. If dijkstra's algorithm has already been run, the cached table is used.
      * @param from The vertex to start from.
@@ -438,15 +496,16 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         return path(from, to, false)
     }
     fun path(from: E, to: E, useSimpleAlgorithm: Boolean = false): List<E> {
-        val fromIndex = indexLookup[from]!!
-        val toIndex = indexLookup[to]!!
-        //println("SD Table: ${clearDijkstraCache()} ${getDijkstraTableSimple(fromIndex).contentDeepToString()}\n FD Table:${clearDijkstraCache()} ${getDijkstraTable(fromIndex).contentDeepToString()} \n")
+        return path(indexLookup[from]!!,indexLookup[to]!!).map { vertices[it] }
+    }
+
+    private fun path(from: Int, to: Int, useSimpleAlgorithm: Boolean = false): List<Int>{
         return try {
             tracePath(
-                fromIndex,
-                toIndex,
-                if (useSimpleAlgorithm) getDijkstraTableSimple(fromIndex) else getDijkstraTable(fromIndex)
-            ).map { vertices[it] }
+                from,
+                to,
+                if (useSimpleAlgorithm) getDijkstraTableSimple(from) else getDijkstraTable(from)
+            )
         } catch (e: IndexOutOfBoundsException) { //More nodes were added that are disjoint and not in cached tables (we know there's no path)
             emptyList()
         }
@@ -574,6 +633,20 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         dijkstraTables = Array(size()) { null }
     }
 
+    override fun getConnected(vertex: E): List<E> {
+        return getConnected(indexLookup[vertex]!!).map{ vertices[it] }
+    }
+
+    //Returns a list of all connected vertices by ID
+    private fun getConnected(vertex: Int): List<Int> {
+        val connected = ArrayList<Int>()
+        for(id in vertices.indices){
+            if (id == vertex || path(id, vertex).isNotEmpty())
+                connected.add(id)
+        }
+        return connected
+    }
+
     /*------------------ COLORING ------------------*/
     /**
      * Colors the graph
@@ -615,9 +688,28 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
     }
 
     /*------------------ CLUSTERING ------------------*/
-    fun clusters() : List<AMGraph<E>>{
-        return TODO()
+
+    //TODO:make clusters work better on 1, 2 node graphs
+    fun clusters(connectedness: Double, kargerness: Int) : List<AMGraph<E>>{
+        val mincut = karger(kargerness)
+        if(size() == 1) return listOf(this)
+        if(mincut.size > connectedness * size()) return listOf(this)
+
+        val graph: AMGraph<E> = copy()
+        for(cut in mincut){
+            graph.remove(cut.first, cut.second)
+        }
+
+        val list = ArrayList<AMGraph<E>>()
+        val cluster1 = subgraph(graph.getConnected(mincut.first().first))
+        val cluster2 = subgraph(graph.getConnected(mincut.first().second))
+
+        list.addAll(cluster1.clusters(connectedness, kargerness))
+        list.addAll(cluster2.clusters(connectedness, kargerness))
+
+        return list
     }
+
 
     fun karger(numAttempts: Int) : List<Pair<Int,Int>>{
         var bestCut = mincut()
@@ -665,17 +757,14 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
             if (from == to) return //If they've been merged together the edge doesn't exist anymore
 
             //Redirect the 2nd node so it becomes the first
-            nodeRedirection[edge.second] = from
+            nodeRedirection[edge.second] = edge.first
             //finished collapsing 2 nodes into 1
             numNodes--
         }
 
         fun cut(): List<Pair<Int, Int>> {
             //Make a concrete version of node redirection where there are no references for efficiency
-            val concreteRedirection = IntArray(nodeRedirection.size)
-            for (node in nodeRedirection.indices) {
-                concreteRedirection[node] = getLink(node)
-            }
+            val concreteRedirection = nodeRedirection.map { node -> getLink(node) }.toIntArray()
 
             //'from' and 'to' are the 2 remaining nodes on our graph (no distinction between them)
             var from: Int = -1 //-1 is uninitialized
@@ -686,7 +775,7 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
 
             //find the actual edges that exist between the 2 remaining nodes on our collapsed graph
             for ((original, new) in concreteRedirection.withIndex()) {
-                //Initialize from/to with first appearance of
+                //Initialize from/to with first appearance of new node
                 if (from == -1) from = new
                 else if (to == -1 && new != from) to = new
 
@@ -710,8 +799,6 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
 
         //we cut the connections when we've collapsed everything into 2 nodes
         while (numNodes > 2){
-//            if (edges.isEmpty())
-//                throw IllegalStateException("")
             collapse()
         }
         return cut()//.also{println(it)}
@@ -726,4 +813,11 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
             swap(i,Random.nextInt(i,list.size))
         }
     }
+}
+
+fun main() {
+    val graph = AMGraph<Int>(2 to arrayListOf(1 to 1, 3 to 3, 5 to 2), 0 to arrayListOf(1 to 1, 3 to 3, 5 to 2))
+    graph.add(7)
+    println(graph.path(2, 5, true))
+
 }

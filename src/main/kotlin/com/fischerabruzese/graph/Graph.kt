@@ -25,4 +25,7 @@ abstract class Graph<E : Any> : Iterable<E> {
 
     abstract fun path(from : E, to : E) : List<E>?
     abstract fun distance(from : E, to : E) : Int
+    abstract fun remove(from: E, to: E): Int?
+    abstract fun copy(): AMGraph<E>
+    abstract fun getConnected(vertex: E): List<E>
 }
