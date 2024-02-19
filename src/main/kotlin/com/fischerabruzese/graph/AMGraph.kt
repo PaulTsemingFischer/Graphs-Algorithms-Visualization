@@ -180,6 +180,15 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
         return string.toString()
     }
 
+    override fun neighbors(vertex: E): Collection<E> {
+        val vertex = indexLookup[vertex]!!
+        val neighbors = mutableListOf<E>()
+        for (vert in vertices.indices){
+            if (get(vertex, vert) != -1) neighbors.add(vertices[vert])
+        }
+        return neighbors
+    }
+
     override fun copy(): AMGraph<E> {
         val newGraph = AMGraph<E>()
         for(v in vertices) newGraph.add(v)

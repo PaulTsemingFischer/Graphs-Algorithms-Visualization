@@ -111,7 +111,7 @@ abstract class Graph<E : Any> : Iterable<E> {
      * @param vertex the source vertex of the neighbors
      * @return a collection of vertices that are connected to the given vertex
      */
-    open fun neighbors(vertex: E): Collection<E>? {
+    open fun neighbors(vertex: E): Collection<E> {
         val neighbors = mutableListOf<E>()
         val vertices = getVertices()
         for (vert in vertices){
@@ -142,7 +142,7 @@ abstract class Graph<E : Any> : Iterable<E> {
      * @param predicate a lambda that evaluates whether to include the given vertex
      * @return a new graph containing only vertices matching the given predicate.
      */
-    inline fun filter(graph: Graph<E>, predicate: (vertex : E) -> Boolean) : Graph<E>{
+    inline fun filter(predicate: (vertex: E) -> Boolean) : Graph<E>{
         return subgraph(getVertices().filter{predicate(it)})
     }
 
