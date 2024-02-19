@@ -20,9 +20,9 @@ class GraphApp : Application() {
 
         /* Customize your graph */
 
-        val verts = Array(10){i -> i}
+        val verts = (0..10).toList()
 
-        val graph = AMGraph.graphOf(*verts)
+        val graph = AMGraph.fromCollection(verts)
         graph.randomize(2, 9, true, Random(69))
         controller.setGraph(graph)
         println(graph.karger(10))
