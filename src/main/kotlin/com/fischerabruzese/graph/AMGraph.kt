@@ -511,6 +511,18 @@ class AMGraph<E:Any>(vararg outboundConnections : Pair<E,Iterable<Pair<E,Int>>>?
         }
     }
 
+    private fun path(from: Int, to: Int, useSimpleAlgorithm: Boolean = false): List<Int>{
+        return try {
+            tracePath(
+                from,
+                to,
+                if (useSimpleAlgorithm) getDijkstraTableSimple(from) else getDijkstraTable(from)
+            )
+        } catch (e: IndexOutOfBoundsException) { //More nodes were added that are disjoint and not in cached tables (we know there's no path)
+            emptyList()
+        }
+    }
+
     /**
      * Finds the shortest distance between two vertices using dijkstra's algorithm. If dijkstra's algorithm has already been run, the cached table is used.
      * @param from The vertex to start from.
