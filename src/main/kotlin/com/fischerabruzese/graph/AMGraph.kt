@@ -211,6 +211,53 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
         return subgraph
         */
     }
+    /*------------------ RANDOMIZATION ------------------*/
+
+    override fun randomize(avgConnectionsPerVertex: Int, maxWeight: Int, fullyConnected: Boolean, random: Random) { //when inheritance removed add default values
+        val probability = ( avgConnectionsPerVertex.toDouble() + (if(fullyConnected) -1 else 0) ) / size()
+        randomize(probability, maxWeight, fullyConnected, random)
+    }
+
+    override fun randomize(probability: Double, maxWeight: Int, allowDisjoint: Boolean, random: Random) { //when removed add default values
+        for (i in edgeMatrix.indices) {
+            for (j in edgeMatrix.indices) {
+                if (random.nextDouble() < probability) {
+                    set(i, j, random.nextInt(1,maxWeight))
+                } else {
+                    set(i, j, -1)
+                }
+            }
+        }
+        if(!allowDisjoint) mergeDisjoint(maxWeight, random)
+    }
+
+    override fun mergeDisjoint(maxWeight: Int, random: Random){
+        val bidirectional = this.getBidirectionalUnweighted() as AMGraph<E>
+        var vertex = random.nextInt(size())
+        var unreachables : List<Int>
+
+        //Runs while there are any unreachable vertices from `vertex` (store all the unreachable ones in `unreachables`)
+        //Vertices --> Unreachable non-self vertices --> Unreachable non-self id's
+        while(vertices.filterIndexed { id, _ -> id != vertex && bidirectional.path(vertex, id).isEmpty() }.map{indexLookup[it]!!}.also{ unreachables = it }.isNotEmpty()){
+            val from : Int
+            val to : Int
+            val weight = random.nextInt(maxWeight)
+            if(random.nextBoolean()) {
+                from = vertex
+                to = unreachables.random(random)
+            }
+            else {
+                from = unreachables.random(random)
+                to = vertex
+            }
+            edgeMatrix[from][to] = weight
+            bidirectional.set(from, to, 1)
+            bidirectional.set(to, from, 1)
+
+            vertex = random.nextInt(size())
+            unreachables = emptyList()
+        }
+    }
 
     /*------------------ PATHING ------------------*/
     /*BFS and DFS */
