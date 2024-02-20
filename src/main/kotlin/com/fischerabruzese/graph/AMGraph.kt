@@ -579,7 +579,7 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
     /*------------------ CLUSTERING ------------------*/
 
     //TODO:make clusters work better on 1, 2 node graphs
-    fun clusters(connectedness: Double, kargerness: Int) : List<AMGraph<E>>{
+    override fun clusters(connectedness: Double, kargerness: Int) : Collection<AMGraph<E>>{
         val mincut = karger(kargerness)
         if(size() == 1) return listOf(this)
         if(mincut.size > connectedness * size()) return listOf(this)
@@ -603,6 +603,7 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
     fun karger(numAttempts: Int) : List<Pair<Int,Int>>{
         var bestCut = mincut()
         repeat(numAttempts - 1){
+
             val minCut = mincut()
             if(minCut.size < bestCut.size) bestCut = minCut
         }

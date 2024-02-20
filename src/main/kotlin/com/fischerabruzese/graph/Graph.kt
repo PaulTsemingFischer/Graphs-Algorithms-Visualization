@@ -242,4 +242,8 @@ abstract class Graph<E : Any> : Iterable<E> {
      * @return The distance between the two vertices.
      */
     abstract fun distance(from : E, to : E) : Int
+    abstract fun clusters(connectedness: Double, kargerness: Int): Collection<Graph<E>>
+
+    internal abstract fun mincut() : List<Pair<Int,Int>>
+    internal abstract fun karger(numAttempts: Int): List<Pair<Int, Int>>
 }
