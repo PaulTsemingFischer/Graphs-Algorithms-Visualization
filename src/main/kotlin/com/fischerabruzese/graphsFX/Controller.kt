@@ -94,7 +94,7 @@ class Controller<E: Any> {
 
     @FXML
     private fun mf0Pressed(){
-        println(graph.karger(2))
+        graph.getClusters(0.2, 10000).forEach{println(it.getVertices())}
     }
 
     @FXML
