@@ -94,11 +94,12 @@ class Controller<E: Any> {
 
     @FXML
     private fun mf0Pressed(){
+        println(graph.karger(2))
     }
 
     @FXML
     private fun randomizePressed(){
-        graph.randomize(0.0, 9, true)
+        graph.randomize(3, 9, false)
         redrawPressed()
     }
 

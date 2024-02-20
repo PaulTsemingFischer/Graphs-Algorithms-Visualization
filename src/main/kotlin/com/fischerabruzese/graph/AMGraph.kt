@@ -579,7 +579,7 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
     /*------------------ CLUSTERING ------------------*/
 
     //TODO:make clusters work better on 1, 2 node graphs
-    fun clusters(connectedness: Double, kargerness: Int) : List<AMGraph<E>>{
+    override fun clusters(connectedness: Double, kargerness: Int) : Collection<AMGraph<E>>{
         val mincut = karger(kargerness)
         if(size() == 1) return listOf(this)
         if(mincut.size > connectedness * size()) return listOf(this)
@@ -600,16 +600,17 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
     }
 
 
-    fun karger(numAttempts: Int) : List<Pair<Int,Int>>{
+    override fun karger(numAttempts: Int) : List<Pair<Int,Int>>{
         var bestCut = mincut()
         repeat(numAttempts - 1){
+
             val minCut = mincut()
             if(minCut.size < bestCut.size) bestCut = minCut
         }
         return mincut()
     }
 
-    private fun mincut() : List<Pair<Int,Int>> {
+    override fun mincut() : List<Pair<Int,Int>> {
         //'from' > 'to' in edges
         var edges: MutableList<Pair<Int, Int>> = ArrayList()
 
@@ -645,8 +646,11 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
 
             if (from == to) return //If they've been merged together the edge doesn't exist anymore
 
-            //Redirect the 2nd node so it becomes the first
-            nodeRedirection[edge.second] = edge.first
+            //Redirect the smaller node so it becomes the first
+            if(getLink(edge.second) < getLink(edge.first))
+                nodeRedirection[edge.second] = edge.first
+            else
+                nodeRedirection[edge.first] = edge.second
             //finished collapsing 2 nodes into 1
             numNodes--
         }
@@ -690,6 +694,7 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
         while (numNodes > 2){
             collapse()
         }
+        println(nodeRedirection.contentToString())
         return cut()//.also{println(it)}
     }
 

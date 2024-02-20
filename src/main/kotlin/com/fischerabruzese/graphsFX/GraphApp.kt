@@ -20,12 +20,11 @@ class GraphApp : Application() {
 
         /* Customize your graph */
 
-        val verts = (0..10).toList()
+        val verts = (0..3).toList()
 
         val graph = AMGraph.fromCollection(verts)
         graph.randomize(2, 9, true, Random(69))
         controller.setGraph(graph)
-        println(graph.karger(10))
 
 
         /* Runtime testing with slightly different algorithms */
