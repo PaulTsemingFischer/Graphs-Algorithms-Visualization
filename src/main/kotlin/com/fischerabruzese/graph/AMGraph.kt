@@ -2,6 +2,8 @@
 //TODO: Make randomize depend on the toggle
 //TODO: Graph presets
 //TODO: Figure out the issue with OG dijkstra
+//TODO: Write linkedListOf extension function
+//TODO: make kargerness a confidence %
 
 //TODO: COMMENTING -> Comment pathing stuff not already commented in Graph.kt
 
@@ -103,7 +105,7 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
         return set(indexLookup[from]!!, indexLookup[to]!!, value)
     }
     private fun set(from: Int, to: Int, value: Int): Int? {
-        dijkstraTables = Array(size()) { null }
+        dijkstraTables = null
         return get(from, to).also { edgeMatrix[from][to] = value }
     }
 
@@ -181,10 +183,10 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
     }
 
     override fun neighbors(vertex: E): Collection<E> {
-        val vertex = indexLookup[vertex]!!
+        val vertexId = indexLookup[vertex]!!
         val neighbors = mutableListOf<E>()
         for (vert in vertices.indices){
-            if (get(vertex, vert) != -1) neighbors.add(vertices[vert])
+            if (get(vertexId, vert) != -1) neighbors.add(vertices[vert])
         }
         return neighbors
     }
@@ -211,14 +213,6 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
                 get(from,t)?.let{ add(vertices[t] to it) }
             }}
         })
-
-        /*Equivalent to
-        val subgraph = AMGraph(verts.map { vertices[it] })
-        for(f in verts)
-            for(t in verts)
-                get(f,t)?.let{ subgraph.set(f,t,it) }
-        return subgraph
-        */
     }
     /*------------------ RANDOMIZATION ------------------*/
 
@@ -578,20 +572,14 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
 
     /*------------------ CLUSTERING ------------------*/
 
-    //TODO:make clusters work better on 1, 2 node graphs
-    override fun clusters(connectedness: Double, kargerness: Int) : Collection<AMGraph<E>>{
-        val mincut = karger(kargerness)
-        if(size() == 1) return listOf(this)
-        if(mincut.size > connectedness * size()) return listOf(this)
+    override fun getClusters(connectedness: Double, kargerness: Int) : Collection<AMGraph<E>>{
+        val minCut = karger(kargerness)
+        //check if minCut size is acceptable or there's no cut (ie there's only 1 node in the graph)
+        if(minCut.size > connectedness * size() || minCut.size == -1) return listOf(this)
 
-        val graph: AMGraph<E> = copy()
-        for(cut in mincut){
-            graph.remove(cut.first, cut.second)
-        }
-
-        val list = ArrayList<AMGraph<E>>()
-        val cluster1 = subgraph(graph.getConnected(mincut.first().first))
-        val cluster2 = subgraph(graph.getConnected(mincut.first().second))
+        val clusters = ArrayList<AMGraph<E>>()
+        val subgraph1 = subgraphFromIds(minCut.cluster1)
+        val subgraph2 = subgraphFromIds(minCut.cluster2)
 
         list.addAll(cluster1.clusters(connectedness, kargerness))
         list.addAll(cluster2.clusters(connectedness, kargerness))
@@ -599,23 +587,26 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
         return list
     }
 
-
-    override fun karger(numAttempts: Int) : List<Pair<Int,Int>>{
+    /**
+     * @param numAttempts the number of attempts of cuts it should try before it picks the lowest one
+     * @return the smallest cut found in [numAttempts] iterations
+     */
+    private fun karger(numAttempts: Int) : Cut{
         var bestCut = mincut()
         repeat(numAttempts - 1){
-
-            val minCut = mincut()
-            if(minCut.size < bestCut.size) bestCut = minCut
+            bestCut = mincut().takeIf{it.size < bestCut.size} ?: bestCut
         }
-        return mincut()
+
+        return bestCut
     }
 
     override fun mincut() : List<Pair<Int,Int>> {
         //'from' > 'to' in edges
         var edges: MutableList<Pair<Int, Int>> = ArrayList()
 
-        //everything that is not equal to it's index is a reference on where to find your value
-        val nodeRedirection = IntArray(size()) { it }
+        //If the nodes index contains a list whose last value that is not itself, it is a reference
+        //If a node contains a list with last()==itself, it is a cluster head
+        val nodeRedirection = Array(size()) { LinkedList<Int>().apply { add(it) } }
 
         //navigates through references until it finds the redirected value
         fun getLink(node: Int): Int {
@@ -641,10 +632,10 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
         fun collapse() {
             val edge = edges.pop()
             //from and to are the merged values (if they've previously been merged)
-            val from = getLink(edge.first)
-            val to = getLink(edge.second)
+            val cluster1 = getLinkedCluster(edge.first)
+            val cluster2 = getLinkedCluster(edge.second)
 
-            if (from == to) return //If they've been merged together the edge doesn't exist anymore
+            if (cluster1 == cluster2) return //If both nodes are in the same cluster, do nothing
 
             //Redirect the smaller node so it becomes the first
             if(getLink(edge.second) < getLink(edge.first))
@@ -655,47 +646,38 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
             numNodes--
         }
 
-        fun cut(): List<Pair<Int, Int>> {
-            //Make a concrete version of node redirection where there are no references for efficiency
-            val concreteRedirection = nodeRedirection.map { node -> getLink(node) }.toIntArray()
+        fun getClusters(): List<LinkedList<Int>> = nodeRedirection.filterIndexed{ id, cluster -> cluster.last() == id}
 
-            //'from' and 'to' are the 2 remaining nodes on our graph (no distinction between them)
-            var from: Int = -1 //-1 is uninitialized
-            var to: Int = -1
-            //stores all the original nodes that collapsed to from/to
-            val fromList = ArrayList<Int>() //-1 indicates
-            val toList = ArrayList<Int>()
+        fun getCut(): Cut {
+            require(numNodes == 2)
+            val clusters = getClusters()
 
-            //find the actual edges that exist between the 2 remaining nodes on our collapsed graph
-            for ((original, new) in concreteRedirection.withIndex()) {
-                //Initialize from/to with first appearance of new node
-                if (from == -1) from = new
-                else if (to == -1 && new != from) to = new
-
-                //Add to the correct list
-                when (new) {
-                    from -> fromList
-                    to -> toList
-                    else -> continue
-                }.add(original)
-            }
-            //Checking all possible original connections between our collapsed graph to return the necessary cut
-            return ArrayList<Pair<Int, Int>>().apply {
-                for (f in fromList) {
-                    for (t in toList) {
-                        if (edgeMatrix[f][t] > -1) add(f to t)
-                        if (edgeMatrix[t][f] > -1) add(t to f)
-                    }
+            //count from all possible connections
+            var edgesToCut = 0
+            for (from in clusters[0]) {
+                for (to in clusters[1]) {
+                    if (edgeMatrix[from][to] > -1) edgesToCut++
+                    if (edgeMatrix[to][from] > -1) edgesToCut++
                 }
             }
+            return Cut(edgesToCut, clusters[0], clusters[1])
         }
+
 
         //we cut the connections when we've collapsed everything into 2 nodes
         while (numNodes > 2){
             collapse()
         }
-        println(nodeRedirection.contentToString())
-        return cut()//.also{println(it)}
+        return when(numNodes) {
+            1 -> Cut(-1, emptyList(), emptyList()) //SINGLE NODE CASE
+            2 -> getCut() //REGULAR CASE
+            else -> {//DISJOINT CASE
+                val clusters = getClusters()
+                val cluster1 = clusters.subList(0, clusters.size/2).flatten()
+                val cluster2 = clusters.subList(clusters.size/2, clusters.size).flatten()
+                Cut(0, cluster1, cluster2)
+            }
+        }
     }
 
     private fun<T> randomizeList(list: MutableList<T>) {
