@@ -11,6 +11,7 @@ package com.fischerabruzese.graph
 
 import java.math.BigInteger
 import java.util.LinkedList
+import kotlin.math.min
 import kotlin.random.Random
 import kotlin.math.pow
 
@@ -31,7 +32,7 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
     companion object {
 //        fun <E:Any> fromWeightedConnections(vararg outboundConnections: Pair<E, Iterable<Pair<E, Int>>>) = fromWeightedConnections(outboundConnections.toList())
 //
-        private fun <E:Any> fromWeightedConnections(outboundConnectionsList: List<Pair<E, Iterable<Pair<E, Int>>>?>) = AMGraph(0,outboundConnectionsList)
+         fun <E:Any> fromWeightedConnections(outboundConnectionsList: List<Pair<E, Iterable<Pair<E, Int>>>?>) = AMGraph(0,outboundConnectionsList)
 //
 //        fun <E:Any> fromConnections(vararg connections: Pair<E, Iterable<E>?>) = fromConnections(connections.toList())
 //
@@ -571,7 +572,7 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
     override fun getClusters(connectedness: Double, kargerness: Int) : Collection<AMGraph<E>>{
         val minCut = karger(kargerness)
         //check if minCut size is acceptable or there's no cut (ie there's only 1 node in the graph)
-        if(minCut.size > connectedness * size() || minCut.size == -1) return listOf(this)
+        if(minCut.size >= connectedness * size() || minCut.size == -1) return listOf(this)
 
         val clusters = ArrayList<AMGraph<E>>()
         val subgraph1 = subgraphFromIds(minCut.cluster1)
@@ -585,13 +586,15 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
 
     /**
      * @param numAttempts the number of attempts of cuts it should try before it picks the lowest one
-     * @return the smallest cut found in [numAttempts] iterations
+     * @return the smallest cut found in [numAttempts] iterations that results in the largest min clyster
      */
-    private fun karger(numAttempts: Int) : Cut{
-        var bestCut = mincut()
+    private fun karger(numAttempts: Int) : Cut {
+        var bestCut = minCut()
 
         repeat(numAttempts - 1){
-            bestCut = mincut().takeIf{it.size < bestCut.size} ?: bestCut
+            bestCut = minCut().takeIf{
+                it < bestCut
+            } ?: bestCut
         }
 
         return bestCut
@@ -601,13 +604,23 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
      * @param size the number of cuts necessary to separate the minCut
      * @param cluster1 the first cluster created by the cut
      * @param cluster2 the second cluster created by the cut
+     * Cuts are compared by their desirability for our clustering algorithm
+     * A desirable cut has a small value and is defined by a small size and a large min cluster
      */
-    private data class Cut(val size: Int, val cluster1: Collection<Int>, val cluster2: Collection<Int>)
+    private data class Cut(val size: Int, val cluster1: Collection<Int>, val cluster2: Collection<Int>) : Comparable<Cut>{
+        fun minCluster() = min(cluster1.size, cluster2.size)
+        override fun compareTo(other: Cut): Int {
+            return(this.size - other.size).let{
+                if(it == 0) other.minCluster() - this.minCluster()
+                else it
+            }
+        }
+    }
 
     /**
      * @return a probabilistic attempt at finding the minimum cuts to make 2 disjoint graphs from this graph
      */
-    private fun mincut() : Cut {
+    private fun minCut() : Cut {
         //'from' > 'to' in edges
         var edges: MutableList<Pair<Int, Int>> = ArrayList()
         //Initializing edges from edge-matrix, triangular to ensure from > to
@@ -670,7 +683,6 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
             }
             return Cut(edgesToCut, clusters[0], clusters[1])
         }
-
 
         //we cut the connections when we've collapsed everything into 2 nodes
         while (numNodes > 2 && edges.isNotEmpty()) {
