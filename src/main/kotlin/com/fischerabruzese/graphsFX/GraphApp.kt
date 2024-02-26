@@ -11,7 +11,7 @@ class GraphApp : Application() {
     override fun start(stage: Stage) {
         val fxmlLoader = FXMLLoader(GraphApp::class.java.getResource("graph.fxml"))
         val scene = Scene(fxmlLoader.load(), 1280.0, 820.0)
-        val controller : Controller<Char> = fxmlLoader.getController()!!
+        val controller : Controller<Int> = fxmlLoader.getController()!!
         scene.stylesheets.addAll(GraphApp::class.java.getResource("style.css").toExternalForm())
 
         stage.title = "Graph"
@@ -22,9 +22,22 @@ class GraphApp : Application() {
 
         val verts = (0..9).toList()
 
-        val graph = createGraph(getText())
+        //val graph = createGraph(getText())
 //        val graph = AMGraph.fromCollection(verts)
-//        graph.randomize(2, 9, true, Random(69))
+        val graph = AMGraph.fromWeightedConnections<Int>(
+            listOf(
+                1 to listOf(2 to 1, 3 to 1, 5 to 1),
+                6 to listOf(7 to 1, 9 to 1, 10 to 1),
+                1 to listOf(6 to 1, 7 to 1),
+                2 to listOf(8 to 1, 10 to 1, 4 to 1),
+                3 to listOf(9 to 1),
+                4 to listOf(10 to 1, 2 to 1),
+                5 to listOf(6 to 1, 7 to 1),
+                7 to listOf(5 to 1),
+                8 to listOf(10 to 1)
+            )
+        )
+        //graph.randomize(2, 9, true, Random(69))
         controller.setGraph(graph)
 
 
