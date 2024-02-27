@@ -19,6 +19,7 @@ import java.security.InvalidKeyException
 import kotlin.math.*
 import kotlin.system.measureTimeMillis
 import java.util.concurrent.Executors
+import kotlin.properties.Delegates
 
 class Controller<E: Any> {
     //Pane
@@ -63,7 +64,7 @@ class Controller<E: Any> {
         paneWidth = pane.widthProperty()
         paneHeight = pane.heightProperty()
     }
-/*
+
     fun setGraph(graph : Graph<E>){
         this.graph = graph
         previousGraphHash = graph.hashCode()
@@ -71,7 +72,7 @@ class Controller<E: Any> {
 
     //Listen for graph changes
     private val executor = Executors.newScheduledThreadPool(1)
-    private var previousGraphHash: Int
+    private var previousGraphHash by Delegates.notNull<Int>()
 
     fun startListening() {
         while (true) {
@@ -93,7 +94,6 @@ class Controller<E: Any> {
         draw()
     }
 
- */
 
 //    private fun fromTxtDemo(){
 //        vertices.clear()
@@ -108,8 +108,8 @@ class Controller<E: Any> {
         val graphVertices = graph.getVertices().toList()
         val verticesElements = Array(graphVertices.size){ index -> Vertex(
             graphVertices[index],
-            if(vertices.size > index) vertices[index].x else Math.random(),
-            if(vertices.size > index) vertices[index].y else Math.random()
+            if(vertices.size > index) vertices[index].x.get() else Math.random(),
+            if(vertices.size > index) vertices[index].y.get() else Math.random()
         ) }
         val edgeElements = ArrayList<Edge>()
 
@@ -164,7 +164,7 @@ class Controller<E: Any> {
 
 
     //Precondition: x and y are between 0 and 1
-    inner class Vertex(val v: E?, val x : Double, val y : Double) : StackPane() {
+    inner class Vertex(val v: E, xInit : Double, yInit : Double) : StackPane() {
         init {
             stringToVMap[v.toString()] = this
         }
@@ -184,11 +184,11 @@ class Controller<E: Any> {
         )
 
         //xpos and ypos are between 0 and 1
-        private var xpos : DoubleProperty = SimpleDoubleProperty(x)
-        private var ypos : DoubleProperty = SimpleDoubleProperty(y)
+        internal var x : DoubleProperty = SimpleDoubleProperty(xInit)
+        internal var y : DoubleProperty = SimpleDoubleProperty(yInit)
 
-        var vtranslateXProperty : DoubleBinding = paneWidth.multiply(xpos).multiply(usablePercentPaneWidth).add(CIRCLE_RADIUS)
-        var vtranslateYProperty : DoubleBinding = paneHeight.multiply(ypos).multiply(usablePercentPaneHeight).add(CIRCLE_RADIUS)
+        var vtranslateXProperty : DoubleBinding = paneWidth.multiply(this.x).multiply(usablePercentPaneWidth).add(CIRCLE_RADIUS)
+        var vtranslateYProperty : DoubleBinding = paneHeight.multiply(this.y).multiply(usablePercentPaneHeight).add(CIRCLE_RADIUS)
 
         //Dragging
         private var xDelta : Double = 0.0
@@ -224,12 +224,12 @@ class Controller<E: Any> {
         }
 
         private fun dragStart(event : MouseEvent) {
-            xDelta = event.sceneX / pane.width - xpos.get()
-            yDelta = event.sceneY / pane.height - ypos.get()
+            xDelta = event.sceneX / pane.width - x.get()
+            yDelta = event.sceneY / pane.height - y.get()
         }
         private fun drag(event : MouseEvent) {
-            xpos.set((event.sceneX / pane.width - xDelta).let{if(it > 1) 1.0 else if(it < 0) 0.0 else it})
-            ypos.set((event.sceneY / pane.height - yDelta).let{if(it > 1) 1.0 else if(it < 0) 0.0 else it})
+            x.set((event.sceneX / pane.width - xDelta).let{if(it > 1) 1.0 else if(it < 0) 0.0 else it})
+            y.set((event.sceneY / pane.height - yDelta).let{if(it > 1) 1.0 else if(it < 0) 0.0 else it})
         }
 
         fun setColor(color: Color) {
@@ -402,6 +402,29 @@ class Controller<E: Any> {
             }
         }
 
+    }
+    //Clustering
+     fun moveClusters(clusters: Collection<Graph<E>>){
+        //convert clusters to List<List<Vertex>>
+        val clustersGraphic = clusters.map { cluster -> ArrayList<Vertex>().apply {
+            for(vert in cluster){
+                add(vertices.find { it.v == vert } ?: continue)
+            }
+        } }
+
+
+        val numDimensionalSections = ceil(sqrt(clustersGraphic.size.toDouble())).toInt()
+
+        for(xSections in 0 until numDimensionalSections){
+            for(ySections in 0 until numDimensionalSections){
+                val cluster = try { clustersGraphic[xSections*ySections] } catch (_: Exception) {break}
+
+                for(v in cluster){
+                    v.x.set(v.x.get() * (1.0/numDimensionalSections) + (xSections * (numDimensionalSections-1)))
+                    v.y.set(v.y.get() * (1.0/numDimensionalSections) + (ySections * (numDimensionalSections-1)))
+                }
+            }
+        }
     }
 
     //Graph presets
