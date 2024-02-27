@@ -7,8 +7,7 @@ import javafx.beans.property.DoubleProperty
 import javafx.beans.property.ReadOnlyDoubleProperty
 import javafx.beans.property.SimpleDoubleProperty
 import javafx.fxml.FXML
-import javafx.scene.control.Label
-import javafx.scene.control.TextField
+import javafx.scene.control.*
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.Pane
 import javafx.scene.layout.StackPane
@@ -16,43 +15,102 @@ import javafx.scene.paint.Color
 import javafx.scene.shape.Circle
 import javafx.scene.shape.Line
 import javafx.scene.text.Font
+import java.security.InvalidKeyException
 import kotlin.math.*
+import kotlin.system.measureTimeMillis
+import java.util.concurrent.Executors
 
 class Controller<E: Any> {
+    //Pane
     @FXML
     private lateinit var pane: Pane
+    private lateinit var paneWidth : ReadOnlyDoubleProperty
+    private lateinit var paneHeight : ReadOnlyDoubleProperty
 
+    //Fields
+    @FXML
+    private lateinit var probabilityField: TextField
+    @FXML
+    private lateinit var minWeightField: TextField
+    @FXML
+    private lateinit var maxWeightField: TextField
+    @FXML
+    private lateinit var allowDisjointToggle: CheckBox
+    @FXML
+    private lateinit var connectedness: TextField
     @FXML
     private lateinit var fromVertexField: TextField
     @FXML
     private lateinit var toVertexField: TextField
+
+
+    //Console
     @FXML
-    private lateinit var weightField: TextField
+    private lateinit var console: TextArea
+    private val CONSOLE_LINE_SEPARATOR = "-".repeat(20) + "\n"
 
-    private lateinit var paneWidth : ReadOnlyDoubleProperty
-    private lateinit var paneHeight : ReadOnlyDoubleProperty
+    //Graph representation
     private val CIRCLE_RADIUS = 20.0
-
     private lateinit var graph : Graph<E>
     private val stringToVMap = HashMap<String, Controller<E>.Vertex>()
     private var edges = ArrayList<Edge>()
     private var vertices = ArrayList<Vertex>()
     private val hitboxes = ArrayList<Circle>()
 
+    //Initialization
     @FXML
     fun initialize() {
         paneWidth = pane.widthProperty()
         paneHeight = pane.heightProperty()
     }
-
+/*
     fun setGraph(graph : Graph<E>){
         this.graph = graph
+        previousGraphHash = graph.hashCode()
     }
 
-    //Redraws the GUI from the graph
+    //Listen for graph changes
+    private val executor = Executors.newScheduledThreadPool(1)
+    private var previousGraphHash: Int
+
+    fun startListening() {
+        while (true) {
+            val currentHash = graph.hashCode()
+            if (currentHash != previousGraphHash) {
+                changeReceived()
+                previousGraphHash = currentHash
+            }
+            Thread.sleep(5000)
+        }
+    }
+
+
+    fun stopListening() {
+        executor.shutdown()
+    }
+
+    private fun changeReceived(){
+        draw()
+    }
+
+ */
+
+//    private fun fromTxtDemo(){
+//        vertices.clear()
+//        for((x,y) in positions){
+//            vertices.add(Vertex(null, x, y))
+//        }
+//        draw()
+//    }
+
+    //Drawing
     fun draw() {
         val graphVertices = graph.getVertices().toList()
-        val verticesElements = Array(graphVertices.size){ index -> Vertex(graphVertices[index], Math.random(), Math.random()).also{stringToVMap[it.toString()] = it}}
+        val verticesElements = Array(graphVertices.size){ index -> Vertex(
+            graphVertices[index],
+            if(vertices.size > index) vertices[index].x else Math.random(),
+            if(vertices.size > index) vertices[index].y else Math.random()
+        ) }
         val edgeElements = ArrayList<Edge>()
 
         for(v1 in graphVertices.indices){
@@ -75,47 +133,6 @@ class Controller<E: Any> {
         pane.children.clear()
         draw()
     }
-
-    //Precondition: weight is a positive integer
-    @FXML
-    private fun editEdgePressed() {
-        val from = stringToVMap[fromVertexField.text].let{ it ?: return }
-        val to = stringToVMap[toVertexField.text].let{ it ?: return }
-        val weight = weightField.text
-        weight.toIntOrNull()?.takeIf { it > 0 }?.let { graph[from.v, to.v] = it }
-        for(edge in edges){
-            if(edge.checkMatch(from, to)){
-                edge.setLabelWeight(weight, true)
-            } else if(edge.checkMatch(to, from)){
-                edge.setLabelWeight(weight, false)
-            }
-        }
-    }
-
-    @FXML
-    private fun mf0Pressed(){
-        graph.getClusters(0.4, 10000).forEach{println(it.getVertices())}
-    }
-
-    @FXML
-    private fun randomizePressed(){
-        graph.randomize(3, 9, false)
-        redrawPressed()
-    }
-
-    //Graph presets
-    @FXML
-    private fun preset1Pressed(){}
-    @FXML
-    private fun preset2Pressed(){}
-    @FXML
-    private fun preset3Pressed(){}
-    @FXML
-    private fun preset4Pressed(){}
-    @FXML
-    private fun preset5Pressed(){}
-    @FXML
-    private fun preset6Pressed(){}
 
     private fun greyNonAttached(vertex: Vertex){
         for(vert in vertices){
@@ -145,8 +162,12 @@ class Controller<E: Any> {
         }
     }
 
+
     //Precondition: x and y are between 0 and 1
-    inner class Vertex(val v: E, x : Double, y : Double) : StackPane() {
+    inner class Vertex(val v: E?, val x : Double, val y : Double) : StackPane() {
+        init {
+            stringToVMap[v.toString()] = this
+        }
         //Components
         private val circle = Circle(CIRCLE_RADIUS, Color.BLUE)
         private val label = Label(v.toString())
@@ -213,6 +234,10 @@ class Controller<E: Any> {
 
         fun setColor(color: Color) {
             circle.fill = color
+        }
+
+        override fun toString(): String {
+            return v.toString()
         }
     }
 
@@ -378,5 +403,136 @@ class Controller<E: Any> {
         }
 
     }
+
+    //Graph presets
+    @FXML
+    private fun preset1Pressed(){}
+    @FXML
+    private fun preset2Pressed(){}
+    @FXML
+    private fun preset3Pressed(){}
+    @FXML
+    private fun preset4Pressed(){}
+    @FXML
+    private fun preset5Pressed(){}
+    @FXML
+    private fun preset6Pressed(){}
+
+    //Console
+    private fun printClusters(clusters: List<List<E>>, connectedness: Double){
+        console.text += "Clusters (connectedness: $connectedness)\n"
+        for(cluster in clusters){
+            console.text += "" + cluster + '\n'
+        }
+        console.text += CONSOLE_LINE_SEPARATOR
+    }
+    private fun printDijkstra(from: E, to: E, path: List<E>, distance: Int, time: Long){
+        console.text += "Dijkstra from $from to $to\n"
+        console.text += "Path: $path\n"
+        console.text += "Distance: $distance\n"
+        console.text += "Time(ms): $time\n"
+        console.text += CONSOLE_LINE_SEPARATOR
+    }
+    private fun printBfs(from: E, to: E, path: List<E>, time: Long){
+        console.text += "Breadth first search from $from to $to\n"
+        console.text += "Path: $path\n"
+        console.text += "Time(ms): $time\n"
+        console.text += CONSOLE_LINE_SEPARATOR
+    }
+    private fun printDfs(from: E, to: E, path: List<E>, time: Long){
+        console.text += "Depth first search from $from to $to\n"
+        console.text += "Path: $path\n"
+        console.text += "Time(ms): $time\n"
+        console.text += CONSOLE_LINE_SEPARATOR
+    }
+
+    //Randomization
+    @FXML
+    private fun randomizePressed(){
+
+    }
+
+    //Clustering
+    @FXML
+    private fun getClustersPressed(){}
+
+    //Vertex selection
+    private fun retrieveVertexElement(lookupKey: String) : E? {
+        return stringToVMap[lookupKey.trim()]?.v
+    }
+
+    private fun getFromField(): E{
+        return retrieveVertexElement(fromVertexField.text) ?: throw InvalidKeyException("user input: \"${fromVertexField.text}\" is not an existing vertex")
+    }
+    private fun getToField(): E {
+        return retrieveVertexElement(toVertexField.text) ?: throw InvalidKeyException("user input: \"${toVertexField.text}\" is not an existing vertex")
+    }
+
+    @FXML
+    private fun fromVertexChanged(){}
+
+    @FXML
+    private fun toVertexChanged(){}
+
+    //Pathing
+    @FXML
+    private fun dijkstraPressed(){
+        pathingButtonPressed(graph::path).let { printDijkstra(it.first.first, it.first.second, it.second, graph.distance(it.first.first, it.first.second), it.third) }
+    }
+
+    @FXML
+    private fun bfsPressed() {
+        pathingButtonPressed(graph::path).let { printBfs(it.first.first, it.first.second, it.second, it.third) }
+    }
+
+    @FXML
+    private fun dfsPressed() {
+        pathingButtonPressed(graph::path).let { printDfs(it.first.first, it.first.second, it.second, it.third) }
+    }
+
+    private fun pathingButtonPressed(algorithm: (E, E) -> List<E>) : Triple<Pair<E, E>, List<E>, Long>{
+        val from = getFromField()
+        val to = getToField()
+        val path : List<E>
+        val time = measureTimeMillis {
+            path = algorithm(from, to)
+        }
+        return Triple((from to to), path, time)
+    }
+
+
+
+
+
+
+
+
+    //Randomization
+//    @FXML
+//    private fun mf0Pressed(){
+//        graph.getClusters(0.4, 10000).forEach{println(it.getVertices())}
+//    }
+
+//    @FXML
+//    private fun randomizePressed(){
+//        graph.randomize(3, 9, false)
+//        redrawPressed()
+//    }
+
 }
 
+//Precondition: weight is a positive integer
+//    @FXML
+//    private fun editEdgePressed() {
+//        val from = stringToVMap[fromVertexField.text].let{ it ?: return }
+//        val to = stringToVMap[toVertexField.text].let{ it ?: return }
+//        val weight = weightField.text
+//        weight.toIntOrNull()?.takeIf { it > 0 }?.let { graph[from.v, to.v] = it }
+//        for(edge in edges){
+//            if(edge.checkMatch(from, to)){
+//                edge.setLabelWeight(weight, true)
+//            } else if(edge.checkMatch(to, from)){
+//                edge.setLabelWeight(weight, false)
+//            }
+//        }
+//    }

@@ -1,5 +1,6 @@
 package com.fischerabruzese.graph
 
+import java.util.*
 import kotlin.random.Random
 
 abstract class Graph<E : Any> : Iterable<E> {
@@ -31,6 +32,11 @@ abstract class Graph<E : Any> : Iterable<E> {
      * @return A set of the vertices in the graph.
      */
     abstract fun getVertices() : Set<E>
+
+    /**
+     * @return A set of the Edges in the graph.
+     */
+    abstract fun getEdges() :  Set<Pair<E,E>>
 
     /**
      * @return An iterator over the vertices in the graph. The order is not guaranteed.
@@ -146,15 +152,23 @@ abstract class Graph<E : Any> : Iterable<E> {
         return subgraph(getVertices().filter{predicate(it)})
     }
 
+    override fun hashCode(): Int {
+        return Objects.hash(getVertices(), getEdges())
+    }
+
+    override fun toString(): String{
+        return getEdges().toString()
+    }
     /*---------------- RANDOMIZATION ----------------*/
     /**
      * Sets random connections between vertices between 0 and maxWeight.
-     * @param probability The probability of a connection being made. Must be between 0 and 1. If fully connected is set to true, it will be the chance of additional connections per vertex
-     * @param maxWeight The maximum weight of a connection.
-     * @param fullyConnected Makes sure that there's always at least one connection per vertex
+     * @param probability The probability of a connection being made. Must be between 0 and 1. Only accounts for initial connections formed, not any additional ones to prevent disjoint vertices.
+     * @param minWeight The minimum weight of a connection(inclusive).
+     * @param maxWeight The maximum weight of a connection(exclusive).
+     * @param allowDisjoint Makes sure that there's always at least one connection per vertex
      * @param random A random object that determines what graph is constructed
      */
-    open fun randomize(probability: Double, maxWeight: Int, allowDisjoint: Boolean = true, random: Random = Random){
+    open fun randomize(probability: Double, minWeight: Int, maxWeight: Int, allowDisjoint: Boolean = true, random: Random = Random){
         for (from in this) {
             for (to in this) {
                 if (random.nextDouble() < probability) {
@@ -166,18 +180,22 @@ abstract class Graph<E : Any> : Iterable<E> {
         }
         if(!allowDisjoint) mergeDisjoint(maxWeight, random)
     }
+    fun randomize(probability: Double, maxWeight: Int, allowDisjoint: Boolean = true, random: Random = Random) = randomize(probability, 1, maxWeight, allowDisjoint, random)
 
     /**
      * Sets random connections with a probability that will average a certain amount of connections per vertex. When [allowDisjoint] is false, it tries to accommodate the probability if edges to join the graphs.
      * @param avgConnectionsPerVertex The average amount of a connections per vertex. If fully connected is set to true, it must be greater than or equal to 1.
-     * @param maxWeight The maximum weight of a connection.
+     * @param minWeight The minimum weight of a connection(inclusive).
+     * @param maxWeight The maximum weight of a connection(exclusive).
      * @param allowDisjoint allows vertices to have zero inbound/outbound connections
      * @param random A random object that determines what graph is constructed
      */
-    open fun randomize(avgConnectionsPerVertex: Int, maxWeight: Int, allowDisjoint: Boolean = true, random: Random = Random){
+    open fun randomize(avgConnectionsPerVertex: Int, minWeight: Int, maxWeight: Int, allowDisjoint: Boolean = true, random: Random = Random){
         val probability = ( avgConnectionsPerVertex.toDouble() + (if(!allowDisjoint && avgConnectionsPerVertex*5 < size()) -1 else 0) ) / size()
-        randomize(probability, maxWeight, allowDisjoint, random)
+        randomize(probability, minWeight, maxWeight, allowDisjoint, random)
     }
+    fun randomize(avgConnectionsPerVertex: Int, maxWeight: Int, allowDisjoint: Boolean = true, random: Random = Random) = randomize(avgConnectionsPerVertex, 1, maxWeight, allowDisjoint, random)
+
 
     /**
      *  Adds edges to the current so that the graph is not disjoint. Randomly adds edges that will merge 2 disjoint sections until everything is joined.

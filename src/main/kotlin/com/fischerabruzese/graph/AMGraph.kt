@@ -4,6 +4,7 @@
 //TODO: Figure out the issue with OG dijkstra
 //TODO: Write linkedListOf extension function
 //TODO: make kargerness a confidence %
+//TODO: Make edit edge work on non-existant edges
 
 //TODO: COMMENTING -> Comment pathing stuff not already commented in Graph.kt
 
@@ -123,6 +124,16 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
         return vertices.toSet()
     }
 
+    override fun getEdges(): Set<Pair<E, E>> {
+        val edges = mutableSetOf<Pair<E,E>>()
+        for(from in edgeMatrix.indices){
+            for(to in edgeMatrix[from].indices){
+                if(edgeMatrix[from][to] >= 0) edges.add(vertices[from] to vertices[to])
+            }
+        }
+        return edges
+    }
+
     override fun clearConnections() {
         edgeMatrix = Array(size()) { IntArray(size()) { -1 } }
         dijkstraTables = Array(size()) { null }
@@ -213,16 +224,16 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
     }
     /*------------------ RANDOMIZATION ------------------*/
 
-    override fun randomize(avgConnectionsPerVertex: Int, maxWeight: Int, fullyConnected: Boolean, random: Random) { //when inheritance removed add default values
-        val probability = ( avgConnectionsPerVertex.toDouble() + (if(fullyConnected) -1 else 0) ) / size()
-        randomize(probability, maxWeight, fullyConnected, random)
+    override fun randomize(avgConnectionsPerVertex: Int, minWeight: Int, maxWeight: Int, allowDisjoint: Boolean, random: Random) { //when inheritance removed add default values
+        val probability = avgConnectionsPerVertex.toDouble()  / size()
+        randomize(probability, minWeight, maxWeight, allowDisjoint, random)
     }
 
-    override fun randomize(probability: Double, maxWeight: Int, allowDisjoint: Boolean, random: Random) { //when removed add default values
+    override fun randomize(probability: Double, minWeight: Int, maxWeight: Int, allowDisjoint: Boolean, random: Random) { //when removed add default values
         for (i in edgeMatrix.indices) {
             for (j in edgeMatrix.indices) {
                 if (random.nextDouble() < probability) {
-                    set(i, j, random.nextInt(1,maxWeight))
+                    set(i, j, random.nextInt(minWeight,maxWeight))
                 } else {
                     set(i, j, -1)
                 }
@@ -712,7 +723,9 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
 }
 
 fun main() {
-//    val graph = AMGraph.fromWeightedConnections(2 to arrayListOf(1 to 1, 3 to 3, 5 to 2), 0 to arrayListOf(1 to 1, 3 to 3, 5 to 2))
-//    graph.add(7)
-//    println(graph.path(2, 5, true))
+    val graph = AMGraph.fromWeightedConnections(listOf(2 to listOf(1 to 1, 3 to 3), 0 to listOf(1 to 1, 3 to 3, 5 to 2)))
+    graph.add(7)
+    println(graph.path(2, 5, true))
+    graph.add(9)
+    println(graph.path(2, 5, true))
 }

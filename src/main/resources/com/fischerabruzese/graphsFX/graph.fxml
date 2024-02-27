@@ -2,23 +2,62 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.paint.Color?>
+<?import javafx.scene.paint.LinearGradient?>
+<?import javafx.scene.paint.Stop?>
+<?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<HBox alignment="CENTER_RIGHT" prefHeight="100.0" prefWidth="200.0" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.fischerabruzese.graphsFX.Controller">
+<HBox alignment="CENTER_RIGHT" prefHeight="820.0" prefWidth="1280.0" style="-fx-background-color: #282828;" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.fischerabruzese.graphsFX.Controller">
    <children>
-      <Pane fx:id="pane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="400.0" style="-fx-background-color: lightgray;" HBox.hgrow="ALWAYS" />
-      <VBox alignment="CENTER" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefWidth="150.0" HBox.hgrow="ALWAYS">
+      <Pane fx:id="pane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" style="-fx-background-color: lightgray;" HBox.hgrow="ALWAYS" />
+      <VBox alignment="CENTER" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefWidth="200.0" HBox.hgrow="ALWAYS">
          <children>
-            <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Graph Presets" />
+            <StackPane>
+               <children>
+                  <Rectangle height="26.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="200.0">
+                     <fill>
+                        <LinearGradient endX="1.0" endY="1.0">
+                           <stops>
+                              <Stop>
+                                 <color>
+                                    <Color red="1.0" green="0.3199999928474426" blue="0.3199999928474426" />
+                                 </color>
+                              </Stop>
+                              <Stop offset="1.0">
+                                 <color>
+                                    <Color red="0.1568627506494522" green="0.1568627506494522" blue="0.1568627506494522" />
+                                 </color>
+                              </Stop>
+                           </stops>
+                        </LinearGradient>
+                     </fill>
+                     <StackPane.margin>
+                        <Insets bottom="5.0" top="5.0" />
+                     </StackPane.margin>
+                  </Rectangle>
+                  <Text fill="#282828" strokeType="OUTSIDE" strokeWidth="0.0" text="Graph Presets" StackPane.alignment="CENTER_LEFT">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                     <StackPane.margin>
+                        <Insets left="5.0" />
+                     </StackPane.margin>
+                  </Text>
+               </children>
+            </StackPane>
             <HBox alignment="CENTER">
                <children>
                   <Button mnemonicParsing="false" onAction="#preset1Pressed" text="1" />
@@ -28,27 +67,163 @@
                   <Button mnemonicParsing="false" onAction="#preset5Pressed" text="5" />
                   <Button mnemonicParsing="false" onAction="#preset6Pressed" text="6" />
                </children>
-            </HBox>
-            <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#mf0Pressed" text="Misc func 0">
                <VBox.margin>
-                  <Insets bottom="10.0" top="10.0" />
+                  <Insets />
                </VBox.margin>
-            </Button>
+            </HBox>
+            <StackPane>
+               <children>
+                  <Rectangle height="26.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="200.0">
+                     <fill>
+                        <LinearGradient endX="1.0" endY="1.0">
+                           <stops>
+                              <Stop>
+                                 <color>
+                                    <Color red="1.0" green="0.740253746509552" blue="0.3199999928474426" />
+                                 </color>
+                              </Stop>
+                              <Stop offset="1.0">
+                                 <color>
+                                    <Color red="0.1568627506494522" green="0.1568627506494522" blue="0.1568627506494522" />
+                                 </color>
+                              </Stop>
+                           </stops>
+                        </LinearGradient>
+                     </fill>
+                     <StackPane.margin>
+                        <Insets bottom="5.0" top="5.0" />
+                     </StackPane.margin>
+                  </Rectangle>
+                  <Text fill="#282828" strokeType="OUTSIDE" strokeWidth="0.0" text="Randomization" StackPane.alignment="CENTER_LEFT">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                     <StackPane.margin>
+                        <Insets left="5.0" />
+                     </StackPane.margin>
+                  </Text>
+               </children>
+            </StackPane>
+            <GridPane>
+               <columnConstraints>
+                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+               </columnConstraints>
+               <rowConstraints>
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+               </rowConstraints>
+               <children>
+                  <Label text="Probability:" textFill="WHITE" />
+                  <Label text="Min weight:" textFill="WHITE" GridPane.rowIndex="1" />
+                  <TextField fx:id="probabilityField" GridPane.columnIndex="1" />
+                  <TextField fx:id="minWeightField" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                  <Label text="Max weight:" textFill="WHITE" GridPane.rowIndex="2" />
+                  <TextField fx:id="maxWeightField" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                  <Label text="Allow disjoint" textFill="WHITE" GridPane.rowIndex="3" />
+                  <CheckBox fx:id="allowDisjointToggle" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="3" />
+               </children>
+            </GridPane>
             <HBox>
                <children>
-                  <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#randomizePressed" text="Randomize">
+                  <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#randomizePressed" prefWidth="200.0" text="Randomize">
                      <HBox.margin>
-                        <Insets right="8.0" />
+                        <Insets />
                      </HBox.margin>
                   </Button>
-                  <ToggleButton alignment="TOP_RIGHT" mnemonicParsing="false" prefWidth="58.0" text="Disjoint" />
                </children>
             </HBox>
-            <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#redrawPressed" text="Redraw">
+            <StackPane>
+               <children>
+                  <Rectangle height="26.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="200.0">
+                     <fill>
+                        <LinearGradient endX="1.0" endY="1.0">
+                           <stops>
+                              <Stop>
+                                 <color>
+                                    <Color red="1.0" green="0.9879187941551208" blue="0.3199999928474426" />
+                                 </color>
+                              </Stop>
+                              <Stop offset="0.006729475100942127">
+                                 <color>
+                                    <Color red="1.0" green="0.9879187941551208" blue="0.3199999928474426" />
+                                 </color>
+                              </Stop>
+                              <Stop offset="1.0">
+                                 <color>
+                                    <Color red="0.1568627506494522" green="0.1568627506494522" blue="0.1568627506494522" />
+                                 </color>
+                              </Stop>
+                           </stops>
+                        </LinearGradient>
+                     </fill>
+                     <StackPane.margin>
+                        <Insets bottom="5.0" top="5.0" />
+                     </StackPane.margin>
+                  </Rectangle>
+                  <Text fill="#282828" strokeType="OUTSIDE" strokeWidth="0.0" text="Clustering" StackPane.alignment="CENTER_LEFT">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                     <StackPane.margin>
+                        <Insets left="5.0" />
+                     </StackPane.margin>
+                  </Text>
+               </children>
+            </StackPane>
+            <GridPane>
+               <columnConstraints>
+                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+               </columnConstraints>
+               <rowConstraints>
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+               </rowConstraints>
+               <children>
+                  <Label text="Connectedness:" textFill="WHITE" />
+                  <TextField fx:id="connectednessField" onKeyTyped="#fromVertexChanged" GridPane.columnIndex="1" />
+               </children>
+            </GridPane>
+            <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#getClustersPressed" text="Get clusters">
                <VBox.margin>
-                  <Insets bottom="20.0" top="10.0" />
+                  <Insets />
                </VBox.margin>
             </Button>
+            <StackPane>
+               <children>
+                  <Rectangle height="26.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="200.0">
+                     <fill>
+                        <LinearGradient endX="1.0" endY="1.0">
+                           <stops>
+                              <Stop>
+                                 <color>
+                                    <Color red="0.5771573781967163" green="1.0" blue="0.3199999928474426" />
+                                 </color>
+                              </Stop>
+                              <Stop offset="1.0">
+                                 <color>
+                                    <Color red="0.1568627506494522" green="0.1568627506494522" blue="0.1568627506494522" />
+                                 </color>
+                              </Stop>
+                           </stops>
+                        </LinearGradient>
+                     </fill>
+                     <StackPane.margin>
+                        <Insets bottom="5.0" top="5.0" />
+                     </StackPane.margin>
+                  </Rectangle>
+                  <Text fill="#282828" strokeType="OUTSIDE" strokeWidth="0.0" text="Vertex actions" StackPane.alignment="CENTER_LEFT">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                     <StackPane.margin>
+                        <Insets left="5.0" />
+                     </StackPane.margin>
+                  </Text>
+               </children>
+            </StackPane>
             <GridPane>
               <columnConstraints>
                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
@@ -57,18 +232,89 @@
               <rowConstraints>
                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
               </rowConstraints>
                <children>
-                  <Label text="From vertex:" />
-                  <Label text="To vertex:" GridPane.rowIndex="1" />
-                  <Label text="Weight:" GridPane.rowIndex="2" />
-                  <TextField fx:id="fromVertexField" GridPane.columnIndex="1" />
-                  <TextField fx:id="toVertexField" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                  <TextField fx:id="weightField" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                  <Label text="From vertex:" textFill="WHITE" />
+                  <Label text="To vertex:" textFill="WHITE" GridPane.rowIndex="1" />
+                  <TextField fx:id="fromVertexField" onKeyTyped="#fromVertexChanged" GridPane.columnIndex="1" />
+                  <TextField fx:id="toVertexField" onKeyTyped="#toVertexChanged" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                </children>
             </GridPane>
-            <Button fx:id="editEdgeButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#editEdgePressed" text="Edit edge" />
+            <StackPane>
+               <children>
+                  <Rectangle height="26.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="200.0">
+                     <fill>
+                        <LinearGradient endX="1.0" endY="1.0">
+                           <stops>
+                              <Stop>
+                                 <color>
+                                    <Color red="0.3199999928474426" green="0.9844670295715332" blue="1.0" />
+                                 </color>
+                              </Stop>
+                              <Stop offset="1.0">
+                                 <color>
+                                    <Color red="0.1568627506494522" green="0.1568627506494522" blue="0.1568627506494522" />
+                                 </color>
+                              </Stop>
+                           </stops>
+                        </LinearGradient>
+                     </fill>
+                     <StackPane.margin>
+                        <Insets bottom="5.0" top="5.0" />
+                     </StackPane.margin>
+                  </Rectangle>
+                  <Text fill="#282828" strokeType="OUTSIDE" strokeWidth="0.0" text="Pathing" StackPane.alignment="CENTER_LEFT">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                     <StackPane.margin>
+                        <Insets left="5.0" />
+                     </StackPane.margin>
+                  </Text>
+               </children>
+            </StackPane>
+            <Button mnemonicParsing="false" onAction="#dijkstraPressed" prefWidth="200.0" text="Dijkstra" />
+            <Button mnemonicParsing="false" onAction="#bfsPressed" prefWidth="200.0" text="Breadth First Search" />
+            <Button mnemonicParsing="false" onAction="#dfsPressed" prefWidth="200.0" text="Depth First Search" />
+            <StackPane>
+               <children>
+                  <Rectangle height="26.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="200.0">
+                     <fill>
+                        <LinearGradient endX="1.0" endY="1.0">
+                           <stops>
+                              <Stop>
+                                 <color>
+                                    <Color red="0.8567513227462769" green="0.3199999928474426" blue="1.0" />
+                                 </color>
+                              </Stop>
+                              <Stop offset="1.0">
+                                 <color>
+                                    <Color red="0.1568627506494522" green="0.1568627506494522" blue="0.1568627506494522" />
+                                 </color>
+                              </Stop>
+                           </stops>
+                        </LinearGradient>
+                     </fill>
+                     <StackPane.margin>
+                        <Insets bottom="5.0" top="5.0" />
+                     </StackPane.margin>
+                  </Rectangle>
+                  <Text fill="#282828" strokeType="OUTSIDE" strokeWidth="0.0" text="Console" StackPane.alignment="CENTER_LEFT">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                     <StackPane.margin>
+                        <Insets left="5.0" />
+                     </StackPane.margin>
+                  </Text>
+               </children>
+            </StackPane>
+            <TextArea fx:id="console" prefWidth="141.0" wrapText="true" />
+            <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#redrawPressed" text="Redraw">
+               <VBox.margin>
+                  <Insets />
+               </VBox.margin>
+            </Button>
          </children>
          <padding>
             <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
