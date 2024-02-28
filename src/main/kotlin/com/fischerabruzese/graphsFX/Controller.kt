@@ -65,6 +65,9 @@ class Controller<E: Any> {
         paneHeight = pane.heightProperty()
     }
 
+    /**
+     * Set the graph for this class and update the hash code of the previous graph.
+     */
     fun setGraph(graph : Graph<E>){
         this.graph = graph
         previousGraphHash = graph.hashCode()
@@ -74,7 +77,8 @@ class Controller<E: Any> {
     private val executor = Executors.newScheduledThreadPool(1)
     private var previousGraphHash by Delegates.notNull<Int>()
 
-    fun startListening() {
+    //Start listening for changes in the graph and trigger an action when a change is detected.
+    private fun startListening() {
         while (true) {
             val currentHash = graph.hashCode()
             if (currentHash != previousGraphHash) {
@@ -90,6 +94,7 @@ class Controller<E: Any> {
         executor.shutdown()
     }
 
+    //Anytime the graph changes this will update/prompt the user to update the graphics
     private fun changeReceived(){
         draw()
     }
@@ -103,7 +108,9 @@ class Controller<E: Any> {
 //        draw()
 //    }
 
-    //Drawing
+    /**
+     * Draws the graph by creating vertex and edge elements based on the given graph data and adding them to the pane.
+     */
     fun draw() {
         val graphVertices = graph.getVertices().toList()
         val verticesElements = Array(graphVertices.size){ index -> Vertex(
@@ -134,6 +141,7 @@ class Controller<E: Any> {
         draw()
     }
 
+    //Gray out non-attached vertices and edges in the graph
     private fun greyNonAttached(vertex: Vertex){
         for(vert in vertices){
             vert.setColor(Color(0.0, 0.0, 1.0, 0.3))
@@ -152,6 +160,7 @@ class Controller<E: Any> {
         }
     }
 
+    //Ungray everything by setting line and label colors for edges and color for vertices.
     private fun ungreyEverything(){
         for(edge in edges){
             edge.setLineColor(Color.rgb(0, 0, 0, 0.6))
@@ -163,11 +172,18 @@ class Controller<E: Any> {
     }
 
 
-    //Precondition: x and y are between 0 and 1
+    /**
+     * Represents a graphical vertex in the window.
+     *
+     * @property v The value of the vertex.
+     * @property x The x position of the vertex, between 0 and 1.
+     * @property y The y position of the vertex, between 0 and 1.
+     */
     inner class Vertex(val v: E, xInit : Double, yInit : Double) : StackPane() {
         init {
             stringToVMap[v.toString()] = this
         }
+
         //Components
         private val circle = Circle(CIRCLE_RADIUS, Color.BLUE)
         private val label = Label(v.toString())
@@ -183,14 +199,15 @@ class Controller<E: Any> {
             paneHeight
         )
 
-        //xpos and ypos are between 0 and 1
+        //xpos and ypos are between 0 and 1, everything should be modified in terms of these
         internal var x : DoubleProperty = SimpleDoubleProperty(xInit)
         internal var y : DoubleProperty = SimpleDoubleProperty(yInit)
 
+        //These are actually what get read by the components
         var vtranslateXProperty : DoubleBinding = paneWidth.multiply(this.x).multiply(usablePercentPaneWidth).add(CIRCLE_RADIUS)
         var vtranslateYProperty : DoubleBinding = paneHeight.multiply(this.y).multiply(usablePercentPaneHeight).add(CIRCLE_RADIUS)
 
-        //Dragging
+        //Draggin
         private var xDelta : Double = 0.0
         private var yDelta : Double = 0.0
 
@@ -241,6 +258,14 @@ class Controller<E: Any> {
         }
     }
 
+    /**
+     * Represents a graphical edge in the window.
+     *
+     * @property v1 The first vertex of the edge.
+     * @property v2 The second vertex of the edge.
+     * @property v1tov2 The weight of the edge between v1 and v2.
+     * @property v2tov1 The weight of the edge between v2 and v1.
+     */
     inner class Edge(val v1 : Vertex, val v2 : Vertex, v1tov2 : Int, v2tov1: Int) : StackPane() {
         val v1tov2Connection = Connection(v1, v2, v1tov2, true)
         val v2tov1Connection = Connection(v2, v1, v2tov1, false)
