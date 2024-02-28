@@ -99,6 +99,21 @@ class Controller<E: Any> {
         draw()
     }
 
+    fun simulate(iterations: Int){
+        for(i in 0 until iterations){
+            moveVerticesForces()
+        }
+    }
+
+    private fun moveVerticesForces(){
+        for(v in vertices){
+            v.calculateForce()
+        }
+        for(v in vertices){
+            v.forceUpdate()
+        }
+    }
+
 
 //    private fun fromTxtDemo(){
 //        vertices.clear()
@@ -244,6 +259,51 @@ class Controller<E: Any> {
             xDelta = event.sceneX / pane.width - x.get()
             yDelta = event.sceneY / pane.height - y.get()
         }
+
+        private var fdx = 0.0
+        private var fdy = 0.0
+        internal fun calculateForce() {
+            val scaleFactor = 0.0000001
+            //vertices
+            for(v in vertices){
+                if(v == this) continue
+                fdx += scaleFactor/(x.get() - v.x.get()).pow(2)
+                fdy += scaleFactor/(y.get() - v.y.get()).pow(2)
+            }
+            //walls
+            for(horizontal in 0 until 2){
+                for(vertical in 0 until 2){
+                    val h = when(horizontal){
+                        0-> -1
+                        1-> 1
+                        else -> 0
+                    }
+                    val v = when(vertical){
+                        0-> -1
+                        1-> 1
+                        else -> 0
+                    }
+                    fdx += scaleFactor/(x.get() - h).pow(2)
+                    fdy += scaleFactor/(y.get() - v).pow(2)
+                }
+            }
+
+        }
+        internal fun forceUpdate() {
+            if(x.get() + fdx < 0 || x.get() + fdx > 1 || y.get() + fdy < 0 || y.get() + fdy > 1) {
+                println("out of bounds force: $fdx, $fdy")
+                if(x.get() + fdx < 0) x.set(0.0)
+                if(x.get() + fdx > 1) x.set(1.0)
+                if(y.get() + fdy < 0) y.set(0.0)
+                if(y.get() + fdy > 1) y.set(1.0)
+                return
+            }
+            x.set(x.get() + fdx)
+            y.set(y.get() + fdy)
+            fdx = 0.0
+            fdy = 0.0
+        }
+
         private fun drag(event : MouseEvent) {
             x.set((event.sceneX / pane.width - xDelta).let{if(it > 1) 1.0 else if(it < 0) 0.0 else it})
             y.set((event.sceneY / pane.height - yDelta).let{if(it > 1) 1.0 else if(it < 0) 0.0 else it})
@@ -502,7 +562,9 @@ class Controller<E: Any> {
 
     //Clustering
     @FXML
-    private fun getClustersPressed(){}
+    private fun getClustersPressed(){
+        simulate(100)
+    }
 
     //Vertex selection
     private fun retrieveVertexElement(lookupKey: String) : E? {
