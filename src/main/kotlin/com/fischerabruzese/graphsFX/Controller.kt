@@ -106,9 +106,15 @@ class Controller<E: Any> {
     }
 
     private fun moveVerticesForces(){
-        for(v in vertices){
-            v.forceUpdate()
+        val adjustments = Array(vertices.size){vertices[it].calculateForce().add(vertices[it].calculateEdgeForces())}
+        for((v,delta) in vertices.zip(adjustments)){
+            val (dx,dy) = delta
+            v.forceUpdate(dx, dy)
         }
+    }
+
+    private fun Pair<Double,Double>.add(other: Pair<Double,Double>): Pair<Double,Double>{
+        return first + other.first to second + other.second
     }
 
 
@@ -264,7 +270,9 @@ class Controller<E: Any> {
             y.set((event.sceneY / pane.height - yDelta).let{if(it > 1) 1.0 else if(it < 0) 0.0 else it})
         }
 
-        private fun calculateForce(scaleFactor : Double = 0.0000001, wallScaleFactor: Double = 0.0000001): Pair<Double, Double>{
+        internal fun calculateForce(scaleFactor : Double = 1.0): Pair<Double, Double>{
+            val scaleFactor = scaleFactor * 0.0000006 / (vertices.size + edges.size)
+
             var fdx = 0.0
             var fdy = 0.0
             //vertices
@@ -280,8 +288,8 @@ class Controller<E: Any> {
                 for(v in 0 until 2){
                     val dx = x.get() - h
                     val dy = y.get() - v
-                    fdx += wallScaleFactor/(dx * abs(dx))
-                    fdy += wallScaleFactor/(dy * abs(dy))
+                    fdx += scaleFactor/(dx * abs(dx))
+                    fdy += scaleFactor/(dy * abs(dy))
                 }
             }
             //Capping the force
@@ -292,20 +300,49 @@ class Controller<E: Any> {
 
             return fdx to fdy
         }
-        internal fun forceUpdate() {
-            val (fdx, fdy) = calculateForce(0.00001)
-            if(x.get() + fdx < 0 || x.get() + fdx > 1 || y.get() + fdy < 0 || y.get() + fdy > 1) {
-                println("out of bounds force: $fdx, $fdy")
-                if(x.get() + fdx < 0) x.set(0.0)
-                else if(x.get() + fdx > 1) x.set(1.0)
-                if(y.get() + fdy < 0) y.set(0.0)
-                else if(y.get() + fdy > 1) y.set(1.0)
+
+        internal fun calculateEdgeForces(scaleFactor : Double = 1.0): Pair<Double, Double>{
+            val scaleFactor = scaleFactor * 0.0000006 / (vertices.size + edges.size)
+            var fdx = 0.0
+            var fdy = 0.0
+            //edges
+            for((v1,v2) in edges){
+                if(this == v1 || this == v2) continue
+                val dx = x.get() - ((v2.x.get()+v1.x.get())/2.0)
+                val dy = y.get() - ((v2.y.get()+v1.y.get())/2.0)
+                fdx += scaleFactor/(dx * abs(dx))
+                fdy += scaleFactor/(dy * abs(dy))
+//                if(this == v1 || this == v2) {
+//                    fdx *= -1
+//                    fdy *= -1
+//                } //Skip if you are on the edge
+
+                //println("Edge: $v1, $v2 - Force: $fdx, $fdy")
+            }
+
+            //Capping the force
+            if(fdx > 0.1) fdx = 0.1
+            if(fdx < -0.1) fdx = -0.1
+            if(fdy > 0.1) fdy = 0.1
+            if(fdy < -0.1) fdy = -0.1
+
+            return fdx to fdy
+        }
+
+        internal fun forceUpdate(dx: Double, dy: Double) {
+            if(x.get() + dx < 0 || x.get() + dx > 1 || y.get() + dy < 0 || y.get() + dy > 1) {
+                println("out of bounds force: $dx, $dy")
+                if     (x.get() + dx < 0) x.set(0.0)
+                else if(x.get() + dx > 1) x.set(1.0)
+                if     (y.get() + dy < 0) y.set(0.0)
+                else if(y.get() + dy > 1) y.set(1.0)
                 return
             }
-            x.set(x.get() + fdx)
-            y.set(y.get() + fdy)
-            println("vertex: $v, force: $fdx, $fdy")
+            x.set(x.get() + dx)
+            y.set(y.get() + dy)
+            //println("vertex: $v, force: $dx, $dy")
         }
+
 
         fun setColor(color: Color) {
             circle.fill = color
@@ -483,6 +520,13 @@ class Controller<E: Any> {
                 v1tov2Connection.setLabelColor(inboundColor)
                 v2tov1Connection.setLabelColor(outBoundColor)
             }
+        }
+
+        operator fun component1(): Vertex {
+            return v1
+        }
+        operator fun component2(): Vertex {
+            return v2
         }
 
     }
