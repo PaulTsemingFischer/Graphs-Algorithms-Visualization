@@ -124,26 +124,28 @@ class Controller<E: Any> {
      * Draws the graph by creating vertex and edge elements based on the given graph data and adding them to the pane.
      */
     fun draw() {
-        val graphVertices = graph.getVertices().toList()
-        val verticesElements = Array(graphVertices.size){ index -> Vertex(
-            graphVertices[index],
-            if(vertices.size > index) vertices[index].x.get() else Math.random(),
-            if(vertices.size > index) vertices[index].y.get() else Math.random()
-        ) }
+        val verticesElements = ArrayList(graph.getVertices())
+        val graphicVertices = verticesElements.mapIndexed { index, vertex ->
+            Vertex(
+                vertex,
+                vertices.getOrNull(index)?.x?.get() ?: Math.random(),
+                vertices.getOrNull(index)?.y?.get() ?: Math.random()
+            )
+        }
         val edgeElements = ArrayList<Edge>()
 
-        for(v1 in graphVertices.indices){
-            for(v2 in v1 until graphVertices.size){
-                val v1tov2 = graph[graphVertices[v1], graphVertices[v2]] ?: -1
-                val v2tov1 = graph[graphVertices[v2], graphVertices[v1]] ?: -1
-                if(v2tov1 > -1 || v1tov2 > -1)
-                    edgeElements.add(Edge(verticesElements[v1], verticesElements[v2], v1tov2, v2tov1))
+        for((v1pos, vertex1) in verticesElements.withIndex()){
+            for(vertex2 in verticesElements.subList(v1pos, verticesElements.size)){ //can't get index because we have a sublist
+                val v1tov2Weight = graph[vertex1, vertex2] ?: -1
+                val v2tov1Weight = graph[vertex2, vertex1] ?: -1
+                if(v2tov1Weight > -1 || v1tov2Weight > -1)
+                    edgeElements.add(Edge(graphicVertices[v1pos], graphicVertices[verticesElements.indexOf(vertex2)], v1tov2Weight, v2tov1Weight))
             }
         }
         edges = edgeElements
-        vertices = ArrayList(verticesElements.asList())
+        vertices = ArrayList(graphicVertices)
         pane.children.addAll(edgeElements)
-        pane.children.addAll(verticesElements)
+        pane.children.addAll(graphicVertices)
         pane.children.addAll(hitboxes)
     }
 
@@ -268,8 +270,10 @@ class Controller<E: Any> {
             //vertices
             for(v in vertices){
                 if(v == this) continue
-                fdx += scaleFactor/(x.get() - v.x.get()).pow(2)
-                fdy += scaleFactor/(y.get() - v.y.get()).pow(2)
+                val dx = x.get() - v.x.get()
+                val dy = y.get() - v.y.get()
+                fdx += scaleFactor/(dx * abs(dx))
+                fdy += scaleFactor/(dy * abs(dy))
             }
             //walls
             for(h in 0 until 2){
