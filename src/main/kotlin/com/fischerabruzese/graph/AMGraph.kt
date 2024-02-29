@@ -212,15 +212,34 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
         return newGraph
     }
 
+    /**
+     * Constructs a subgraph from the given vertices.
+     * @param verts the collection of vertices to include in the subgraph
+     * @return the subgraph containing the specified vertices
+     */
     override fun subgraph(verts: Collection<E>): AMGraph<E> {
         return subgraphFromIds(vertices.map { indexLookup[it]!! })
     }
-    private fun subgraphFromIds(verts : Collection<Int>):AMGraph<E>{ //This could be so much clearer, but I just love inline function 💕
-        return fromWeightedConnections(verts.map { from ->
-            vertices[from] to ArrayList<Pair<E,Int>>().apply{verts.forEach{ t ->
-                get(from,t)?.let{ add(vertices[t] to it) }
-            }}
-        })
+
+
+    /**
+     * Returns a subgraph from the given vertex IDs.
+     *
+     * @param verts the collection of vertex IDs
+     * @return the subgraph as an AMGraph
+     */
+    private fun subgraphFromIds(verts: Collection<Int>): AMGraph<E> {
+        return fromWeightedConnections(
+            verts.map { from ->
+                vertices[from] to ArrayList<Pair<E, Int>>().apply {
+                    // Iterate through each vertex ID
+                    verts.forEach { t ->
+                        // If there is a connection between 'from' and 't', add it to the subgraph
+                        get(from, t)?.let { add(vertices[t] to it) }
+                    }
+                }
+            }
+        )
     }
     /*------------------ RANDOMIZATION ------------------*/
 
@@ -580,15 +599,25 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
 
     /*------------------ CLUSTERING ------------------*/
 
+    /**
+     * Returns the clusters of the graph based on connectedness and kargerness.
+     *
+     * @param connectedness the minimum connectedness for a cluster to be considered
+     * @param kargerness the number of iterations for the Karger's algorithm
+     * @return a collection of subgraphs representing the clusters
+     */
     override fun getClusters(connectedness: Double, kargerness: Int) : Collection<AMGraph<E>>{
+        // Run Karger's algorithm to find the minCut
         val minCut = karger(kargerness)
-        //check if minCut size is acceptable or there's no cut (ie there's only 1 node in the graph)
+
+        // Check if minCut size is acceptable or there's no cut (i.e., there's only 1 node in the graph)
         if(minCut.size >= connectedness * size() || minCut.size == -1) return listOf(this)
 
         val clusters = ArrayList<AMGraph<E>>()
         val subgraph1 = subgraphFromIds(minCut.cluster1)
         val subgraph2 = subgraphFromIds(minCut.cluster2)
 
+        // Recursively find clusters in the subgraphs
         clusters.addAll(subgraph1.getClusters(connectedness, kargerness))
         clusters.addAll(subgraph2.getClusters(connectedness, kargerness))
 
@@ -711,7 +740,18 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
         }
     }
 
+    /**
+     * Randomizes the input list in place.
+     *
+     * @param list the list to be randomized
+     */
     private fun<T> randomizeList(list: MutableList<T>) {
+        /**
+         * Swaps the elements at the given indices in the list.
+         *
+         * @param index1 the index of the first element
+         * @param index2 the index of the second element
+         */
         fun swap(index1: Int, index2: Int) {
             list[index1] = list.set(index2,list[index1])
         }

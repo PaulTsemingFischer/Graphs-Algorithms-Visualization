@@ -99,16 +99,13 @@ class Controller<E: Any> {
         draw()
     }
 
-    fun simulate(iterations: Int){
+    private fun simulate(iterations: Int){
         for(i in 0 until iterations){
             moveVerticesForces()
         }
     }
 
     private fun moveVerticesForces(){
-        for(v in vertices){
-            v.calculateForce()
-        }
         for(v in vertices){
             v.forceUpdate()
         }
@@ -214,7 +211,7 @@ class Controller<E: Any> {
             paneHeight
         )
 
-        //xpos and ypos are between 0 and 1, everything should be modified in terms of these
+        //x and y are between 0 and 1, everything should be modified in terms of these
         internal var x : DoubleProperty = SimpleDoubleProperty(xInit)
         internal var y : DoubleProperty = SimpleDoubleProperty(yInit)
 
@@ -222,7 +219,7 @@ class Controller<E: Any> {
         var vtranslateXProperty : DoubleBinding = paneWidth.multiply(this.x).multiply(usablePercentPaneWidth).add(CIRCLE_RADIUS)
         var vtranslateYProperty : DoubleBinding = paneHeight.multiply(this.y).multiply(usablePercentPaneHeight).add(CIRCLE_RADIUS)
 
-        //Draggin
+        //Dragging
         private var xDelta : Double = 0.0
         private var yDelta : Double = 0.0
 
@@ -260,10 +257,14 @@ class Controller<E: Any> {
             yDelta = event.sceneY / pane.height - y.get()
         }
 
-        private var fdx = 0.0
-        private var fdy = 0.0
-        internal fun calculateForce() {
-            val scaleFactor = 0.0000001
+        private fun drag(event : MouseEvent) {
+            x.set((event.sceneX / pane.width - xDelta).let{if(it > 1) 1.0 else if(it < 0) 0.0 else it})
+            y.set((event.sceneY / pane.height - yDelta).let{if(it > 1) 1.0 else if(it < 0) 0.0 else it})
+        }
+
+        private fun calculateForce(scaleFactor : Double = 0.0000001, wallScaleFactor: Double = 0.0000001): Pair<Double, Double>{
+            var fdx = 0.0
+            var fdy = 0.0
             //vertices
             for(v in vertices){
                 if(v == this) continue
@@ -271,42 +272,35 @@ class Controller<E: Any> {
                 fdy += scaleFactor/(y.get() - v.y.get()).pow(2)
             }
             //walls
-            for(horizontal in 0 until 2){
-                for(vertical in 0 until 2){
-                    val h = when(horizontal){
-                        0-> -1
-                        1-> 1
-                        else -> 0
-                    }
-                    val v = when(vertical){
-                        0-> -1
-                        1-> 1
-                        else -> 0
-                    }
-                    fdx += scaleFactor/(x.get() - h).pow(2)
-                    fdy += scaleFactor/(y.get() - v).pow(2)
+            for(h in 0 until 2){
+                for(v in 0 until 2){
+                    val dx = x.get() - h
+                    val dy = y.get() - v
+                    fdx += wallScaleFactor/(dx * abs(dx))
+                    fdy += wallScaleFactor/(dy * abs(dy))
                 }
             }
+            //Capping the force
+            if(fdx > 0.1) fdx = 0.1
+            if(fdx < -0.1) fdx = -0.1
+            if(fdy > 0.1) fdy = 0.1
+            if(fdy < -0.1) fdy = -0.1
 
+            return fdx to fdy
         }
         internal fun forceUpdate() {
+            val (fdx, fdy) = calculateForce(0.00001)
             if(x.get() + fdx < 0 || x.get() + fdx > 1 || y.get() + fdy < 0 || y.get() + fdy > 1) {
                 println("out of bounds force: $fdx, $fdy")
                 if(x.get() + fdx < 0) x.set(0.0)
-                if(x.get() + fdx > 1) x.set(1.0)
+                else if(x.get() + fdx > 1) x.set(1.0)
                 if(y.get() + fdy < 0) y.set(0.0)
-                if(y.get() + fdy > 1) y.set(1.0)
+                else if(y.get() + fdy > 1) y.set(1.0)
                 return
             }
             x.set(x.get() + fdx)
             y.set(y.get() + fdy)
-            fdx = 0.0
-            fdy = 0.0
-        }
-
-        private fun drag(event : MouseEvent) {
-            x.set((event.sceneX / pane.width - xDelta).let{if(it > 1) 1.0 else if(it < 0) 0.0 else it})
-            y.set((event.sceneY / pane.height - yDelta).let{if(it > 1) 1.0 else if(it < 0) 0.0 else it})
+            println("vertex: $v, force: $fdx, $fdy")
         }
 
         fun setColor(color: Color) {
@@ -563,7 +557,7 @@ class Controller<E: Any> {
     //Clustering
     @FXML
     private fun getClustersPressed(){
-        simulate(100)
+        simulate(10000)
     }
 
     //Vertex selection
