@@ -5,7 +5,6 @@ import javafx.application.Application
 import javafx.fxml.FXMLLoader
 import javafx.scene.Scene
 import javafx.stage.Stage
-import kotlin.random.Random
 
 class GraphApp : Application() {
     override fun start(stage: Stage) {
@@ -24,7 +23,7 @@ class GraphApp : Application() {
 
         //val graph = createGraph(getText())
 //        val graph = AMGraph.fromCollection(verts)
-        val graph = AMGraph.fromWeightedConnections<Int>(
+        val graph = AMGraph.graphOf<Int>(
             listOf(
                 1 to listOf(2 to 1, 3 to 1, 5 to 1),
                 6 to listOf(7 to 1, 9 to 1, 10 to 1),
