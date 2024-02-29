@@ -31,18 +31,21 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
     )
 
     companion object {
-//        fun <E:Any> fromWeightedConnections(vararg outboundConnections: Pair<E, Iterable<Pair<E, Int>>>) = fromWeightedConnections(outboundConnections.toList())
-//
-         fun <E:Any> fromWeightedConnections(outboundConnectionsList: List<Pair<E, Iterable<Pair<E, Int>>>?>) = AMGraph(0,outboundConnectionsList)
-//
-//        fun <E:Any> fromConnections(vararg connections: Pair<E, Iterable<E>?>) = fromConnections(connections.toList())
-//
-//        fun <E:Any> fromConnections(connectionsList: List<Pair<E, Iterable<E>?>>) = AMGraph(0,
-//            connectionsList.map {
-//                it.first to (it.second?.map { it2 -> it2 to 1 } ?: emptyList())
-//            }
-//        )
+        @JvmName("graphOfOutboundConnectionsVararg")
+        fun <E:Any> graphOf(vararg outboundConnections: Pair<E, Iterable<Pair<E, Int>>>) = graphOf(outboundConnections.toList())
 
+        @JvmName("graphOfOutboundConnectionsList")
+        fun <E:Any> graphOf(outboundConnectionsList: List<Pair<E, Iterable<Pair<E, Int>>>?>) = AMGraph(0,outboundConnectionsList)
+        
+        @JvmName("graphOfConnectionsVararg")
+        fun <E:Any> graphOf(vararg connections: Pair<E, Iterable<E>?>) = fromConnections(connections.toList())
+
+        @JvmName("graphOfConnectionsList")
+        fun <E:Any> fromConnections(connectionsList: List<Pair<E, Iterable<E>?>>) = AMGraph(0,
+            connectionsList.map {
+                it.first to (it.second?.map { it2 -> it2 to 1 } ?: emptyList())
+            }
+        )
         fun <E:Any> fromCollection(verticesList: Collection<E>) = AMGraph(0, verticesList.map { it to emptyList() })
     }
     constructor() : this(0, emptyList())
@@ -216,7 +219,7 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
         return subgraphFromIds(vertices.map { indexLookup[it]!! })
     }
     private fun subgraphFromIds(verts : Collection<Int>):AMGraph<E>{ //This could be so much clearer, but I just love inline function 💕
-        return fromWeightedConnections(verts.map { from ->
+        return graphOf(verts.map { from ->
             vertices[from] to ArrayList<Pair<E,Int>>().apply{verts.forEach{ t ->
                 get(from,t)?.let{ add(vertices[t] to it) }
             }}
@@ -723,7 +726,7 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
 }
 
 fun main() {
-    val graph = AMGraph.fromWeightedConnections(listOf(2 to listOf(1 to 1, 3 to 3), 0 to listOf(1 to 1, 3 to 3, 5 to 2)))
+    val graph = AMGraph.graphOf(listOf(2 to listOf(1 to 1, 3 to 3), 0 to listOf(1 to 1, 3 to 3, 5 to 2)))
     graph.add(7)
     println(graph.path(2, 5, true))
     graph.add(9)
