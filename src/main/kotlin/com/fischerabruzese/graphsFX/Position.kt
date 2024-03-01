@@ -9,8 +9,8 @@ class Position(private var _x: Double, private var _y: Double) {
         get() = _y
         set(value) {constrain(value)}
 
-    fun component1() = x
-    fun component2() = y
+    operator fun component1() = x
+    operator fun component2() = y
 
     private fun constrain(value: Double) = when {
         (value > 1) -> 1.0

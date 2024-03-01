@@ -27,6 +27,7 @@ class Controller<E: Any> {
     private lateinit var pane: Pane
     private lateinit var paneWidth: ReadOnlyDoubleProperty
     private lateinit var paneHeight: ReadOnlyDoubleProperty
+    private lateinit var graphicComponents: GraphicComponents<E>
 
     //Fields
     @FXML
@@ -50,13 +51,14 @@ class Controller<E: Any> {
     @FXML
     private lateinit var toVertexField: TextField
 
-    private lateinit var graphicComponents: GraphicComponents<E>
-    private lateinit var graph: Graph<E>
-
     //Console
     @FXML
     private lateinit var console: TextArea
     private val CONSOLE_LINE_SEPARATOR = "-".repeat(20) + "\n"
+
+    //Data
+    private lateinit var graph: Graph<E>
+    private val stringToVMap = HashMap<String, GraphicComponents<E>.Vertex>()
 
     //Initialization
     @FXML
@@ -70,6 +72,7 @@ class Controller<E: Any> {
      */
     fun setGraph(graph: Graph<E>) {
         this.graph = graph
+        graphicComponents = GraphicComponents(graph, pane, stringToVMap)
     }
 
     @FXML
@@ -112,25 +115,31 @@ class Controller<E: Any> {
     }
 
     private fun printDijkstra(from: E, to: E, path: List<E>, distance: Int, time: Long) {
-        console.text += "Dijkstra from $from to $to\n"
-        console.text += "Path: $path\n"
-        console.text += "Distance: $distance\n"
-        console.text += "Time(ms): $time\n"
-        console.text += CONSOLE_LINE_SEPARATOR
+        console.text += buildString {
+            append("Dijkstra from $from to $to\n")
+            append("Path: $path\n")
+            append("Distance: $distance\n")
+            append("Time(ms): $time\n")
+            append(CONSOLE_LINE_SEPARATOR)
+        }
     }
 
     private fun printBfs(from: E, to: E, path: List<E>, time: Long) {
-        console.text += "Breadth first search from $from to $to\n"
-        console.text += "Path: $path\n"
-        console.text += "Time(ms): $time\n"
-        console.text += CONSOLE_LINE_SEPARATOR
+        console.text += buildString {
+            append("Breadth first search from $from to $to\n")
+            append("Path: $path\n")
+            append("Time(ms): $time\n")
+            append(CONSOLE_LINE_SEPARATOR)
+        }
     }
 
     private fun printDfs(from: E, to: E, path: List<E>, time: Long) {
-        console.text += "Depth first search from $from to $to\n"
-        console.text += "Path: $path\n"
-        console.text += "Time(ms): $time\n"
-        console.text += CONSOLE_LINE_SEPARATOR
+        console.text += buildString {
+            append("Depth first search from $from to $to\n")
+            append("Path: $path\n")
+            append("Time(ms): $time\n")
+            append(CONSOLE_LINE_SEPARATOR)
+        }
     }
 
     //Randomization

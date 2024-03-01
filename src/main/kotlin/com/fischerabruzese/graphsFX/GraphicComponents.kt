@@ -16,26 +16,15 @@ import javafx.scene.text.Font
 import kotlin.math.*
 import kotlin.math.pow
 
-internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane) {
+internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, val stringToVMap: HashMap<String, GraphicComponents<E>.Vertex>) {
     private val CIRCLE_RADIUS = 20.0
-    private val stringToVMap = HashMap<String, Vertex>()
     private var edges = ArrayList<Edge>()
     private fun ArrayList<Edge>.dumpPositions() = this.map {
-        Position(x = ((it.v2.x.get()+it.v1.x.get())/2.0), y = ((it.v2.y.get()+it.v1.y.get())/2.0))
+        Position(((it.v2.x.get()+it.v1.x.get())/2.0), ((it.v2.y.get()+it.v1.y.get())/2.0))
     }.toTypedArray()
     private var vertices = ArrayList<Vertex>()
     private fun ArrayList<Vertex>.dumpPositions() = this.map { it.pos }.toTypedArray()
     private val hitboxes = ArrayList<Circle>()
-
-    internal data class Position(val x: Double, val y: Double){
-        operator fun add(other: Position): Position{
-            return Position(x+other.x, y+other.y)
-        }
-    }
-
-    init {
-        draw()
-    }
 
     fun draw() {
         pane.children.clear()
@@ -343,35 +332,27 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane) {
             return Position(fdx, fdy)
         }
 
-
-        override fun calculateAjustmentFromPos(pos: Position, scale : Double): Position{
+        //Calculates the position adjustments at a position from a list of positions
+        fun calculateAdjustmentAtPos(at: Position, from: List<Position>, scale: Double, forceCapPerPos: Double = 0.1): Position{
             val scaleFactor = scale * 0.0000006 / (vertices.size + edges.size)
 
-            var fdx = 0.0
-            var fdy = 0.0
-            //vertices
-            for(v in vertices){
-                if(v.pos === pos) continue
-                val(dx, dy) = calculateForce(pos, v.pos)
-                fdx += scaleFactor/(dx * abs(dx))
-                fdy += scaleFactor/(dy * abs(dy))
-            }
-            //walls
-            for(h in 0 until 2){
-                for(v in 0 until 2){
-                    val dx = x.get() - h
-                    val dy = y.get() - v
-                    fdx += scaleFactor/(dx * abs(dx))
-                    fdy += scaleFactor/(dy * abs(dy))
-                }
-            }
-            //Capping the force
-            if(fdx > 0.1) fdx = 0.1
-            if(fdx < -0.1) fdx = -0.1
-            if(fdy > 0.1) fdy = 0.1
-            if(fdy < -0.1) fdy = -0.1
+            var tdx = 0.0
+            var tdy = 0.0
 
-            return fdx to fdy
+            for(pos in from){
+                if(at == pos) continue
+                val(fdx, fdy) = calculateForce(at, pos, scaleFactor)
+                tdx += fdx
+                tdy += fdy
+            }
+
+            //Capping the force
+            if(tdx > forceCapPerPos) tdx = forceCapPerPos
+            else if(tdx < -forceCapPerPos) tdx = -forceCapPerPos
+            if(tdy > forceCapPerPos) tdy = forceCapPerPos
+            else if(tdy < -forceCapPerPos) tdy = -forceCapPerPos
+
+            return Position(tdx, tdy)
         }
 
         override fun calculatePosAdjustmentFromEdges(scale : Double): Position {
@@ -408,7 +389,7 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane) {
             }
         }
 
-        abstract fun calculateAjustmentFromPos(vertex: Vertex, scale: Double = 1.0): Position
+        abstract fun calculateAdjustmentFromPos(vertex: Vertex, scale: Double = 1.0): Position
 
         abstract fun calculatePosAdjustmentFromEdges(vertex: Vertex, scale: Double = 1.0): Position
 
