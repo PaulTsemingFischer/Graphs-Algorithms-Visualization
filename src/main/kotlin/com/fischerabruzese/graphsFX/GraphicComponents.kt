@@ -322,43 +322,39 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
     }
 
     val physics = object: Physics() {
-        private fun calculateForce(pos1 : Position, pos2 : Position, scaleFactor: Double) : Position{
+        /** Calculates the change in position of [pos1] based on [pos2] */
+        private fun calculateForce(pos1 : Position, pos2 : Position, scaleFactor: Double): Displacement {
             val dx = pos2.x - pos1.x
             val dy = pos2.y - pos1.y
             val magnitude = scaleFactor / ((dx).pow(2) + (dy).pow(2)) // sc/ sqrt(dx^2 + dy^2)^2
             val angle = atan2(dy, dx)
             val fdx = magnitude * cos(angle)
             val fdy = magnitude * sin(angle)
-            return Position(fdx, fdy)
+            return Displacement(fdx, fdy)
         }
 
-        //Calculates the position adjustments at a position from a list of positions
-        fun calculateAdjustmentAtPos(at: Position, from: List<Position>, scale: Double, forceCapPerPos: Double = 0.1): Position{
+        /** Calculates the change in position of [at] as a result of its distance from each [from] */
+        override fun calculateAdjustmentAtPos(at: Position, from: List<Position>, scale: Double, forceCapPerPos: Double): Displacement{
             val scaleFactor = scale * 0.0000006 / (vertices.size + edges.size)
 
-            var tdx = 0.0
-            var tdy = 0.0
+            val disp = Displacement(0.0, 0.0)
 
             for(pos in from){
                 if(at == pos) continue
-                val(fdx, fdy) = calculateForce(at, pos, scaleFactor)
-                tdx += fdx
-                tdy += fdy
+                disp += calculateForce(at, pos, scaleFactor)
             }
 
             //Capping the force
-            if(tdx > forceCapPerPos) tdx = forceCapPerPos
-            else if(tdx < -forceCapPerPos) tdx = -forceCapPerPos
-            if(tdy > forceCapPerPos) tdy = forceCapPerPos
-            else if(tdy < -forceCapPerPos) tdy = -forceCapPerPos
-
-            return Position(tdx, tdy)
+            val cap = Position(disp.x, disp.y, true, forceCapPerPos, -forceCapPerPos)
+            return Displacement(cap.x,cap.y)
         }
 
-        override fun calculatePosAdjustmentFromEdges(scale : Double): Position {
+        fun storeFrame(unaffected: List<GraphicComponents<E>.Vertex> = emptyList(), uneffectors: List<GraphicComponents<E>.Vertex> = emptyList()){
+            val displacements = Array(vertices.size) { Position(0.0, 0.0) }
+            for(vertex in vertices.apply{removeAll(unaffected.toSet())}){
 
+            }
         }
-
         override fun forceUpdate(dx: Double, dy: Double) {
             if(x.get() + dx < 0 || x.get() + dx > 1 || y.get() + dy < 0 || y.get() + dy > 1) {
                 println("out of bounds force: $dx, $dy")
@@ -373,7 +369,6 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
             //println("vertex: $v, force: $dx, $dy")
         }
     }
-    val physics2 = object: Physics() {}
     abstract inner class Physics {
         fun simulate(iterations: Int = 1000){
             for(i in 0 until iterations){
@@ -389,10 +384,7 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
             }
         }
 
-        abstract fun calculateAdjustmentFromPos(vertex: Vertex, scale: Double = 1.0): Position
-
-        abstract fun calculatePosAdjustmentFromEdges(vertex: Vertex, scale: Double = 1.0): Position
-
+        abstract fun calculateAdjustmentAtPos(at: Position, from: List<Position>, scale: Double = 1.0, forceCapPerPos: Double = 0.1): Position
     }
 
 
