@@ -1,6 +1,10 @@
 package com.fischerabruzese.graphsFX
 
 class Position(private var _x: Double, private var _y: Double) {
+
+    const val UPPERBOUND = 0.1
+    const val LOWERBOUND = 0.0
+
     var x: Double
         get() = _x
         set(value) {constrain(value)}
@@ -13,9 +17,13 @@ class Position(private var _x: Double, private var _y: Double) {
     operator fun component2() = y
 
     private fun constrain(value: Double) = when {
-        (value > 1) -> 1.0
-        (value < 0) -> 0.0
+        (value > UPPERBOUND) -> UPPERBOUND
+        (value < LOWERBOUND) -> LOWERBOUND
         else -> value
+    }
+
+    fun addConstrained(other: Position): Position {
+        return Position(x + other.x, y + other.y)
     }
 
     override fun equals(other: Any?): Boolean {
