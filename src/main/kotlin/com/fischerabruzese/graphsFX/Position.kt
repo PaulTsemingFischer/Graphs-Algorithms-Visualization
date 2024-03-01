@@ -1,0 +1,27 @@
+package com.fischerabruzese.graphsFX
+
+class Position(private var _x: Double, private var _y: Double) {
+    var x: Double
+        get() = _x
+        set(value) {constrain(value)}
+
+    var y: Double
+        get() = _y
+        set(value) {constrain(value)}
+
+    fun component1() = x
+    fun component2() = y
+
+    private fun constrain(value: Double) = when {
+        (value > 1) -> 1.0
+        (value < 0) -> 0.0
+        else -> value
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+        other as Position
+        return x == other.x && y == other.y
+    }
+}
