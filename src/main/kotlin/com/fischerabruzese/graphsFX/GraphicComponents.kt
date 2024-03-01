@@ -337,7 +337,7 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
         override fun calculateAdjustmentAtPos(at: Position, from: List<Position>, scale: Double, forceCapPerPos: Double): Displacement{
             val scaleFactor = scale * 0.0000006 / (vertices.size + edges.size)
 
-            val disp = Displacement(0.0, 0.0)
+            var disp = Displacement(0.0, 0.0)
 
             for(pos in from){
                 if(at == pos) continue
@@ -345,8 +345,7 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
             }
 
             //Capping the force
-            val cap = Position(disp.x, disp.y, true, forceCapPerPos, -forceCapPerPos)
-            return Displacement(cap.x,cap.y)
+            return Displacement(disp.x, disp.y,, forceCapPerPos, -forceCapPerPos)
         }
 
         fun storeFrame(unaffected: List<GraphicComponents<E>.Vertex> = emptyList(), uneffectors: List<GraphicComponents<E>.Vertex> = emptyList()){

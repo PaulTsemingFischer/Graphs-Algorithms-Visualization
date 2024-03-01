@@ -1,33 +1,22 @@
 package com.fischerabruzese.graphsFX
 
-open class Position(x: Double,
-                    y: Double,
-                    bounds: Boolean = true,
-                    private val upperBound: Double = if(!bounds) Double.MAX_VALUE else 1.0,
-                    private val lowerBound: Double = if(!bounds) Double.MIN_VALUE else 0.0
-) {
+open class Position(x: Double, y: Double) {
 
     open val x: Double = constrain(x)
-    //get() = _x
-        //set(value) {constrain(value)}
-
     open val y: Double = constrain(y)
-    //get() = _y
-        //set(value) {constrain(value)}
-
 
     operator fun component1() = x
     operator fun component2() = y
 
-    protected fun constrain(value: Double) = when {
-        (value > upperBound) -> upperBound
-        (value < lowerBound) -> lowerBound
+    protected open fun constrain(value: Double) = when {
+        (value > 1) -> 1.0
+        (value < 0) -> 0.0
         else -> value
     }
 
-    /** Adding will return a [Displacement] if either Position is a Displacement */
+    /** Adding will return a [Position] if either is a Position */
     open operator fun plus(other: Position): Position {
-        return if (this is Displacement || other is Displacement)
+        return if (this is Displacement && other is Displacement)
             Displacement(x + other.x, y + other.y)
         else Position(x + other.x, y + other.y)
     }
@@ -47,24 +36,16 @@ open class Position(x: Double,
 }
 
 /** Equivalent to [Position] but with no bounds and mutable */
-class Displacement(private val _x: Double,
-                   private val _y: Double,
-): Position(_x, _y, false) {
-    override var x: Double
-        get() = _x
-        set(value) {constrain(value)}
-
-    override var y: Double
-        get() = _y
-        set(value) {constrain(value)}
-
-    init {
-        x = _x
-        y = _y
+class Displacement(override var x: Double, override var y: Double, val forceCapPerPos: Double, val forceCapPerNeg: Double): Position(x, y){
+    override fun constrain(value: Double) = when {
+        (value > forceCapPerPos) -> forceCapPerPos
+        (value < forceCapPerNeg) -> forceCapPerNeg
+        else -> value
     }
 
-    operator fun plusAssign(other: Position) {
+    override operator fun plus(other: Position): Displacement {
         x += other.x
         y += other.y
+        return this
     }
 }
