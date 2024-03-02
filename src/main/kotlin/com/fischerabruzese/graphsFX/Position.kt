@@ -1,9 +1,11 @@
 package com.fischerabruzese.graphsFX
 
-open class Position(x: Double, y: Double) {
+import kotlin.math.max
+import kotlin.math.min
 
-    open val x: Double = constrain(x)
-    open val y: Double = constrain(y)
+open class Position(x: Double, y: Double) {
+    open val x: Double by lazy { constrain(x) }
+    open val y: Double by lazy { constrain(y) }
 
     operator fun component1() = x
     operator fun component2() = y
@@ -13,12 +15,17 @@ open class Position(x: Double, y: Double) {
         (value < 0) -> 0.0
         else -> value
     }
-
     /** Adding will return a [Position] if either is a Position */
     open operator fun plus(other: Position): Position {
-        return if (this is Displacement && other is Displacement)
+        return if (this is Displacement || other is Displacement)
             Displacement(x + other.x, y + other.y)
         else Position(x + other.x, y + other.y)
+    }
+
+    operator fun minus(other: Position): Position {
+        return if (javaClass != other.javaClass)
+            Position(other.x - x, other.y - y)
+        else Displacement(other.x - x, other.y - y)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -36,16 +43,21 @@ open class Position(x: Double, y: Double) {
 }
 
 /** Equivalent to [Position] but with no bounds and mutable */
-class Displacement(override var x: Double, override var y: Double, val forceCapPerPos: Double, val forceCapPerNeg: Double): Position(x, y){
+class Displacement(override var x: Double, override var y: Double, private val enforceMaximum: Double = Double.MAX_VALUE, private val enforceMinimum: Double = Double.MIN_VALUE): Position(x, y){
     override fun constrain(value: Double) = when {
-        (value > forceCapPerPos) -> forceCapPerPos
-        (value < forceCapPerNeg) -> forceCapPerNeg
+        (value > enforceMaximum) -> enforceMaximum
+        (value < enforceMinimum) -> enforceMinimum
         else -> value
     }
 
-    override operator fun plus(other: Position): Displacement {
+    fun constrainBetween(max: Double, min: Double): Displacement {
+        x = max(min(x, max), min)
+        y = max(min(y, max), min)
+        return this
+    }
+
+    operator fun plusAssign(other: Position) {
         x += other.x
         y += other.y
-        return this
     }
 }

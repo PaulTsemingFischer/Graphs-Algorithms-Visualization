@@ -20,7 +20,7 @@ class GraphApp : Application() {
 
         /* Customize your graph */
 
-        val verts = (0 until 50).toList()
+        val verts = (0 until 6).toList()
 
         //val graph = createGraph(getText())
         val graph = AMGraph.fromCollection(verts)

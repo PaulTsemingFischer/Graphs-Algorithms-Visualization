@@ -67,12 +67,13 @@ class Controller<E: Any> {
         paneHeight = pane.heightProperty()
     }
 
-    /**
-     * Set the graph for this class and update the hash code of the previous graph.
-     */
     fun setGraph(graph: Graph<E>) {
         this.graph = graph
         graphicComponents = GraphicComponents(graph, pane, stringToVMap)
+    }
+
+    fun draw() {
+        graphicComponents.draw()
     }
 
     @FXML
@@ -107,11 +108,13 @@ class Controller<E: Any> {
 
     //Console
     private fun printClusters(clusters: List<List<E>>, connectedness: Double) {
-        console.text += "Clusters (connectedness: $connectedness)\n"
-        for (cluster in clusters) {
-            console.text += "" + cluster + '\n'
+        console.text += buildString {
+            append("Clusters (connectedness: $connectedness)\n")
+            for (cluster in clusters) {
+                append("$cluster\n")
+            }
+            append(CONSOLE_LINE_SEPARATOR)
         }
-        console.text += CONSOLE_LINE_SEPARATOR
     }
 
     private fun printDijkstra(from: E, to: E, path: List<E>, distance: Int, time: Long) {

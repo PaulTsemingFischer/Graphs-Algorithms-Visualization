@@ -13,17 +13,23 @@ import javafx.scene.paint.Color
 import javafx.scene.shape.Circle
 import javafx.scene.shape.Line
 import javafx.scene.text.Font
+import java.util.LinkedList
 import kotlin.math.*
 import kotlin.math.pow
 
 internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, val stringToVMap: HashMap<String, GraphicComponents<E>.Vertex>) {
     private val CIRCLE_RADIUS = 20.0
+
     private var edges = ArrayList<Edge>()
+    @JvmName("dumpEdgePositions")
     private fun ArrayList<Edge>.dumpPositions() = this.map {
         Position(((it.v2.x.get()+it.v1.x.get())/2.0), ((it.v2.y.get()+it.v1.y.get())/2.0))
     }.toTypedArray()
+
     private var vertices = ArrayList<Vertex>()
+    @JvmName("dumpVertexPositions")
     private fun ArrayList<Vertex>.dumpPositions() = this.map { it.pos }.toTypedArray()
+
     private val hitboxes = ArrayList<Circle>()
 
     fun draw() {
@@ -113,7 +119,7 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
             hitbox.setOnMouseEntered { circle.fill = Color.GREEN }
             hitbox.setOnMouseExited { circle.fill = Color.BLUE}
 
-            hitbox.setOnMousePressed { dragStart(it); greying.greyDetached(this); circle.fill = Color.RED }
+            hitbox.setOnMousePressed { dragStart(it); greyDetached(this); circle.fill = Color.RED }
             hitbox.setOnMouseDragged { drag(it) }
             hitbox.setOnMouseReleased { ungreyEverything(); circle.fill = Color.GREEN }
             hitbox.pickOnBoundsProperty().set(true)
@@ -321,118 +327,145 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
 
     }
 
+    abstract inner class Physics {
+        fun simulate(iterations: Int = 1000){
+            for(i in 0 until iterations){
+                val nextFrame = generateFrame()
+                pushFrame(nextFrame)
+            }
+        }
+        abstract fun calculateAdjustmentAtPos(at: Position, from: List<Position>, scale: Double = 1.0, forceCapPerPos: Double = 0.1): Position
+
+        abstract fun generateFrame(unaffected: List<GraphicComponents<E>.Vertex> = emptyList(), uneffectors: List<GraphicComponents<E>.Vertex> = emptyList()): Array<Displacement>
+
+        abstract fun pushFrame(displacementArr: Array<Displacement>)
+    }
     val physics = object: Physics() {
-        /** Calculates the change in position of [pos1] based on [pos2] */
-        private fun calculateForce(pos1 : Position, pos2 : Position, scaleFactor: Double): Displacement {
-            val dx = pos2.x - pos1.x
-            val dy = pos2.y - pos1.y
-            val magnitude = scaleFactor / ((dx).pow(2) + (dy).pow(2)) // sc/ sqrt(dx^2 + dy^2)^2
+        /** Calculates the change in position of [at] based on [from] */
+        private fun calculateAdjustmentAtPos(at : Position, from : Position, scaleFactor: Double): Displacement {
+            val dx = from.x - at.x
+            val dy = from.y - at.y
+
+            val magnitude = scaleFactor / (dx.pow(2) + dy.pow(2)) // sc/ sqrt(dx^2 + dy^2)^2
             val angle = atan2(dy, dx)
+
             val fdx = magnitude * cos(angle)
             val fdy = magnitude * sin(angle)
+
             return Displacement(fdx, fdy)
         }
 
         /** Calculates the change in position of [at] as a result of its distance from each [from] */
         override fun calculateAdjustmentAtPos(at: Position, from: List<Position>, scale: Double, forceCapPerPos: Double): Displacement{
-            val scaleFactor = scale * 0.0000006 / (vertices.size + edges.size)
+            val scaleFactor = scale * 0.000006 / (vertices.size + edges.size)
 
-            var disp = Displacement(0.0, 0.0)
+            val displacement = Displacement(0.0, 0.0)
 
+            //Adding adjustments
             for(pos in from){
                 if(at == pos) continue
-                disp += calculateForce(at, pos, scaleFactor)
+                displacement += calculateAdjustmentAtPos(at, pos, scaleFactor)
             }
 
-            //Capping the force
-            return Displacement(disp.x, disp.y,, forceCapPerPos, -forceCapPerPos)
+            //Capping the total force
+            return displacement.constrainBetween(forceCapPerPos, -forceCapPerPos)
         }
 
-        fun storeFrame(unaffected: List<GraphicComponents<E>.Vertex> = emptyList(), uneffectors: List<GraphicComponents<E>.Vertex> = emptyList()){
-            val displacements = Array(vertices.size) { Position(0.0, 0.0) }
-            for(vertex in vertices.apply{removeAll(unaffected.toSet())}){
+        /** Hands you an array of all the displacements in the current frame */
+        override fun generateFrame(unaffected: List<GraphicComponents<E>.Vertex>, uneffectors: List<GraphicComponents<E>.Vertex>): Array<Displacement>{
+            val displacements = Array(vertices.size) { Displacement(0.0, 0.0) }
+            for((id, vertex) in vertices.apply{removeAll(unaffected.toSet())}.withIndex()){
+                val effectors = LinkedList<Position>()
+                //vertices
+                vertices
+                    .filterNot{ uneffectors.contains(it) }
+                    .mapTo(effectors) { it.pos }
 
+                //edges
+                edges.zip(edges.dumpPositions())
+                    .filter { (e, pos) -> vertex != e.v1 && vertex != e.v2 } //should I add another filter for effector stuff
+                    .mapTo(effectors) { (_, pos) -> pos }
+
+                //walls
+                listOf(Position(1.0, vertex.pos.y), Position(0.0, vertex.pos.y), Position(vertex.pos.x, 1.0), Position(vertex.pos.x, 0.0))
+                    .mapTo(effectors){it}
+
+                displacements[id] += calculateAdjustmentAtPos(vertex.pos, effectors)
             }
-        }
-        override fun forceUpdate(dx: Double, dy: Double) {
-            if(x.get() + dx < 0 || x.get() + dx > 1 || y.get() + dy < 0 || y.get() + dy > 1) {
-                println("out of bounds force: $dx, $dy")
-                if     (x.get() + dx < 0) x.set(0.0)
-                else if(x.get() + dx > 1) x.set(1.0)
-                if     (y.get() + dy < 0) y.set(0.0)
-                else if(y.get() + dy > 1) y.set(1.0)
-                return
-            }
-            x.set(x.get() + dx)
-            y.set(y.get() + dy)
-            //println("vertex: $v, force: $dx, $dy")
-        }
-    }
-    abstract inner class Physics {
-        fun simulate(iterations: Int = 1000){
-            for(i in 0 until iterations){
-                moveVerticesForces()
-            }
+            return displacements
         }
 
-        private fun moveVerticesForces(){
-            val adjustments = Array(vertices.size){vertices[it].calculatePositionAdjustment().add(vertices[it].calculateEdgeForces())}
-            for((v,delta) in vertices.zip(adjustments)){
-                val (dx,dy) = delta
-                v.forceUpdate(dx, dy)
+        /** Updates every vertex with the frames displacements */
+        override fun pushFrame(displacementArr: Array<Displacement>){
+            for((vertexIndex, displacement) in displacementArr.withIndex()){
+                vertices[vertexIndex].apply{
+                    val new = pos + displacement
+                    x.set(new.x)
+                    y.set(new.y)
+                    println("$this is moving by ${displacement.x}, ${displacement.y}")
+                }
             }
         }
-
-        abstract fun calculateAdjustmentAtPos(at: Position, from: List<Position>, scale: Double = 1.0, forceCapPerPos: Double = 0.1): Position
     }
 
 
     //Gray out non-attached vertices and edges in the graph
     fun greyDetached(src: GraphicComponents<E>.Vertex) {
-            for (vert in vertices) {
-                vert.setColor(Color(0.0, 0.0, 1.0, 0.3))
-            }
-            for (edge in edges) {
-                if (edge.v1 != src && edge.v2 != src) {
-                    edge.setLineColor(Color.rgb(192, 192, 192, 0.8))
-                    edge.setLabelColor(Color.GREY)
-                } else {
-                    edge.v1.let { if (it != src) it.setColor(Color.BLUE) }
-                    edge.v2.let { if (it != src) it.setColor(Color.BLUE) }
-                    edge.setLineColor(Color.GREEN, Color.RED, src)
-                    edge.setLabelColor(Color.GREEN, Color.RED, src)
-                }
-            }
+        for (vert in vertices) {
+            vert.setColor(Color(0.0, 0.0, 1.0, 0.3))
         }
-
-    val clustering = object : Clustering() {}
-    abstract inner class Clustering{
-        fun moveClusters(clusters: Collection<Graph<E>>) {
-            //convert clusters to List<List<Vertex>>
-            val clustersGraphic = clusters.map { cluster ->
-                ArrayList<GraphicComponents<E>.Vertex>().apply {
-                    for (vert in cluster) {
-                        add(vertices.find { it.v == vert } ?: continue)
-                    }
-                }
-            }
-
-            val numDimensionalSections = ceil(sqrt(clustersGraphic.size.toDouble())).toInt()
-
-            for (xSections in 0 until numDimensionalSections) {
-                for (ySections in 0 until numDimensionalSections) {
-                    val cluster = try {
-                        clustersGraphic[xSections * ySections]
-                    } catch (_: Exception) {
-                        break
-                    }
-
-                    for (v in cluster) {
-                        v.x.set(v.x.get() * (1.0 / numDimensionalSections) + (xSections * (numDimensionalSections - 1)))
-                        v.y.set(v.y.get() * (1.0 / numDimensionalSections) + (ySections * (numDimensionalSections - 1)))
-                    }
-                }
+        for (edge in edges) {
+            if (edge.v1 != src && edge.v2 != src) {
+                edge.setLineColor(Color.rgb(192, 192, 192, 0.8))
+                edge.setLabelColor(Color.GREY)
+            } else {
+                edge.v1.let { if (it != src) it.setColor(Color.BLUE) }
+                edge.v2.let { if (it != src) it.setColor(Color.BLUE) }
+                edge.setLineColor(Color.GREEN, Color.RED, src)
+                edge.setLabelColor(Color.GREEN, Color.RED, src)
             }
         }
     }
+
+    //Ungray everything by setting line and label colors for edges and color for vertices.
+    private fun ungreyEverything(){
+        for(edge in edges){
+            edge.setLineColor(Color.rgb(0, 0, 0, 0.6))
+            edge.setLabelColor(Color.BLACK)
+        }
+        for (vert in vertices){
+            vert.setColor(Color.BLUE)
+        }
+    }
+
+//    val clustering = object : Clustering() {}
+//    abstract inner class Clustering{
+//        fun moveClusters(clusters: Collection<Graph<E>>) {
+//            //convert clusters to List<List<Vertex>>
+//            val clustersGraphic = clusters.map { cluster ->
+//                ArrayList<GraphicComponents<E>.Vertex>().apply {
+//                    for (vert in cluster) {
+//                        add(vertices.find { it.v == vert } ?: continue)
+//                    }
+//                }
+//            }
+//
+//            val numDimensionalSections = ceil(sqrt(clustersGraphic.size.toDouble())).toInt()
+//
+//            for (xSections in 0 until numDimensionalSections) {
+//                for (ySections in 0 until numDimensionalSections) {
+//                    val cluster = try {
+//                        clustersGraphic[xSections * ySections]
+//                    } catch (_: Exception) {
+//                        break
+//                    }
+//
+//                    for (v in cluster) {
+//                        v.x.set(v.x.get() * (1.0 / numDimensionalSections) + (xSections * (numDimensionalSections - 1)))
+//                        v.y.set(v.y.get() * (1.0 / numDimensionalSections) + (ySections * (numDimensionalSections - 1)))
+//                    }
+//                }
+//            }
+//        }
+//    }
 }
