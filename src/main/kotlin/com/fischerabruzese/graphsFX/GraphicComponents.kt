@@ -1,6 +1,7 @@
 package com.fischerabruzese.graphsFX
 
 import com.fischerabruzese.graph.Graph
+import javafx.application.Platform
 import javafx.beans.binding.Bindings
 import javafx.beans.binding.DoubleBinding
 import javafx.beans.property.DoubleProperty
@@ -13,9 +14,9 @@ import javafx.scene.paint.Color
 import javafx.scene.shape.Circle
 import javafx.scene.shape.Line
 import javafx.scene.text.Font
-import java.util.LinkedList
+import java.util.*
 import kotlin.math.*
-import kotlin.math.pow
+import kotlin.random.Random
 
 internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, val stringToVMap: HashMap<String, GraphicComponents<E>.Vertex>) {
     private val CIRCLE_RADIUS = 20.0
@@ -68,10 +69,18 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
      * @property y The y position of the vertex, between 0 and 1.
      */
     inner class Vertex(val v: E, xInit: Double, yInit: Double): StackPane() {
-        internal val pos = Position(xInit, yInit)
-        init {
-            stringToVMap[v.toString()] = this
-        }
+        //Position
+            //x and y are between 0 and 1, everything should be modified in terms of these
+        internal var x : DoubleProperty = SimpleDoubleProperty(xInit)
+        internal var y : DoubleProperty = SimpleDoubleProperty(yInit)
+
+        internal var pos
+            get() = Position(x.get(), y.get())
+            set(value){
+                x.set(value.x)
+                y.set(value.y)
+            }
+
 
         //Components
         private val circle = Circle(CIRCLE_RADIUS, Color.BLUE)
@@ -88,32 +97,35 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
             pane.heightProperty()
         )
 
-        //x and y are between 0 and 1, everything should be modified in terms of these
-        internal var x : DoubleProperty = SimpleDoubleProperty(xInit)
-        internal var y : DoubleProperty = SimpleDoubleProperty(yInit)
+        //Bindings
+            //These are actually what get read by the components
+        var vTranslateXBinding : DoubleBinding = pane.widthProperty().multiply(this.x).multiply(usablePercentPaneWidth).add(CIRCLE_RADIUS)
+        var vtranslateYBinding : DoubleBinding = pane.heightProperty().multiply(this.y).multiply(usablePercentPaneHeight).add(CIRCLE_RADIUS)
 
-        //These are actually what get read by the components
-        var vtranslateXProperty : DoubleBinding = pane.widthProperty().multiply(this.x).multiply(usablePercentPaneWidth).add(CIRCLE_RADIUS)
-        var vtranslateYProperty : DoubleBinding = pane.heightProperty().multiply(this.y).multiply(usablePercentPaneHeight).add(CIRCLE_RADIUS)
+        fun bindAll(){
+            //Circle
+            circle.translateXProperty().bind(vTranslateXBinding.subtract(CIRCLE_RADIUS))
+            circle.translateYProperty().bind(vtranslateYBinding.subtract(CIRCLE_RADIUS))
 
+            //Label
+            label.translateXProperty().bind(vTranslateXBinding.subtract(CIRCLE_RADIUS))
+            label.translateYProperty().bind(vtranslateYBinding.subtract(CIRCLE_RADIUS))
+
+            label.textFill = Color.WHITE
+
+            //Hitbox
+            hitbox.translateXProperty().bind(vTranslateXBinding)
+            hitbox.translateYProperty().bind(vtranslateYBinding)
+        }
+        
         //Dragging
         private var xDelta : Double = 0.0
         private var yDelta : Double = 0.0
 
         init{
-            //Circle
-            circle.translateXProperty().bind(vtranslateXProperty.subtract(CIRCLE_RADIUS))
-            circle.translateYProperty().bind(vtranslateYProperty.subtract(CIRCLE_RADIUS))
+            stringToVMap[v.toString()] = this
 
-            //Label
-            label.translateXProperty().bind(vtranslateXProperty.subtract(CIRCLE_RADIUS))
-            label.translateYProperty().bind(vtranslateYProperty.subtract(CIRCLE_RADIUS))
-
-            label.textFill = Color.WHITE
-
-            //Hitbox
-            hitbox.translateXProperty().bind(vtranslateXProperty)
-            hitbox.translateYProperty().bind(vtranslateYProperty)
+            bindAll()
 
             //Listeners
             hitbox.setOnMouseEntered { circle.fill = Color.GREEN }
@@ -138,7 +150,6 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
             x.set((event.sceneX / pane.width - xDelta).let{if(it > 1) 1.0 else if(it < 0) 0.0 else it})
             y.set((event.sceneY / pane.height - yDelta).let{if(it > 1) 1.0 else if(it < 0) 0.0 else it})
         }
-
 
         fun setColor(color: Color) {
             circle.fill = color
@@ -184,8 +195,8 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
             }
 
             init {
-                val dyTotal = to.vtranslateYProperty.subtract(from.vtranslateYProperty)
-                val dxTotal = to.vtranslateXProperty.subtract(from.vtranslateXProperty)
+                val dyTotal = to.vtranslateYBinding.subtract(from.vtranslateYBinding)
+                val dxTotal = to.vTranslateXBinding.subtract(from.vTranslateXBinding)
 
                 val length = Bindings.createDoubleBinding(
                     { sqrt(dyTotal.get().pow(2) + dxTotal.get().pow(2)) },
@@ -195,10 +206,10 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
                 val dy = dxTotal.multiply(CIRCLE_RADIUS / 4).divide(length).multiply(-1)
                 val dx = dyTotal.multiply(CIRCLE_RADIUS / 4).divide(length)
 
-                line.startXProperty().bind(from.vtranslateXProperty.add(dx))
-                line.startYProperty().bind(from.vtranslateYProperty.add(dy))
-                line.endXProperty().bind(to.vtranslateXProperty.add(dx))
-                line.endYProperty().bind(to.vtranslateYProperty.add(dy))
+                line.startXProperty().bind(from.vTranslateXBinding.add(dx))
+                line.startYProperty().bind(from.vtranslateYBinding.add(dy))
+                line.endXProperty().bind(to.vTranslateXBinding.add(dx))
+                line.endYProperty().bind(to.vtranslateYBinding.add(dy))
 
                 director1 = Director(line.startXProperty().add(dxTotal.multiply(0.33)), line.startYProperty().add(dyTotal.multiply(0.33)), mirror)
                 director2 = Director(line.startXProperty().add(dxTotal.multiply(0.66)), line.startYProperty().add(dyTotal.multiply(0.66)), mirror)
@@ -237,8 +248,8 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
                     line2.startXProperty().bind(startposX)
                     line2.startYProperty().bind(startposY)
 
-                    val dyTotal = v2.vtranslateYProperty.subtract(v1.vtranslateYProperty)
-                    val dxTotal = v2.vtranslateXProperty.subtract(v1.vtranslateXProperty)
+                    val dyTotal = v2.vtranslateYBinding.subtract(v1.vtranslateYBinding)
+                    val dxTotal = v2.vTranslateXBinding.subtract(v1.vTranslateXBinding)
 
                     val theta = Bindings.createDoubleBinding(
                         { atan2(dyTotal.get(), dxTotal.get()) },
@@ -328,13 +339,21 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
     }
 
     abstract inner class Physics {
-        fun simulate(iterations: Int = 1000){
-            for(i in 0 until iterations){
-                val nextFrame = generateFrame()
-                pushFrame(nextFrame)
-            }
+        fun simulate(iterations: Int = 10000){
+            Thread {
+                for(i in 0 until iterations){
+                    try {
+                        Thread.sleep(1)
+                    } catch (e: InterruptedException){
+                        e.printStackTrace();
+                    }
+                    Platform.runLater {
+                        pushFrame(generateFrame())
+                    }
+                }
+            }.start()
         }
-        abstract fun calculateAdjustmentAtPos(at: Position, from: List<Position>, scale: Double = 1.0, forceCapPerPos: Double = 0.1): Position
+        abstract fun calculateAdjustmentAtPos(at: Position, froms: List<Pair<Position, Double>>, forceCapPerPos: Double = 0.1): Displacement
 
         abstract fun generateFrame(unaffected: List<GraphicComponents<E>.Vertex> = emptyList(), uneffectors: List<GraphicComponents<E>.Vertex> = emptyList()): Array<Displacement>
 
@@ -343,8 +362,8 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
     val physics = object: Physics() {
         /** Calculates the change in position of [at] based on [from] */
         private fun calculateAdjustmentAtPos(at : Position, from : Position, scaleFactor: Double): Displacement {
-            val dx = from.x - at.x
-            val dy = from.y - at.y
+            val dx = at.x - from.x
+            val dy = at.y - from.y
 
             val magnitude = scaleFactor / (dx.pow(2) + dy.pow(2)) // sc/ sqrt(dx^2 + dy^2)^2
             val angle = atan2(dy, dx)
@@ -355,15 +374,16 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
             return Displacement(fdx, fdy)
         }
 
-        /** Calculates the change in position of [at] as a result of its distance from each [from] */
-        override fun calculateAdjustmentAtPos(at: Position, from: List<Position>, scale: Double, forceCapPerPos: Double): Displacement{
-            val scaleFactor = scale * 0.000006 / (vertices.size + edges.size)
+        /** Calculates the change in position of [at] as a result of its distance from each [froms] */
+        override fun calculateAdjustmentAtPos(at: Position, froms: List<Pair<Position, Double>>, forceCapPerPos: Double): Displacement{
+
 
             val displacement = Displacement(0.0, 0.0)
 
             //Adding adjustments
-            for(pos in from){
-                if(at == pos) continue
+            for((pos, scale) in froms){
+                val scaleFactor = scale * 0.00006 / (vertices.size + edges.size)
+                 if(at == pos) return Displacement(Random.nextDouble(-0.000001, 0.000001), Random.nextDouble(-0.000001, 0.000001))
                 displacement += calculateAdjustmentAtPos(at, pos, scaleFactor)
             }
 
@@ -375,20 +395,24 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
         override fun generateFrame(unaffected: List<GraphicComponents<E>.Vertex>, uneffectors: List<GraphicComponents<E>.Vertex>): Array<Displacement>{
             val displacements = Array(vertices.size) { Displacement(0.0, 0.0) }
             for((id, vertex) in vertices.apply{removeAll(unaffected.toSet())}.withIndex()){
-                val effectors = LinkedList<Position>()
+                val effectors = LinkedList<Pair<Position, Double>>()
                 //vertices
                 vertices
-                    .filterNot{ uneffectors.contains(it) }
-                    .mapTo(effectors) { it.pos }
-
-                //edges
+                    .filterNot{ uneffectors.contains(it) || vertex === it }
+                    .mapTo(effectors) { it.pos to
+                            when(graph.bidirectionalConnections(it.v, vertex.v)){
+                                1 -> 1.0
+                                2 -> 1.0
+                                else -> 1.0
+                            }
+                    }
                 edges.zip(edges.dumpPositions())
-                    .filter { (e, pos) -> vertex != e.v1 && vertex != e.v2 } //should I add another filter for effector stuff
-                    .mapTo(effectors) { (_, pos) -> pos }
+                    .filterNot { (e, _) -> e.v1 == vertex || e.v2 == vertex } //should I add another filter for effector stuff
+                    .mapTo(effectors) { (_, pos) -> pos to 0.05 }
 
                 //walls
                 listOf(Position(1.0, vertex.pos.y), Position(0.0, vertex.pos.y), Position(vertex.pos.x, 1.0), Position(vertex.pos.x, 0.0))
-                    .mapTo(effectors){it}
+                    .mapTo(effectors){it to 1.0 }
 
                 displacements[id] += calculateAdjustmentAtPos(vertex.pos, effectors)
             }
@@ -398,12 +422,7 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
         /** Updates every vertex with the frames displacements */
         override fun pushFrame(displacementArr: Array<Displacement>){
             for((vertexIndex, displacement) in displacementArr.withIndex()){
-                vertices[vertexIndex].apply{
-                    val new = pos + displacement
-                    x.set(new.x)
-                    y.set(new.y)
-                    println("$this is moving by ${displacement.x}, ${displacement.y}")
-                }
+                vertices[vertexIndex].pos += displacement
             }
         }
     }

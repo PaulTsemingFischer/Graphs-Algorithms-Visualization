@@ -126,6 +126,8 @@ abstract class Graph<E : Any> : Iterable<E> {
         return neighbors
     }
 
+    abstract fun bidirectionalConnections(v1: E, v2: E): Int
+
     /**
      * @param vertex the source of the collection
      * @return a collection of every vertex reachable from [vertex]

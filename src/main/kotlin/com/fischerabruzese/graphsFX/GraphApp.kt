@@ -20,10 +20,13 @@ class GraphApp : Application() {
 
         /* Customize your graph */
 
-        val verts = (0 until 6).toList()
+        val verts = (0 until 50).toList()
 
         //val graph = createGraph(getText())
-        val graph = AMGraph.fromCollection(verts)
+        //val graph = AMGraph.fromCollection(verts)
+
+
+
 //        val graph = AMGraph.graphOf<Int>(
 //            listOf(
 //                1 to listOf(2 to 1, 3 to 1, 5 to 1),
@@ -37,8 +40,31 @@ class GraphApp : Application() {
 //                8 to listOf(10 to 1)
 //            )
 //        )
+        val graph = AMGraph.graphOf<Int>(
+            listOf(
+                1 to listOf(2 to 1, 3 to 1, 5 to 1),
+                6 to listOf(7 to 1, 9 to 1, 10 to 1),
+                11 to listOf(12 to 1, 13 to 1, 15 to 1),
+                16 to listOf(17 to 1, 18 to 1, 20 to 1),
+                2 to listOf(8 to 1, 10 to 1, 4 to 1),
+                3 to listOf(9 to 1),
+                4 to listOf(10 to 1, 2 to 1),
+                5 to listOf(6 to 1, 7 to 1),
+                7 to listOf(5 to 1),
+                8 to listOf(10 to 1),
+                12 to listOf(14 to 1, 16 to 1, 18 to 1),
+                13 to listOf(17 to 1, 19 to 1, 20 to 1),
+                14 to listOf(16 to 1, 18 to 1),
+                15 to listOf(17 to 1, 19 to 1, 20 to 1),
+                16 to listOf(18 to 1, 20 to 1),
+                17 to listOf(19 to 1, 20 to 1),
+                18 to listOf(20 to 1),
+                19 to listOf(20 to 1)
+            )
+        )
 
-        graph.randomize(2, 9, true, Random(69))
+
+        //graph.randomize(2, 9, true, Random(69))
         controller.setGraph(graph)
         //controller.moveClusters(graph.getClusters(0.501))
 

@@ -1,3 +1,6 @@
+//Graphics TODO: Implement attraction
+//TODO: Make clustering a toggle
+
 //TODO: Separate randomize avg connections and probability so that you can do decimal avg connections
 //TODO: Make randomize depend on the toggle
 //TODO: Graph presets
@@ -200,6 +203,13 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
             if (get(vertexId, vert) != -1) neighbors.add(vertices[vert])
         }
         return neighbors
+    }
+
+    override fun bidirectionalConnections(v1: E, v2: E): Int{
+        var connections = 0
+        get(v1,v2)?.let{if(it > 0) connections++}
+        get(v2,v1)?.let{if(it > 0) connections++}
+        return connections
     }
 
     override fun copy(): AMGraph<E> {
