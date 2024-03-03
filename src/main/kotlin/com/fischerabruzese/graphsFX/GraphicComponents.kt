@@ -387,8 +387,12 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
 
         /** Calculates the change in position of [at] based on [from] */
         private fun calculateAdjustmentAtPos(at : Position, from : Position, scaleFactor: Double, magnitudeFormula: (radiusSquared: Double) -> Double = { 1 / it }): Displacement {
-            val dx = at.x - from.x
-            val dy = at.y - from.y
+            //Window scalers
+            val xScaler = 2 * pane.width / (pane.width + pane.height)
+            val yScaler = 2 * pane.height / (pane.width + pane.height)
+
+            val dx = (at.x - from.x) * xScaler
+            val dy = (at.y - from.y) * yScaler
             val radiusSquared = dx.pow(2) + dy.pow(2)
 
             val magnitude = scaleFactor * magnitudeFormula(radiusSquared)
