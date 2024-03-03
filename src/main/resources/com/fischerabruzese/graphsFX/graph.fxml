@@ -4,8 +4,10 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Slider?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
@@ -143,12 +145,7 @@
                            <stops>
                               <Stop>
                                  <color>
-                                    <Color red="1.0" green="0.9879187941551208" blue="0.3199999928474426" />
-                                 </color>
-                              </Stop>
-                              <Stop offset="0.006729475100942127">
-                                 <color>
-                                    <Color red="1.0" green="0.9879187941551208" blue="0.3199999928474426" />
+                                    <Color red="0.9706599116325378" green="1.0" blue="0.3199999928474426" />
                                  </color>
                               </Stop>
                               <Stop offset="1.0">
@@ -163,7 +160,7 @@
                         <Insets bottom="5.0" top="5.0" />
                      </StackPane.margin>
                   </Rectangle>
-                  <Text fill="#282828" strokeType="OUTSIDE" strokeWidth="0.0" text="Clustering" StackPane.alignment="CENTER_LEFT">
+                  <Text fill="#282828" strokeType="OUTSIDE" strokeWidth="0.0" text="Physics" StackPane.alignment="CENTER_LEFT">
                      <font>
                         <Font size="14.0" />
                      </font>
@@ -173,24 +170,13 @@
                   </Text>
                </children>
             </StackPane>
-            <GridPane>
-               <columnConstraints>
-                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-               </columnConstraints>
-               <rowConstraints>
-                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-               </rowConstraints>
+            <HBox alignment="CENTER" prefWidth="200.0">
                <children>
-                  <Label text="Connectedness:" textFill="WHITE" />
-                  <TextField fx:id="connectednessField" onKeyTyped="#fromVertexChanged" GridPane.columnIndex="1" />
+                  <Label prefWidth="42.0" text="Speed" textFill="WHITE" />
+                  <Slider fx:id="physicsSlider" blockIncrement="0.0" max="1.0" prefWidth="117.0" value="0.5" />
+                  <ToggleButton fx:id="physicsToggle" mnemonicParsing="false" onAction="#physicsTogglePressed" prefWidth="40.0" text="Off" />
                </children>
-            </GridPane>
-            <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#getClustersPressed" text="Get clusters">
-               <VBox.margin>
-                  <Insets />
-               </VBox.margin>
-            </Button>
+            </HBox>
             <StackPane>
                <children>
                   <Rectangle height="26.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="200.0">
@@ -248,6 +234,11 @@
                            <stops>
                               <Stop>
                                  <color>
+                                    <Color red="0.3199999928474426" green="0.632385790348053" blue="1.0" />
+                                 </color>
+                              </Stop>
+                              <Stop offset="0.009421265141318967">
+                                 <color>
                                     <Color red="0.3199999928474426" green="0.9844670295715332" blue="1.0" />
                                  </color>
                               </Stop>
@@ -273,9 +264,13 @@
                   </Text>
                </children>
             </StackPane>
-            <Button mnemonicParsing="false" onAction="#dijkstraPressed" prefWidth="200.0" text="Dijkstra" />
-            <Button mnemonicParsing="false" onAction="#bfsPressed" prefWidth="200.0" text="Breadth First Search" />
-            <Button mnemonicParsing="false" onAction="#dfsPressed" prefWidth="200.0" text="Depth First Search" />
+            <HBox>
+               <children>
+                  <Button mnemonicParsing="false" onAction="#dijkstraPressed" prefWidth="200.0" text="Dijkstra" />
+                  <Button mnemonicParsing="false" onAction="#bfsPressed" prefWidth="200.0" text="BFS" />
+                  <Button mnemonicParsing="false" onAction="#dfsPressed" prefWidth="200.0" text="DFS" />
+               </children>
+            </HBox>
             <StackPane>
                <children>
                   <Rectangle height="26.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="200.0">
@@ -284,7 +279,68 @@
                            <stops>
                               <Stop>
                                  <color>
-                                    <Color red="0.8567513227462769" green="0.3199999928474426" blue="1.0" />
+                                    <Color red="1.0" green="0.9879187941551208" blue="0.3199999928474426" />
+                                 </color>
+                              </Stop>
+                              <Stop offset="0.006729475100942127">
+                                 <color>
+                                    <Color red="0.3799999952316284" green="0.5892893671989441" blue="1.0" />
+                                 </color>
+                              </Stop>
+                              <Stop offset="1.0">
+                                 <color>
+                                    <Color red="0.1568627506494522" green="0.1568627506494522" blue="0.1568627506494522" />
+                                 </color>
+                              </Stop>
+                           </stops>
+                        </LinearGradient>
+                     </fill>
+                     <StackPane.margin>
+                        <Insets bottom="5.0" top="5.0" />
+                     </StackPane.margin>
+                  </Rectangle>
+                  <Text fill="#282828" strokeType="OUTSIDE" strokeWidth="0.0" text="Clustering" StackPane.alignment="CENTER_LEFT">
+                     <font>
+                        <Font size="14.0" />
+                     </font>
+                     <StackPane.margin>
+                        <Insets left="5.0" />
+                     </StackPane.margin>
+                  </Text>
+               </children>
+            </StackPane>
+            <GridPane>
+               <columnConstraints>
+                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+               </columnConstraints>
+               <rowConstraints>
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+               </rowConstraints>
+               <children>
+                  <Label text="Connectedness:" textFill="WHITE" />
+                  <TextField fx:id="connectednessField" onKeyTyped="#fromVertexChanged" GridPane.columnIndex="1" />
+               </children>
+            </GridPane>
+            <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#getClustersPressed" text="Get clusters">
+               <VBox.margin>
+                  <Insets />
+               </VBox.margin>
+            </Button>
+            <StackPane>
+               <children>
+                  <Rectangle height="26.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="200.0">
+                     <fill>
+                        <LinearGradient endX="1.0" endY="1.0">
+                           <stops>
+                              <Stop>
+                                 <color>
+                                    <Color red="0.691065788269043" green="0.3199999928474426" blue="1.0" />
+                                 </color>
+                              </Stop>
+                              <Stop offset="0.006729475100942127">
+                                 <color>
+                                    <Color red="1.0" green="0.3199999928474426" blue="0.9257867932319641" />
                                  </color>
                               </Stop>
                               <Stop offset="1.0">
@@ -309,7 +365,7 @@
                   </Text>
                </children>
             </StackPane>
-            <TextArea fx:id="console" prefWidth="141.0" wrapText="true" />
+            <TextArea fx:id="console" prefWidth="141.0" wrapText="true" VBox.vgrow="ALWAYS" />
             <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#redrawPressed" text="Redraw">
                <VBox.margin>
                   <Insets />

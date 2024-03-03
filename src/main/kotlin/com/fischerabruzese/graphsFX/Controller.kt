@@ -1,25 +1,12 @@
 package com.fischerabruzese.graphsFX
 
 import com.fischerabruzese.graph.Graph
-import javafx.beans.binding.Bindings
-import javafx.beans.binding.DoubleBinding
-import javafx.beans.property.DoubleProperty
 import javafx.beans.property.ReadOnlyDoubleProperty
-import javafx.beans.property.SimpleDoubleProperty
 import javafx.fxml.FXML
 import javafx.scene.control.*
-import javafx.scene.input.MouseEvent
 import javafx.scene.layout.Pane
-import javafx.scene.layout.StackPane
-import javafx.scene.paint.Color
-import javafx.scene.shape.Circle
-import javafx.scene.shape.Line
-import javafx.scene.text.Font
 import java.security.InvalidKeyException
-import kotlin.math.*
 import kotlin.system.measureTimeMillis
-import java.util.concurrent.Executors
-import kotlin.properties.Delegates
 
 class Controller<E: Any> {
     //Pane
@@ -29,27 +16,25 @@ class Controller<E: Any> {
     private lateinit var paneHeight: ReadOnlyDoubleProperty
     private lateinit var graphicComponents: GraphicComponents<E>
 
-    //Fields
+    //User inputs
     @FXML
     private lateinit var probabilityField: TextField
-
     @FXML
     private lateinit var minWeightField: TextField
-
     @FXML
     private lateinit var maxWeightField: TextField
-
     @FXML
     private lateinit var allowDisjointToggle: CheckBox
-
     @FXML
-    private lateinit var connectedness: TextField
-
+    private lateinit var physicsSlider: Slider
+    @FXML
+    private lateinit var physicsToggle: ToggleButton
     @FXML
     private lateinit var fromVertexField: TextField
-
     @FXML
     private lateinit var toVertexField: TextField
+    @FXML
+    private lateinit var connectedness: TextField
 
     //Console
     @FXML
@@ -60,16 +45,18 @@ class Controller<E: Any> {
     private lateinit var graph: Graph<E>
     private val stringToVMap = HashMap<String, GraphicComponents<E>.Vertex>()
 
-    //Initialization
+    //Window initialization
     @FXML
     fun initialize() {
         paneWidth = pane.widthProperty()
         paneHeight = pane.heightProperty()
     }
 
-    fun setGraph(graph: Graph<E>) {
+    //Initialization for anything involving the graph
+    fun initializeGraph(graph: Graph<E>) {
         this.graph = graph
         graphicComponents = GraphicComponents(graph, pane, stringToVMap)
+        initializePhysicsSlider()
     }
 
     fun draw() {
@@ -151,11 +138,28 @@ class Controller<E: Any> {
 
     }
 
-    //Clustering
-    @FXML
-    private fun getClustersPressed() {
-        graphicComponents.physics.simulate()
+    //Physics
+    private fun initializePhysicsSlider(){
+        physicsSlider.valueProperty().addListener { _, _, newValue ->
+            newValue?.let {
+                graphicComponents.physics.speed = it.toDouble()
+            }
+        }
     }
+    @FXML
+    private fun physicsTogglePressed(){
+        if(physicsToggle.isSelected){
+            graphicComponents.physics.on = true
+            graphicComponents.physics.simulate()
+            physicsToggle.text = "Off"
+            physicsToggle.textFill = javafx.scene.paint.Color.RED
+        } else {
+            graphicComponents.physics.on = false
+            physicsToggle.text = "On"
+            physicsToggle.textFill = javafx.scene.paint.Color.GREEN
+        }
+    }
+
 
     //Vertex selection
     private fun retrieveVertexElement(lookupKey: String): E? {
@@ -212,5 +216,11 @@ class Controller<E: Any> {
             path = algorithm(from, to)
         }
         return Triple((from to to), path, time)
+    }
+
+    //Clustering
+    @FXML
+    private fun getClustersPressed() {
+        TODO()
     }
 }

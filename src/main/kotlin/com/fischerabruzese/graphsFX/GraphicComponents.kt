@@ -338,10 +338,10 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
 
     }
 
-    abstract inner class Physics {
-        fun simulate(iterations: Int = 10000){
+    abstract inner class Physics(var on: Boolean, var speed: Double) {
+        fun simulate(){
             Thread {
-                for(i in 0 until iterations){
+                while(on){
                     try {
                         Thread.sleep(1)
                     } catch (e: InterruptedException){
@@ -353,19 +353,43 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
                 }
             }.start()
         }
-        abstract fun calculateAdjustmentAtPos(at: Position, froms: List<Pair<Position, Double>>, forceCapPerPos: Double = 0.1): Displacement
+
+        /**
+         * @param at The position at which to calculate the adjustment
+         * @param froms The list of triples containing the source position, weight, and force magnitude function(defaults to 1/radiusSquared)
+         * @param forceCapPerPos The maximum force cap per position, default is 0.1
+         * @return The displacement calculated based on the provided parameters
+         */
+        abstract fun calculateAdjustmentAtPos(at: Position, froms: List<Pair<Position, (Double) -> Double>>, forceCapPerPos: Double = 0.1): Displacement
 
         abstract fun generateFrame(unaffected: List<GraphicComponents<E>.Vertex> = emptyList(), uneffectors: List<GraphicComponents<E>.Vertex> = emptyList()): Array<Displacement>
 
         abstract fun pushFrame(displacementArr: Array<Displacement>)
     }
-    val physics = object: Physics() {
+    val physics = object: Physics(false, 0.5) {
+
+        /** Calculates the change in position of [at] as a result of its distance from each [froms] */
+        override fun calculateAdjustmentAtPos(at: Position, froms: List<Pair<Position, (Double) -> Double>>, forceCapPerPos: Double): Displacement{
+            val displacement = Displacement(0.0, 0.0)
+
+            //Adding adjustments
+            for((pos, fieldEq) in froms){
+                val scaleFactor = 0.00006 / (vertices.size + edges.size)
+                 if(at == pos) return Displacement(Random.nextDouble(-0.000001, 0.000001), Random.nextDouble(-0.000001, 0.000001))
+                displacement += calculateAdjustmentAtPos(at, pos, scaleFactor, fieldEq)
+            }
+
+            //Capping the total force
+            return displacement.constrainBetween(forceCapPerPos, -forceCapPerPos)
+        }
+
         /** Calculates the change in position of [at] based on [from] */
-        private fun calculateAdjustmentAtPos(at : Position, from : Position, scaleFactor: Double): Displacement {
+        private fun calculateAdjustmentAtPos(at : Position, from : Position, scaleFactor: Double, magnitudeFormula: (radiusSquared: Double) -> Double = { 1 / it }): Displacement {
             val dx = at.x - from.x
             val dy = at.y - from.y
+            val radiusSquared = dx.pow(2) + dy.pow(2)
 
-            val magnitude = scaleFactor / (dx.pow(2) + dy.pow(2)) // sc/ sqrt(dx^2 + dy^2)^2
+            val magnitude = scaleFactor * magnitudeFormula(radiusSquared)
             val angle = atan2(dy, dx)
 
             val fdx = magnitude * cos(angle)
@@ -374,45 +398,38 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
             return Displacement(fdx, fdy)
         }
 
-        /** Calculates the change in position of [at] as a result of its distance from each [froms] */
-        override fun calculateAdjustmentAtPos(at: Position, froms: List<Pair<Position, Double>>, forceCapPerPos: Double): Displacement{
-
-
-            val displacement = Displacement(0.0, 0.0)
-
-            //Adding adjustments
-            for((pos, scale) in froms){
-                val scaleFactor = scale * 0.00006 / (vertices.size + edges.size)
-                 if(at == pos) return Displacement(Random.nextDouble(-0.000001, 0.000001), Random.nextDouble(-0.000001, 0.000001))
-                displacement += calculateAdjustmentAtPos(at, pos, scaleFactor)
-            }
-
-            //Capping the total force
-            return displacement.constrainBetween(forceCapPerPos, -forceCapPerPos)
-        }
-
         /** Hands you an array of all the displacements in the current frame */
         override fun generateFrame(unaffected: List<GraphicComponents<E>.Vertex>, uneffectors: List<GraphicComponents<E>.Vertex>): Array<Displacement>{
             val displacements = Array(vertices.size) { Displacement(0.0, 0.0) }
-            for((id, vertex) in vertices.apply{removeAll(unaffected.toSet())}.withIndex()){
-                val effectors = LinkedList<Pair<Position, Double>>()
+            for((id, vertex) in vertices.filterNot { uneffectors.contains(it) }.withIndex()){
+                val effectors = LinkedList<Pair<Position, (Double) -> Double>>()
+
+                val vertexRepulsionField: (Double) -> Double = { rSqr ->  (1 / rSqr).also{println("Repulsion: $it")}}
+                val vertexAttractionField: (Double) -> Double = { rSqr ->  (-rSqr.pow(2)).also{println("Attraction: $it")}}
+
+                val unconnectedVertexField: (Double) -> Double = { rSqr -> 1 * vertexRepulsionField(rSqr)}
+                val singleConnectedVertexField: (Double) -> Double = { rSqr -> 3000 * vertexAttractionField(rSqr) + 0.3 * vertexRepulsionField(rSqr)}
+                val doubleConnectedVertexField: (Double) -> Double = { rSqr -> 5000 * vertexAttractionField(rSqr) + 0.3 * vertexRepulsionField(rSqr)}
+                val edgeFieldEquation: (Double) -> Double = { rSqr ->  0.05 * vertexRepulsionField(rSqr) }
+                val wallFieldEquation: (Double) -> Double = { rSqr ->  1 * vertexRepulsionField(rSqr) }
+
                 //vertices
                 vertices
                     .filterNot{ uneffectors.contains(it) || vertex === it }
-                    .mapTo(effectors) { it.pos to
-                            when(graph.bidirectionalConnections(it.v, vertex.v)){
-                                1 -> 1.0
-                                2 -> 1.0
-                                else -> 1.0
+                    .mapTo(effectors) { vertexEffector ->
+                        when(graph.bidirectionalConnections(vertexEffector.v, vertex.v)){
+                                1 -> Pair(vertexEffector.pos, singleConnectedVertexField)
+                                2 -> Pair(vertexEffector.pos, doubleConnectedVertexField)
+                                else -> Pair(vertexEffector.pos, unconnectedVertexField)
                             }
                     }
                 edges.zip(edges.dumpPositions())
                     .filterNot { (e, _) -> e.v1 == vertex || e.v2 == vertex } //should I add another filter for effector stuff
-                    .mapTo(effectors) { (_, pos) -> pos to 0.05 }
+                    .mapTo(effectors) { (_, pos) -> Pair(pos, edgeFieldEquation) }
 
                 //walls
                 listOf(Position(1.0, vertex.pos.y), Position(0.0, vertex.pos.y), Position(vertex.pos.x, 1.0), Position(vertex.pos.x, 0.0))
-                    .mapTo(effectors){it to 1.0 }
+                    .mapTo(effectors){ wallEffectorPos -> Pair(wallEffectorPos, wallFieldEquation)}
 
                 displacements[id] += calculateAdjustmentAtPos(vertex.pos, effectors)
             }
