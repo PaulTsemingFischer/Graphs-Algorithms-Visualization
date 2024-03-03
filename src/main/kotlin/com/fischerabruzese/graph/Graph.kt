@@ -1,6 +1,8 @@
 package com.fischerabruzese.graph
 
 import java.util.*
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.random.Random
 
 abstract class Graph<E : Any> : Iterable<E> {
@@ -145,6 +147,15 @@ abstract class Graph<E : Any> : Iterable<E> {
      * @return a new graph containing only the specified vertices
      */
     abstract fun subgraph(verts: Collection<E>):Graph<E>
+    
+    fun union(other: Graph<E>) {
+        for(v in other){
+            add(v)
+        }
+        for((f,t) in other.getEdges()){
+            other[f, t]?.let { this[f,t] = it }
+        }
+    }
 
     /**
      * @param predicate a lambda that evaluates whether to include the given vertex
@@ -197,6 +208,48 @@ abstract class Graph<E : Any> : Iterable<E> {
         randomize(probability, minWeight, maxWeight, allowDisjoint, random)
     }
     fun randomize(avgConnectionsPerVertex: Int, maxWeight: Int, allowDisjoint: Boolean = true, random: Random = Random) = randomize(avgConnectionsPerVertex, 1, maxWeight, allowDisjoint, random)
+
+    //TODO: Consider refactoring to new class
+    fun randomizeWithCluster(numClusters: Int, avgExtraneousConnections: Double, clusterConnectedness: Double, maxWeight: Int, random: Random = Random) {
+        var remainingVertices = LinkedList(getVertices())
+        val graphs = LinkedList<Graph<E>>()
+
+        val vertsPerCluster = size()/numClusters
+
+        for(cluster in 0 until numClusters-1){
+           val size = vertsPerCluster //random.nextInt(
+//                vertsPerCluster-(0),
+//                vertsPerCluster+(1)
+//            ).coerceIn(1 until remainingVertices.size - (numClusters-1 - cluster))
+
+            graphs += AMGraph.fromCollection(remainingVertices.take(size)).apply { randomize(clusterConnectedness, maxWeight, false, random) }
+            remainingVertices = LinkedList(remainingVertices.subList(size, remainingVertices.size))
+        }
+        val graph = AMGraph.fromCollection(remainingVertices)
+        graph.randomize(clusterConnectedness, maxWeight, false, random)
+
+        for(g in graphs){
+            graph.union(g)
+        }
+//        val probConnection = (avgExtraneousConnections/2) / numClusters //div 2 to account for both ways being checke
+//        for(g in graphs){
+//            for(vf in g){
+//                for(g2 in graphs){
+//                    if(g === g2) continue
+//                    for(vt in g2) {
+//                        graph[vf, vt] = random.nextInt(1, maxWeight)
+//                    }
+//                }
+//            }
+//        }
+        becomeCloneOf(graph)
+    }
+
+    private fun becomeCloneOf(graph: Graph<E>){
+        clearConnections()
+        removeAll(getVertices())
+        union(graph)
+    }
 
 
     /**

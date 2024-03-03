@@ -7,7 +7,6 @@
 <?import javafx.scene.control.Slider?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
@@ -173,8 +172,7 @@
             <HBox alignment="CENTER" prefWidth="200.0">
                <children>
                   <Label prefWidth="42.0" text="Speed" textFill="WHITE" />
-                  <Slider fx:id="physicsSlider" blockIncrement="0.0" max="1.0" prefWidth="117.0" value="0.5" />
-                  <ToggleButton fx:id="physicsToggle" mnemonicParsing="false" onAction="#physicsTogglePressed" prefWidth="40.0" text="Off" />
+                  <Slider fx:id="physicsSlider" blockIncrement="0.0" max="1.0" />
                </children>
             </HBox>
             <StackPane>

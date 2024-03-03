@@ -21,6 +21,8 @@ import kotlin.random.Random
 internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, val stringToVMap: HashMap<String, GraphicComponents<E>.Vertex>) {
     private val CIRCLE_RADIUS = 20.0
 
+    private var selectedVertex: GraphicComponents<E>.Vertex? = null
+    private val hitboxes = ArrayList<Circle>()
     private var edges = ArrayList<Edge>()
     @JvmName("dumpEdgePositions")
     private fun ArrayList<Edge>.dumpPositions() = this.map {
@@ -31,7 +33,7 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
     @JvmName("dumpVertexPositions")
     private fun ArrayList<Vertex>.dumpPositions() = this.map { it.pos }.toTypedArray()
 
-    private val hitboxes = ArrayList<Circle>()
+
 
     fun draw() {
         pane.children.clear()
@@ -131,9 +133,9 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
             hitbox.setOnMouseEntered { circle.fill = Color.GREEN }
             hitbox.setOnMouseExited { circle.fill = Color.BLUE}
 
-            hitbox.setOnMousePressed { dragStart(it); greyDetached(this); circle.fill = Color.RED }
+            hitbox.setOnMousePressed { dragStart(it); greyDetached(this); circle.fill = Color.RED; selectedVertex = this }
             hitbox.setOnMouseDragged { drag(it) }
-            hitbox.setOnMouseReleased { ungreyEverything(); circle.fill = Color.GREEN }
+            hitbox.setOnMouseReleased { ungreyEverything(); circle.fill = Color.GREEN; selectedVertex = null }
             hitbox.pickOnBoundsProperty().set(true)
 
             hitboxes.add(hitbox)
@@ -348,7 +350,7 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
                         e.printStackTrace();
                     }
                     Platform.runLater {
-                        pushFrame(generateFrame())
+                        pushFrame(generateFrame(speed, unaffected = listOfNotNull(selectedVertex)))
                     }
                 }
             }.start()
@@ -362,11 +364,11 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
          */
         abstract fun calculateAdjustmentAtPos(at: Position, froms: List<Pair<Position, (Double) -> Double>>, forceCapPerPos: Double = 0.1): Displacement
 
-        abstract fun generateFrame(unaffected: List<GraphicComponents<E>.Vertex> = emptyList(), uneffectors: List<GraphicComponents<E>.Vertex> = emptyList()): Array<Displacement>
+        abstract fun generateFrame(speed: Double, unaffected: List<GraphicComponents<E>.Vertex> = emptyList(), uneffectors: List<GraphicComponents<E>.Vertex> = emptyList()): Array<Displacement>
 
         abstract fun pushFrame(displacementArr: Array<Displacement>)
     }
-    val physics = object: Physics(false, 0.5) {
+    val physics = object: Physics(false, 0.0) {
 
         /** Calculates the change in position of [at] as a result of its distance from each [froms] */
         override fun calculateAdjustmentAtPos(at: Position, froms: List<Pair<Position, (Double) -> Double>>, forceCapPerPos: Double): Displacement{
@@ -375,7 +377,7 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
             //Adding adjustments
             for((pos, fieldEq) in froms){
                 val scaleFactor = 0.00006 / (vertices.size + edges.size)
-                 if(at == pos) return Displacement(Random.nextDouble(-0.000001, 0.000001), Random.nextDouble(-0.000001, 0.000001))
+                 if(at == pos) return Displacement(Random.nextDouble(-0.000001, 0.000001), Random.nextDouble(-0.000001, 0.000001)) //Nudge slightly if at the same position
                 displacement += calculateAdjustmentAtPos(at, pos, scaleFactor, fieldEq)
             }
 
@@ -399,19 +401,23 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
         }
 
         /** Hands you an array of all the displacements in the current frame */
-        override fun generateFrame(unaffected: List<GraphicComponents<E>.Vertex>, uneffectors: List<GraphicComponents<E>.Vertex>): Array<Displacement>{
+        override fun generateFrame(speed: Double, unaffected: List<GraphicComponents<E>.Vertex>, uneffectors: List<GraphicComponents<E>.Vertex>): Array<Displacement>{
+            val max = 1000
+            val scaleFactor = speed.pow(4) * max
+
             val displacements = Array(vertices.size) { Displacement(0.0, 0.0) }
-            for((id, vertex) in vertices.filterNot { uneffectors.contains(it) }.withIndex()){
+            for((id, vertex) in vertices.withIndex()){
+                if(unaffected.contains(vertex)) continue
                 val effectors = LinkedList<Pair<Position, (Double) -> Double>>()
 
-                val vertexRepulsionField: (Double) -> Double = { rSqr ->  (1 / rSqr).also{println("Repulsion: $it")}}
-                val vertexAttractionField: (Double) -> Double = { rSqr ->  (-rSqr.pow(2)).also{println("Attraction: $it")}}
+                val vertexRepulsionField: (Double) -> Double = { rSqr ->  (scaleFactor / rSqr)}
+                val vertexAttractionField: (Double) -> Double = { rSqr ->  (-scaleFactor * rSqr.pow(2))}
 
                 val unconnectedVertexField: (Double) -> Double = { rSqr -> 1 * vertexRepulsionField(rSqr)}
-                val singleConnectedVertexField: (Double) -> Double = { rSqr -> 3000 * vertexAttractionField(rSqr) + 0.3 * vertexRepulsionField(rSqr)}
-                val doubleConnectedVertexField: (Double) -> Double = { rSqr -> 5000 * vertexAttractionField(rSqr) + 0.3 * vertexRepulsionField(rSqr)}
-                val edgeFieldEquation: (Double) -> Double = { rSqr ->  0.05 * vertexRepulsionField(rSqr) }
-                val wallFieldEquation: (Double) -> Double = { rSqr ->  1 * vertexRepulsionField(rSqr) }
+                val singleConnectedVertexField: (Double) -> Double = { rSqr -> 1000 * vertexAttractionField(rSqr) + 0.5 * vertexRepulsionField(rSqr)}
+                val doubleConnectedVertexField: (Double) -> Double = { rSqr -> 2000 * vertexAttractionField(rSqr) + 0.5 * vertexRepulsionField(rSqr)}
+                val edgeFieldEquation: (Double) -> Double = { rSqr ->  0.5 * vertexRepulsionField(rSqr) }
+                val wallFieldEquation: (Double) -> Double = { rSqr ->  0.5 * vertexRepulsionField(rSqr) }
 
                 //vertices
                 vertices
@@ -433,6 +439,7 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
 
                 displacements[id] += calculateAdjustmentAtPos(vertex.pos, effectors)
             }
+
             return displacements
         }
 

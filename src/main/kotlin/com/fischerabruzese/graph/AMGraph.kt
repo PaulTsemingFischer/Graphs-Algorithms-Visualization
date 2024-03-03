@@ -161,7 +161,9 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
         for (vertex in verts) {
             val id = indexLookup.remove(vertex) ?: continue
             vertexToRemove[id] = true
-            vertices.removeAt(id)
+        }
+        for(i in vertexToRemove.indices.reversed()){
+            if(vertexToRemove[i]) vertices.removeAt(i)
         }
 
         val newEdgeMatrix = Array(size()) { IntArray(size()) { -1 } }
@@ -235,6 +237,8 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
             }}
         })
     }
+
+
     /*------------------ RANDOMIZATION ------------------*/
 
     override fun randomize(avgConnectionsPerVertex: Int, minWeight: Int, maxWeight: Int, allowDisjoint: Boolean, random: Random) { //when inheritance removed add default values

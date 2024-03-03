@@ -28,8 +28,6 @@ class Controller<E: Any> {
     @FXML
     private lateinit var physicsSlider: Slider
     @FXML
-    private lateinit var physicsToggle: ToggleButton
-    @FXML
     private lateinit var fromVertexField: TextField
     @FXML
     private lateinit var toVertexField: TextField
@@ -95,41 +93,41 @@ class Controller<E: Any> {
 
     //Console
     private fun printClusters(clusters: List<List<E>>, connectedness: Double) {
-        console.text += buildString {
+        console.text = buildString {
             append("Clusters (connectedness: $connectedness)\n")
             for (cluster in clusters) {
                 append("$cluster\n")
             }
             append(CONSOLE_LINE_SEPARATOR)
-        }
+        } + console.text
     }
 
     private fun printDijkstra(from: E, to: E, path: List<E>, distance: Int, time: Long) {
-        console.text += buildString {
+        console.text = buildString {
             append("Dijkstra from $from to $to\n")
             append("Path: $path\n")
             append("Distance: $distance\n")
             append("Time(ms): $time\n")
             append(CONSOLE_LINE_SEPARATOR)
-        }
+        } + console.text
     }
 
     private fun printBfs(from: E, to: E, path: List<E>, time: Long) {
-        console.text += buildString {
+        console.text = buildString {
             append("Breadth first search from $from to $to\n")
             append("Path: $path\n")
             append("Time(ms): $time\n")
             append(CONSOLE_LINE_SEPARATOR)
-        }
+        } + console.text
     }
 
     private fun printDfs(from: E, to: E, path: List<E>, time: Long) {
-        console.text += buildString {
+        console.text = buildString {
             append("Depth first search from $from to $to\n")
             append("Path: $path\n")
             append("Time(ms): $time\n")
             append(CONSOLE_LINE_SEPARATOR)
-        }
+        } + console.text
     }
 
     //Randomization
@@ -142,24 +140,17 @@ class Controller<E: Any> {
     private fun initializePhysicsSlider(){
         physicsSlider.valueProperty().addListener { _, _, newValue ->
             newValue?.let {
-                graphicComponents.physics.speed = it.toDouble()
+                if(it.toDouble() < 0.02) graphicComponents.physics.on = false
+                else {
+                    graphicComponents.physics.speed = it.toDouble()
+                    if (!graphicComponents.physics.on) {
+                        graphicComponents.physics.on = true
+                        graphicComponents.physics.simulate()
+                    }
+                }
             }
         }
     }
-    @FXML
-    private fun physicsTogglePressed(){
-        if(physicsToggle.isSelected){
-            graphicComponents.physics.on = true
-            graphicComponents.physics.simulate()
-            physicsToggle.text = "Off"
-            physicsToggle.textFill = javafx.scene.paint.Color.RED
-        } else {
-            graphicComponents.physics.on = false
-            physicsToggle.text = "On"
-            physicsToggle.textFill = javafx.scene.paint.Color.GREEN
-        }
-    }
-
 
     //Vertex selection
     private fun retrieveVertexElement(lookupKey: String): E? {

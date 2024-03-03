@@ -5,6 +5,7 @@ import javafx.application.Application
 import javafx.fxml.FXMLLoader
 import javafx.scene.Scene
 import javafx.stage.Stage
+import kotlin.random.Random
 
 class GraphApp : Application() {
     override fun start(stage: Stage) {
@@ -19,26 +20,26 @@ class GraphApp : Application() {
 
         /* Customize your graph */
 
-        val verts = (0 until 50).toList()
+        val verts = (0 until 20).toList()
 
         //val graph = createGraph(getText())
-        //val graph = AMGraph.fromCollection(verts)
+        val graph = AMGraph.fromCollection(verts)
+        graph.randomizeWithCluster(3, 3.0, 0.3, 2, Random)
 
 
-
-        val graph = AMGraph.graphOf<Int>(
-            listOf(
-                1 to listOf(2 to 1, 3 to 1, 5 to 1),
-                6 to listOf(7 to 1, 9 to 1, 10 to 1),
-                1 to listOf(6 to 1, 7 to 1),
-                2 to listOf(8 to 1, 10 to 1, 4 to 1),
-                3 to listOf(9 to 1),
-                4 to listOf(10 to 1, 2 to 1),
-                5 to listOf(6 to 1, 7 to 1),
-                7 to listOf(5 to 1),
-                8 to listOf(10 to 1)
-            )
-        )
+//        val graph = AMGraph.graphOf<Int>(
+//            listOf(
+//                1 to listOf(2 to 1, 3 to 1, 5 to 1),
+//                6 to listOf(7 to 1, 9 to 1, 10 to 1),
+//                1 to listOf(6 to 1, 7 to 1),
+//                2 to listOf(8 to 1, 10 to 1, 4 to 1),
+//                3 to listOf(9 to 1),
+//                4 to listOf(10 to 1, 2 to 1),
+//                5 to listOf(6 to 1, 7 to 1),
+//                7 to listOf(5 to 1),
+//                8 to listOf(10 to 1)
+//            )
+//        )
 //        val graph = AMGraph.graphOf<Int>(
 //            listOf(
 //                1 to listOf(2 to 1, 3 to 1, 5 to 1),
@@ -63,7 +64,7 @@ class GraphApp : Application() {
 //        )
 
 
-        //graph.randomize(2, 9, true, Random(69))
+//        graph.randomize(2, 9, true, Random(69))
         controller.initializeGraph(graph)
         //controller.moveClusters(graph.getClusters(0.501))
 
