@@ -97,7 +97,7 @@ class Controller<E: Any> {
         console.text = buildString {
             append("Clusters (connectedness: $connectedness)\n")
             for (cluster in clusters) {
-                append("$cluster\n")
+                append("${cluster.getVertices()}\n")
             }
             append(CONSOLE_LINE_SEPARATOR)
         } + console.text

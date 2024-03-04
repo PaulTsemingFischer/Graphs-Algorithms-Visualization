@@ -20,11 +20,11 @@ class GraphApp : Application() {
 
         /* Customize your graph */
 
-        val verts = (0 until 20).toList()
+        val verts = (0 until 25).toList()
 
         //val graph = createGraph(getText())
         val graph = AMGraph.fromCollection(verts)
-        graph.randomizeWithCluster(3, 3.0, 0.3, 2, Random)
+        graph.randomizeWithCluster(4, 9, 0.3, 0.02)
 
 
 //        val graph = AMGraph.graphOf<Int>(

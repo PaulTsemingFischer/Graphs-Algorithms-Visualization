@@ -1,8 +1,6 @@
 package com.fischerabruzese.graph
 
 import java.util.*
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.random.Random
 
 abstract class Graph<E : Any> : Iterable<E> {
@@ -210,39 +208,59 @@ abstract class Graph<E : Any> : Iterable<E> {
     fun randomize(avgConnectionsPerVertex: Int, maxWeight: Int, allowDisjoint: Boolean = true, random: Random = Random) = randomize(avgConnectionsPerVertex, 1, maxWeight, allowDisjoint, random)
 
     //TODO: Consider refactoring to new class
-    fun randomizeWithCluster(numClusters: Int, avgExtraneousConnections: Double, clusterConnectedness: Double, maxWeight: Int, random: Random = Random) {
+    /**
+     * Randomizes the edges in a graph to create clusters. [interClusterConnectedness]/[intraClusterConnectedness] is essentially the clusteriness of the graph.
+     * @param numClusters The number of clusters to split the graph into.
+     * @param maxClusterSize The maximum proportion of vertices that can be in one cluster.
+     * @param intraClusterConnectedness The probability of a connection being made within a cluster. Must be between 0 and 1.
+     * @param interClusterConnectedness The probability of a connection being made between clusters. Must be between 0 and 1.
+     * @param maxEdgeWeight The maximum weight of a connection(exclusive).
+     * @param random A random object that determines what graph is constructed
+     */
+    fun randomizeWithCluster(numClusters: Int,
+                             maxEdgeWeight: Int,
+                             intraClusterConnectedness: Double,
+                             interClusterConnectedness: Double,
+                             random: Random = Random) {
         var remainingVertices = LinkedList(getVertices())
-        val graphs = LinkedList<Graph<E>>()
+        val clusters = LinkedList<Graph<E>>()
 
         val vertsPerCluster = size()/numClusters
 
         for(cluster in 0 until numClusters-1){
-           val size = vertsPerCluster //random.nextInt(
-//                vertsPerCluster-(0),
-//                vertsPerCluster+(1)
-//            ).coerceIn(1 until remainingVertices.size - (numClusters-1 - cluster))
+           val size = random.nextInt(
+                vertsPerCluster - (size()/10),
+                vertsPerCluster + (size()/10)
+            ).coerceIn(1 until remainingVertices.size - (numClusters-1 - cluster)) //ensure we have enough for numClusters
 
-            graphs += AMGraph.fromCollection(remainingVertices.take(size)).apply { randomize(clusterConnectedness, maxWeight, false, random) }
+            clusters += AMGraph.fromCollection(remainingVertices.take(size)).apply {
+                randomize(intraClusterConnectedness, maxEdgeWeight, false, random)
+            }
             remainingVertices = LinkedList(remainingVertices.subList(size, remainingVertices.size))
         }
-        val graph = AMGraph.fromCollection(remainingVertices)
-        graph.randomize(clusterConnectedness, maxWeight, false, random)
-
-        for(g in graphs){
-            graph.union(g)
+        clusters += AMGraph.fromCollection(remainingVertices).apply {
+            randomize(intraClusterConnectedness, maxEdgeWeight, false, random)
         }
-//        val probConnection = (avgExtraneousConnections/2) / numClusters //div 2 to account for both ways being checke
-//        for(g in graphs){
-//            for(vf in g){
-//                for(g2 in graphs){
-//                    if(g === g2) continue
-//                    for(vt in g2) {
-//                        graph[vf, vt] = random.nextInt(1, maxWeight)
-//                    }
-//                }
-//            }
-//        }
-        becomeCloneOf(graph)
+
+        val mergedGraph = AMGraph<E>()
+        for(g in clusters){
+            mergedGraph.union(g)
+        }
+
+        for(fromCluster in clusters){
+            for(fromVertex in fromCluster){
+                for(toCluster in clusters) {
+                    if(toCluster == fromCluster) continue //don't do an innerConnection
+                    for (toVertex in toCluster) {
+                        if (random.nextDouble() < interClusterConnectedness){
+                            mergedGraph[fromVertex, toVertex] = random.nextInt(1, maxEdgeWeight)
+                        }
+                    }
+                }
+            }
+        }
+
+        becomeCloneOf(mergedGraph)
     }
 
     private fun becomeCloneOf(graph: Graph<E>){
