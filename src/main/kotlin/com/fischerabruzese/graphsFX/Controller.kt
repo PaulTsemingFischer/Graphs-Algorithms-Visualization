@@ -8,7 +8,6 @@ import javafx.scene.layout.Pane
 import java.security.InvalidKeyException
 import java.text.NumberFormat
 import kotlin.system.measureNanoTime
-import kotlin.system.measureTimeMillis
 
 class Controller<E: Any> {
     //Pane
@@ -34,7 +33,7 @@ class Controller<E: Any> {
     @FXML
     private lateinit var toVertexField: TextField
     @FXML
-    private lateinit var connectedness: TextField
+    private lateinit var connectednessField: TextField
 
     //Console
     @FXML
@@ -94,7 +93,7 @@ class Controller<E: Any> {
     }
 
     //Console
-    private fun printClusters(clusters: List<List<E>>, connectedness: Double) {
+    private fun printClusters(clusters: Collection<Graph<E>>, connectedness: Double) {
         console.text = buildString {
             append("Clusters (connectedness: $connectedness)\n")
             for (cluster in clusters) {
@@ -219,6 +218,7 @@ class Controller<E: Any> {
     //Clustering
     @FXML
     private fun getClustersPressed() {
-        TODO()
+        val connectedness = connectednessField.text.toDouble()
+        printClusters(graph.getClusters(connectedness), connectedness)
     }
 }
