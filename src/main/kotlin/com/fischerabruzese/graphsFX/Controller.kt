@@ -6,6 +6,8 @@ import javafx.fxml.FXML
 import javafx.scene.control.*
 import javafx.scene.layout.Pane
 import java.security.InvalidKeyException
+import java.text.NumberFormat
+import kotlin.system.measureNanoTime
 import kotlin.system.measureTimeMillis
 
 class Controller<E: Any> {
@@ -107,7 +109,7 @@ class Controller<E: Any> {
             append("Dijkstra from $from to $to\n")
             append("Path: $path\n")
             append("Distance: $distance\n")
-            append("Time(ms): $time\n")
+            append("Time(ns): ${NumberFormat.getIntegerInstance().format(time)}\n")
             append(CONSOLE_LINE_SEPARATOR)
         } + console.text
     }
@@ -115,8 +117,7 @@ class Controller<E: Any> {
     private fun printBfs(from: E, to: E, path: List<E>, time: Long) {
         console.text = buildString {
             append("Breadth first search from $from to $to\n")
-            append("Path: $path\n")
-            append("Time(ms): $time\n")
+            append(pathingString(path, time))
             append(CONSOLE_LINE_SEPARATOR)
         } + console.text
     }
@@ -124,10 +125,16 @@ class Controller<E: Any> {
     private fun printDfs(from: E, to: E, path: List<E>, time: Long) {
         console.text = buildString {
             append("Depth first search from $from to $to\n")
-            append("Path: $path\n")
-            append("Time(ms): $time\n")
+            append(pathingString(path, time))
             append(CONSOLE_LINE_SEPARATOR)
         } + console.text
+    }
+
+    private fun pathingString(path: List<E>, time: Long): String{
+        return buildString {
+            append("Path: $path\n")
+            append("Time(ns): ${NumberFormat.getIntegerInstance().format(time)}\n")
+        }
     }
 
     //Randomization
@@ -203,7 +210,7 @@ class Controller<E: Any> {
         val from = getFromField()
         val to = getToField()
         val path: List<E>
-        val time = measureTimeMillis {
+        val time = measureNanoTime {
             path = algorithm(from, to)
         }
         return Triple((from to to), path, time)
