@@ -5,6 +5,7 @@ import javafx.beans.property.ReadOnlyDoubleProperty
 import javafx.fxml.FXML
 import javafx.scene.control.*
 import javafx.scene.layout.Pane
+import javafx.scene.paint.Color
 import java.security.InvalidKeyException
 import java.text.NumberFormat
 import kotlin.system.measureNanoTime
@@ -56,6 +57,7 @@ class Controller<E: Any> {
         this.graph = graph
         graphicComponents = GraphicComponents(graph, pane, stringToVMap)
         initializePhysicsSlider()
+        initializeVertexSelection()
     }
 
     fun draw() {
@@ -159,22 +161,40 @@ class Controller<E: Any> {
     }
 
     //Vertex selection
+    private fun initializeVertexSelection() {
+        fromVertexField.textProperty().addListener { _, oldValue, newValue ->
+            stringToVMap[oldValue]?.run{
+                clearOutline()
+            }
+            stringToVMap[newValue]?.run{
+                setOutline(Color.ORANGE)
+            }
+        }
+        toVertexField.textProperty().addListener { _, oldValue, newValue ->
+            stringToVMap[oldValue]?.run{
+                clearOutline()
+            }
+            stringToVMap[newValue]?.run{
+                setOutline(Color.rgb(207, 3, 252))
+            }
+        }
+    }
     private fun retrieveVertexElement(lookupKey: String): E? {
-        return stringToVMap[lookupKey.trim()]?.v
+        return stringToVMap[lookupKey]?.v
     }
+    //throw InvalidKeyException("user input: \"${fromVertexField.text}\" is not an existing vertex")
 
-    private fun getFromField(): E {
+    private fun getFromField(): E? {
         return retrieveVertexElement(fromVertexField.text)
-            ?: throw InvalidKeyException("user input: \"${fromVertexField.text}\" is not an existing vertex")
     }
 
-    private fun getToField(): E {
+    private fun getToField(): E? {
         return retrieveVertexElement(toVertexField.text)
-            ?: throw InvalidKeyException("user input: \"${toVertexField.text}\" is not an existing vertex")
     }
 
     @FXML
     private fun fromVertexChanged() {
+
     }
 
     @FXML
@@ -184,7 +204,7 @@ class Controller<E: Any> {
     //Pathing
     @FXML
     private fun dijkstraPressed() {
-        pathingButtonPressed(graph::path).let {
+        pathingButtonPressed(graph::path)?.let {
             printDijkstra(
                 it.first.first,
                 it.first.second,
@@ -197,18 +217,20 @@ class Controller<E: Any> {
 
     @FXML
     private fun bfsPressed() {
-        pathingButtonPressed(graph::path).let { printBfs(it.first.first, it.first.second, it.second, it.third) }
+        pathingButtonPressed(graph::path)?.let { printBfs(it.first.first, it.first.second, it.second, it.third) }
     }
 
     @FXML
     private fun dfsPressed() {
-        pathingButtonPressed(graph::path).let { printDfs(it.first.first, it.first.second, it.second, it.third) }
+        pathingButtonPressed(graph::path)?.let { printDfs(it.first.first, it.first.second, it.second, it.third) }
     }
 
-    private fun pathingButtonPressed(algorithm: (E, E) -> List<E>): Triple<Pair<E, E>, List<E>, Long> {
+    private fun pathingButtonPressed(algorithm: (E, E) -> List<E>): Triple<Pair<E, E>, List<E>, Long>? {
         val from = getFromField()
         val to = getToField()
+        if(from == null || to == null) return null
         val path: List<E>
+
         val time = measureNanoTime {
             path = algorithm(from, to)
         }

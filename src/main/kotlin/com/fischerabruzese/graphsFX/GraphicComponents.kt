@@ -157,6 +157,16 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
             circle.fill = color
         }
 
+        fun setOutline(color: Color){
+            circle.stroke = color
+            circle.strokeWidth = 5.0
+        }
+
+        fun clearOutline(){
+            circle.stroke = Color.TRANSPARENT
+            circle.strokeWidth = 0.0
+        }
+
         override fun toString(): String {
             return v.toString()
         }
