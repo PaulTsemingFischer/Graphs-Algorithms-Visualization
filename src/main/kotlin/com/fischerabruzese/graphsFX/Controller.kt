@@ -240,37 +240,36 @@ class Controller<E: Any> {
     }
 
     private fun colorPath(path: List<E>) {
-        graphicComponents.currentPathVertices.clear()
-        for(v in graphicComponents.vertices){
-            if(v.v in path){
-                graphicComponents.currentPathVertices.add(v)
-            }
-        }
-
-        graphicComponents.currentPathConnections.clear()
-        for(edge in graphicComponents.edges){
-            val c1 = edge.v1tov2Connection
-            val c2 = edge.v2tov1Connection
-            for((v1,v2) in graphicComponents.currentPathVertices.dropLast(1).zip(graphicComponents.currentPathVertices.drop(1))){
-                if(edge.v1 == v1 && edge.v2 == v2){
-                    graphicComponents.currentPathConnections.add(c1)
-                }
-                else if (edge.v1 == v2 && edge.v2 == v1){
-                    graphicComponents.currentPathConnections.add(c2)
+        graphicComponents.run{
+            currentPathVertices.clear()
+            for(v in path){
+                for(vertex in vertices){
+                    if(vertex.v == v)
+                    currentPathVertices.add(vertex)
                 }
             }
+
+            currentPathConnections.clear()
+            for((v1,v2) in currentPathVertices.dropLast(1).zip(currentPathVertices.drop(1))){
+                for(edge in edges){
+                    if(edge.v1 == v1 && edge.v2 == v2){
+                        currentPathConnections.addLast(edge.v1tov2Connection)
+                        break
+                    }
+                    else if (edge.v1 == v2 && edge.v2 == v1){
+                        currentPathConnections.addLast(edge.v2tov1Connection)
+                        break
+                    }
+                }
+            }
+
+            println(currentPathVertices)
+            println(currentPathConnections + " " + currentPathConnections.last())
+
+            greyEverything()
+
+            makePathFancyColors()
         }
-
-        graphicComponents.greyEverything()
-
-
-
-        graphicComponents.makePathFancyColors()
-
-        //color graphicComponent lists
-
-        //add listener for clicks on grey nodes
-
     }
 
 

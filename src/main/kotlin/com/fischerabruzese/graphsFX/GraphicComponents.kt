@@ -568,9 +568,23 @@ class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, val stringT
     fun makePathFancyColors() {
         val startColor = Color.ORANGE
         val endColor = Color.PURPLE
-        for(v in currentPathConnections.indices)
+        val segments = currentPathVertices.size + currentPathConnections.size
+        val currColor = startColor
+        val connections = LinkedList(currentPathConnections)
+        val verts = LinkedList(currentPathVertices)
 
-            currentPathVertices.last()
+        while(!verts.isEmpty()){
+            val vert = verts.removeFirst()
+            vert.setColor(currColor)
+            //update currColor
+            
+            if(!connections.isEmpty()) {
+                val connection = connections.removeFirst()
+                connection.setLineColor(currColor)
+                connection.boldLine()
+                //update currColor
+            }
+        }
     }
 
 
