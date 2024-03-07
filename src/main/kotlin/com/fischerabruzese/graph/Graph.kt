@@ -230,16 +230,16 @@ abstract class Graph<E : Any> : Iterable<E> {
         for(cluster in 0 until numClusters-1){
            val size = random.nextInt(
                 vertsPerCluster - (size()/10),
-                vertsPerCluster + (size()/10)
+                vertsPerCluster + (size()/10) + 1
             ).coerceIn(1 until remainingVertices.size - (numClusters-1 - cluster)) //ensure we have enough for numClusters
 
             clusters += AMGraph.fromCollection(remainingVertices.take(size)).apply {
-                randomize(intraClusterConnectedness, maxEdgeWeight, false, random)
+                randomize(intraClusterConnectedness, maxEdgeWeight, true, random)
             }
             remainingVertices = LinkedList(remainingVertices.subList(size, remainingVertices.size))
         }
         clusters += AMGraph.fromCollection(remainingVertices).apply {
-            randomize(intraClusterConnectedness, maxEdgeWeight, false, random)
+            randomize(intraClusterConnectedness, maxEdgeWeight, true, random)
         }
 
         val mergedGraph = AMGraph<E>()

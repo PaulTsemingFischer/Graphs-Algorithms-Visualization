@@ -20,11 +20,11 @@ class GraphApp : Application() {
 
         /* Customize your graph */
 
-        val verts = (0 until 25).toList()
+        val verts = (0 until 40).toList()
 
         //val graph = createGraph(getText())
         val graph = AMGraph.fromCollection(verts)
-        graph.randomizeWithCluster(4, 9, 0.3, 0.02)
+        graph.randomizeWithCluster(3, 9, .39, 0.004)
 
 
 //        val graph = AMGraph.graphOf<Int>(
@@ -144,6 +144,7 @@ class GraphApp : Application() {
 */
         controller.draw()
         stage.show()
+        //controller.unfixSimulationLag()
     }
 }
 

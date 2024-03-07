@@ -50,10 +50,12 @@ class Displacement(override var x: Double, override var y: Double, private val e
         else -> value
     }
 
-    fun constrainBetween(max: Double, min: Double): Displacement {
+    fun constrainBetween(max: Double, min: Double): Boolean {
+        val orgX = x
+        val orgY = y
         x = max(min(x, max), min)
         y = max(min(y, max), min)
-        return this
+        return (orgX != x || orgY != y)
     }
 
     operator fun plusAssign(other: Position) {

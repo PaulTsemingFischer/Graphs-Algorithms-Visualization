@@ -3,10 +3,12 @@ package com.fischerabruzese.graphsFX
 import com.fischerabruzese.graph.Graph
 import javafx.beans.property.ReadOnlyDoubleProperty
 import javafx.fxml.FXML
-import javafx.scene.control.*
+import javafx.scene.control.CheckBox
+import javafx.scene.control.Slider
+import javafx.scene.control.TextArea
+import javafx.scene.control.TextField
 import javafx.scene.layout.Pane
 import javafx.scene.paint.Color
-import java.security.InvalidKeyException
 import java.text.NumberFormat
 import kotlin.system.measureNanoTime
 
@@ -141,7 +143,6 @@ class Controller<E: Any> {
     //Randomization
     @FXML
     private fun randomizePressed() {
-
     }
 
     //Physics
@@ -206,11 +207,11 @@ class Controller<E: Any> {
     private fun dijkstraPressed() {
         pathingButtonPressed(graph::path)?.let {
             printDijkstra(
-                it.first.first,
-                it.first.second,
-                it.second,
-                graph.distance(it.first.first, it.first.second),
-                it.third
+                from = it.first.first,
+                to = it.first.second,
+                path = it.second,
+                distance = graph.distance(it.first.first, it.first.second),
+                time = it.third
             )
         }
     }
@@ -228,14 +229,50 @@ class Controller<E: Any> {
     private fun pathingButtonPressed(algorithm: (E, E) -> List<E>): Triple<Pair<E, E>, List<E>, Long>? {
         val from = getFromField()
         val to = getToField()
-        if(from == null || to == null) return null
+        from?:return null; to?:return null
         val path: List<E>
 
         val time = measureNanoTime {
             path = algorithm(from, to)
         }
+        colorPath(path)
         return Triple((from to to), path, time)
     }
+
+    private fun colorPath(path: List<E>) {
+        graphicComponents.currentPathVertices.clear()
+        for(v in graphicComponents.vertices){
+            if(v.v in path){
+                graphicComponents.currentPathVertices.add(v)
+            }
+        }
+
+        graphicComponents.currentPathConnections.clear()
+        for(edge in graphicComponents.edges){
+            val c1 = edge.v1tov2Connection
+            val c2 = edge.v2tov1Connection
+            for((v1,v2) in graphicComponents.currentPathVertices.dropLast(1).zip(graphicComponents.currentPathVertices.drop(1))){
+                if(edge.v1 == v1 && edge.v2 == v2){
+                    graphicComponents.currentPathConnections.add(c1)
+                }
+                else if (edge.v1 == v2 && edge.v2 == v1){
+                    graphicComponents.currentPathConnections.add(c2)
+                }
+            }
+        }
+
+        graphicComponents.greyEverything()
+
+
+
+        graphicComponents.makePathFancyColors()
+
+        //color graphicComponent lists
+
+        //add listener for clicks on grey nodes
+
+    }
+
 
     //Clustering
     @FXML

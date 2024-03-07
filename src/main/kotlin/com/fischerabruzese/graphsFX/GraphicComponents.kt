@@ -1,3 +1,10 @@
+/* TODO:
+    1. Create 2 lists of components for path ;;
+    2. Create method that greys non-path objects
+    3. Create method that ungreys all on non-path click
+    4. Color path
+*/
+
 package com.fischerabruzese.graphsFX
 
 import com.fischerabruzese.graph.Graph
@@ -14,22 +21,28 @@ import javafx.scene.paint.Color
 import javafx.scene.shape.Circle
 import javafx.scene.shape.Line
 import javafx.scene.text.Font
+import kotlinx.coroutines.*
 import java.util.*
+import java.util.concurrent.CountDownLatch
 import kotlin.math.*
 import kotlin.random.Random
 
-internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, val stringToVMap: HashMap<String, GraphicComponents<E>.Vertex>) {
+class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, val stringToVMap: HashMap<String, GraphicComponents<E>.Vertex>) {
     private val CIRCLE_RADIUS = 20.0
 
     private var selectedVertex: GraphicComponents<E>.Vertex? = null
     private val hitboxes = ArrayList<Circle>()
-    private var edges = ArrayList<Edge>()
+    internal var edges = ArrayList<Edge>()
+
+    internal var currentPathVertices = LinkedList<Vertex>()
+    internal var currentPathConnections = LinkedList<Edge.Connection>()
+
     @JvmName("dumpEdgePositions")
     private fun ArrayList<Edge>.dumpPositions() = this.map {
         Position(((it.v2.x.get()+it.v1.x.get())/2.0), ((it.v2.y.get()+it.v1.y.get())/2.0))
     }.toTypedArray()
 
-    private var vertices = ArrayList<Vertex>()
+    internal var vertices = ArrayList<Vertex>()
     @JvmName("dumpVertexPositions")
     private fun ArrayList<Vertex>.dumpPositions() = this.map { it.pos }.toTypedArray()
 
@@ -133,7 +146,17 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
             hitbox.setOnMouseEntered { circle.fill = Color.GREEN }
             hitbox.setOnMouseExited { circle.fill = Color.BLUE}
 
-            hitbox.setOnMousePressed { dragStart(it); greyDetached(this); circle.fill = Color.RED; selectedVertex = this }
+            hitbox.setOnMousePressed {
+                dragStart(it)
+                greyDetached(this)
+                selectedVertex = this
+                if(!currentPathVertices.contains(this)){
+                    ungreyEverything()
+                    currentPathVertices.clear()
+                    currentPathConnections.clear()
+                }
+                circle.fill = Color.RED
+            }
             hitbox.setOnMouseDragged { drag(it) }
             hitbox.setOnMouseReleased { ungreyEverything(); circle.fill = Color.GREEN; selectedVertex = null }
             hitbox.pickOnBoundsProperty().set(true)
@@ -151,6 +174,13 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
         private fun drag(event : MouseEvent) {
             x.set((event.sceneX / pane.width - xDelta).let{if(it > 1) 1.0 else if(it < 0) 0.0 else it})
             y.set((event.sceneY / pane.height - yDelta).let{if(it > 1) 1.0 else if(it < 0) 0.0 else it})
+        }
+
+        fun grey(){
+            setColor(Color(0.0, 0.0, 1.0, 0.3))
+        }
+        fun ungrey(){
+            setColor(Color.BLUE)
         }
 
         fun setColor(color: Color) {
@@ -242,6 +272,13 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
                 director2.setColor(color)
             }
 
+            fun boldLine(){
+                line.strokeWidth = 5.0
+            }
+            fun unboldLine() {
+                line.strokeWidth = 1.0
+            }
+
             fun setLabelColor(color : Color) {
                 label.textFill = color
             }
@@ -311,6 +348,15 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
             else v2tov1Connection.setWeight(weight)
         }
 
+        fun grey(){
+            setLineColor(Color.rgb(192, 192, 192, 0.8))
+            setLabelColor(Color.GREY)
+        }
+        fun ungrey(){
+            setLineColor(Color.rgb(0, 0, 0, 0.6))
+            setLabelColor(Color.BLACK)
+        }
+
         fun setLineColor(color: Color) {
             v1tov2Connection.setLineColor(color)
             v2tov1Connection.setLineColor(color)
@@ -351,28 +397,26 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
     }
 
     abstract inner class Physics(var on: Boolean, var speed: Double) {
-        fun simulate(){
+        fun simulate() {
             Thread {
                 while(on){
-                    try {
-                        Thread.sleep(1)
-                    } catch (e: InterruptedException){
-                        e.printStackTrace();
-                    }
+                    val latch = CountDownLatch(1) // Initialize with a count of 1
+                    val nextFrame = generateFrame(speed, unaffected = listOfNotNull(selectedVertex))
                     Platform.runLater {
-                        pushFrame(generateFrame(speed, unaffected = listOfNotNull(selectedVertex)))
+                        pushFrame(nextFrame)
+                        latch.countDown() //signal that Platform has executed our frame
                     }
+                    latch.await() //wait for platform to execute our frame
                 }
             }.start()
         }
-
         /**
          * @param at The position at which to calculate the adjustment
          * @param froms The list of triples containing the source position, weight, and force magnitude function(defaults to 1/radiusSquared)
          * @param forceCapPerPos The maximum force cap per position, default is 0.1
          * @return The displacement calculated based on the provided parameters
          */
-        abstract fun calculateAdjustmentAtPos(at: Position, froms: List<Pair<Position, (Double) -> Double>>, forceCapPerPos: Double = 0.1): Displacement
+        abstract fun calculateAdjustmentAtPos(at: Position, froms: List<Pair<Position, (Double) -> Double>>, forceCapPerPos: Double = 0.01): Displacement
 
         abstract fun generateFrame(speed: Double, unaffected: List<GraphicComponents<E>.Vertex> = emptyList(), uneffectors: List<GraphicComponents<E>.Vertex> = emptyList()): Array<Displacement>
 
@@ -391,8 +435,12 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
                 displacement += calculateAdjustmentAtPos(at, pos, scaleFactor, fieldEq)
             }
 
-            //Capping the total force
-            return displacement.constrainBetween(forceCapPerPos, -forceCapPerPos)
+            //Capping the total force, add some variation
+            displacement.constrainBetween(
+                forceCapPerPos, //+ Random.nextDouble(-forceCapPerPos/10, forceCapPerPos/10),
+                -forceCapPerPos //+ Random.nextDouble(-forceCapPerPos/10, forceCapPerPos/10)
+            )
+            return displacement
         }
 
         /** Calculates the change in position of [at] based on [from] */
@@ -416,7 +464,7 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
 
         /** Hands you an array of all the displacements in the current frame */
         override fun generateFrame(speed: Double, unaffected: List<GraphicComponents<E>.Vertex>, uneffectors: List<GraphicComponents<E>.Vertex>): Array<Displacement>{
-            val max = 1000
+            val max = 200
             val scaleFactor = speed.pow(4) * max
 
             val displacements = Array(vertices.size) { Displacement(0.0, 0.0) }
@@ -443,6 +491,7 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
                                 else -> Pair(vertexEffector.pos, unconnectedVertexField)
                             }
                     }
+
                 edges.zip(edges.dumpPositions())
                     .filterNot { (e, _) -> e.v1 == vertex || e.v2 == vertex } //should I add another filter for effector stuff
                     .mapTo(effectors) { (_, pos) -> Pair(pos, edgeFieldEquation) }
@@ -464,36 +513,66 @@ internal class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, va
             }
         }
     }
-
-
-    //Gray out non-attached vertices and edges in the graph
-    fun greyDetached(src: GraphicComponents<E>.Vertex) {
+/*
+    fun greyNonPath() {
         for (vert in vertices) {
-            vert.setColor(Color(0.0, 0.0, 1.0, 0.3))
+            if(!currentPathVertices.contains(vert))
+                vert.grey()
+        }
+        for (edge in edges){
+            if(!currentPathEdges.contains(edge)){
+                edge.grey()
+            }
+        }
+    }
+
+ */
+
+
+    //Grey out non-attached vertices and edges in the graph
+    fun greyDetached(src: GraphicComponents<E>.Vertex) {
+        for (vert in vertices.filterNot{ it == src }) {
+            vert.grey()
         }
         for (edge in edges) {
             if (edge.v1 != src && edge.v2 != src) {
-                edge.setLineColor(Color.rgb(192, 192, 192, 0.8))
-                edge.setLabelColor(Color.GREY)
+                edge.grey()
             } else {
-                edge.v1.let { if (it != src) it.setColor(Color.BLUE) }
-                edge.v2.let { if (it != src) it.setColor(Color.BLUE) }
+                edge.v1.let { if (it != src) it.ungrey()}
+                edge.v2.let { if (it != src) it.ungrey() }
                 edge.setLineColor(Color.GREEN, Color.RED, src)
                 edge.setLabelColor(Color.GREEN, Color.RED, src)
             }
         }
     }
 
-    //Ungray everything by setting line and label colors for edges and color for vertices.
-    private fun ungreyEverything(){
+    //Ungrey everything by setting line and label colors for edges and color for vertices.
+    fun ungreyEverything(){
         for(edge in edges){
-            edge.setLineColor(Color.rgb(0, 0, 0, 0.6))
-            edge.setLabelColor(Color.BLACK)
+            edge.ungrey()
         }
         for (vert in vertices){
-            vert.setColor(Color.BLUE)
+            vert.ungrey()
         }
     }
+
+    fun greyEverything(){
+        for(edge in edges){
+            edge.grey()
+        }
+        for (vert in vertices){
+            vert.grey()
+        }
+    }
+
+    fun makePathFancyColors() {
+        val startColor = Color.ORANGE
+        val endColor = Color.PURPLE
+        for(v in currentPathConnections.indices)
+
+            currentPathVertices.last()
+    }
+
 
 //    val clustering = object : Clustering() {}
 //    abstract inner class Clustering{
