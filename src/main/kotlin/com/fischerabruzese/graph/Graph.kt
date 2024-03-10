@@ -2,6 +2,7 @@ package com.fischerabruzese.graph
 
 import java.util.*
 import kotlin.random.Random
+@Suppress("unused")
 
 abstract class Graph<E : Any> : Iterable<E> {
 
@@ -211,10 +212,9 @@ abstract class Graph<E : Any> : Iterable<E> {
     /**
      * Randomizes the edges in a graph to create clusters. [interClusterConnectedness]/[intraClusterConnectedness] is essentially the clusteriness of the graph.
      * @param numClusters The number of clusters to split the graph into.
-     * @param maxClusterSize The maximum proportion of vertices that can be in one cluster.
+     * @param maxEdgeWeight The maximum weight of a connection(exclusive).
      * @param intraClusterConnectedness The probability of a connection being made within a cluster. Must be between 0 and 1.
      * @param interClusterConnectedness The probability of a connection being made between clusters. Must be between 0 and 1.
-     * @param maxEdgeWeight The maximum weight of a connection(exclusive).
      * @param random A random object that determines what graph is constructed
      */
     fun randomizeWithCluster(numClusters: Int,

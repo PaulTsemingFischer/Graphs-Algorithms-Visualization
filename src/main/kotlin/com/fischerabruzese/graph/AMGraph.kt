@@ -1,24 +1,19 @@
-//Graphics TODO: Implement attraction
-//TODO: Make clustering a toggle
-
 //TODO: Separate randomize avg connections and probability so that you can do decimal avg connections
-//TODO: Make randomize depend on the toggle
+//TODO: Make randomize have some parameters in graphics
 //TODO: Graph presets
-//TODO: Figure out the issue with OG dijkstra
-//TODO: Write linkedListOf extension function
+//TODO: Figure out the issue with OG dijkstra with disjoint graphs
 //TODO: make kargerness a confidence %
-//TODO: Make edit edge work on non-existant edges
 
-//TODO: COMMENTING -> Comment pathing stuff not already commented in Graph.kt
+//TODO: COMMENTING
 
 package com.fischerabruzese.graph
 
 import java.math.BigInteger
-import java.util.LinkedList
+import java.util.*
 import kotlin.math.min
-import kotlin.random.Random
 import kotlin.math.pow
-
+import kotlin.random.Random
+@Suppress("unused")
 /**
  * Represents a directed graph with non-negative edge weights.
  * @param E The type of the vertices in the graph.

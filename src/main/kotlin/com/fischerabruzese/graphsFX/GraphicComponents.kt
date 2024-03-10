@@ -1,10 +1,3 @@
-/* TODO:
-    1. Create 2 lists of components for path ;;
-    2. Create method that greys non-path objects
-    3. Create method that ungreys all on non-path click
-    4. Color path
-*/
-
 package com.fischerabruzese.graphsFX
 
 import com.fischerabruzese.graph.Graph
@@ -142,22 +135,28 @@ class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, val stringT
             bindAll()
 
             //Listeners
-            hitbox.setOnMouseEntered { circle.fill = Color.GREEN }
-            hitbox.setOnMouseExited { circle.fill = Color.BLUE}
+            hitbox.setOnMouseEntered { if(currentPathVertices.isEmpty()) circle.fill = Color.GREEN }
+            hitbox.setOnMouseExited { if(currentPathVertices.isEmpty()) circle.fill = Color.BLUE }
 
             hitbox.setOnMousePressed {
                 dragStart(it)
-                greyDetached(this)
                 selectedVertex = this
                 if(!currentPathVertices.contains(this)){
                     ungreyEverything()
                     currentPathVertices.clear()
                     currentPathConnections.clear()
+                    greyDetached(this) //normal selection greying
+                    circle.fill = Color.RED
                 }
-                circle.fill = Color.RED
             }
             hitbox.setOnMouseDragged { drag(it) }
-            hitbox.setOnMouseReleased { ungreyEverything(); circle.fill = Color.GREEN; selectedVertex = null }
+            hitbox.setOnMouseReleased {
+                if(!currentPathVertices.contains(this)) {
+                    ungreyEverything()
+                    circle.fill = Color.GREEN
+                }
+                selectedVertex = null
+            }
             hitbox.pickOnBoundsProperty().set(true)
 
             hitboxes.add(hitbox)
@@ -272,10 +271,14 @@ class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, val stringT
             }
 
             fun boldLine(){
-                line.strokeWidth = 5.0
+                line.strokeWidth = 3.0
+                director1.boldLine()
+                director2.boldLine()
             }
             fun unboldLine() {
                 line.strokeWidth = 1.0
+                director1.unboldLine()
+                director2.unboldLine()
             }
 
             fun setLabelColor(color : Color) {
@@ -337,6 +340,15 @@ class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, val stringT
                     line1.stroke = color
                     line2.stroke = color
                 }
+
+                fun boldLine() {
+                    line1.strokeWidth = 3.0
+                    line2.strokeWidth = 3.0
+                }
+                fun unboldLine() {
+                    line1.strokeWidth = 1.0
+                    line2.strokeWidth = 1.0
+                }
             }
         }
 
@@ -350,10 +362,13 @@ class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, val stringT
         fun grey(){
             setLineColor(Color.rgb(192, 192, 192, 0.8))
             setLabelColor(Color.GREY)
+
         }
         fun ungrey(){
             setLineColor(Color.rgb(0, 0, 0, 0.6))
             setLabelColor(Color.BLACK)
+            v1tov2Connection.unboldLine()
+            v2tov1Connection.unboldLine()
         }
 
         fun setLineColor(color: Color) {
@@ -564,24 +579,59 @@ class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, val stringT
         }
     }
 
+    fun colorPath(path: List<E>){
+        currentPathVertices.clear()
+        for(v in path){
+            for(vertex in vertices){
+                if(vertex.v == v)
+                    currentPathVertices.add(vertex)
+            }
+        }
+
+        currentPathConnections.clear()
+        for((v1,v2) in currentPathVertices.dropLast(1).zip(currentPathVertices.drop(1))){
+            for(edge in edges){
+                if(edge.v1 == v1 && edge.v2 == v2){
+                    currentPathConnections.addLast(edge.v1tov2Connection)
+                    break
+                }
+                else if (edge.v1 == v2 && edge.v2 == v1){
+                    currentPathConnections.addLast(edge.v2tov1Connection)
+                    break
+                }
+            }
+        }
+
+        greyEverything()
+        makePathFancyColors()
+    }
+
     fun makePathFancyColors() {
         val startColor = Color.ORANGE
-        val endColor = Color.PURPLE
-        val segments = currentPathVertices.size + currentPathConnections.size
-        val currColor = startColor
+        val endColor = Color.rgb(207, 3, 252)
+        val segments: Double = currentPathVertices.size + currentPathConnections.size.toDouble()
+        var currColor = startColor
         val connections = LinkedList(currentPathConnections)
         val verts = LinkedList(currentPathVertices)
 
         while(!verts.isEmpty()){
             val vert = verts.removeFirst()
-            vert.setColor(currColor)
-            //update currColor
+            if(verts.isEmpty()) vert.setColor(endColor) else vert.setColor(currColor)
+            currColor = Color.color(
+                (currColor.red + ((endColor.red - startColor.red)/segments)),
+                (currColor.green + ((endColor.green - startColor.green)/segments)),
+                (currColor.blue + ((endColor.blue - startColor.blue)/segments))
+            )
             
             if(!connections.isEmpty()) {
                 val connection = connections.removeFirst()
                 connection.setLineColor(currColor)
                 connection.boldLine()
-                //update currColor
+                currColor = Color.color(
+                    (currColor.red + ((endColor.red - startColor.red)/segments)),
+                    (currColor.green + ((endColor.green - startColor.green)/segments)),
+                    (currColor.blue + ((endColor.blue - startColor.blue)/segments))
+                )
             }
         }
     }
