@@ -36,7 +36,9 @@ class Controller<E: Any> {
     @FXML
     private lateinit var toVertexField: TextField
     @FXML
-    private lateinit var connectednessField: TextField
+    private lateinit var connectednessSlider: Slider
+    @FXML
+    private lateinit var clusterColoringToggle: CheckBox
 
     //Console
     @FXML
@@ -99,9 +101,9 @@ class Controller<E: Any> {
     //Console
     private fun printClusters(clusters: Collection<Graph<E>>, connectedness: Double) {
         console.text = buildString {
-            append("Clusters (connectedness: $connectedness)\n")
+            append("Clusters (connectedness: ${NumberFormat.getNumberInstance().format(connectedness)})\n")
             for (cluster in clusters) {
-                append("${cluster.getVertices()}\n")
+                append("${cluster.getVertices()}\n\n")
             }
             append(CONSOLE_LINE_SEPARATOR)
         } + console.text
@@ -275,8 +277,8 @@ class Controller<E: Any> {
 
     //Clustering
     @FXML
-    private fun getClustersPressed() {
-        val connectedness = connectednessField.text.toDouble()
+    private fun printClustersPressed() {
+        val connectedness = connectednessSlider.value
         printClusters(graph.getClusters(connectedness), connectedness)
     }
 }

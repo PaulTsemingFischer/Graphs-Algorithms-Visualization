@@ -336,5 +336,5 @@ abstract class Graph<E : Any> : Iterable<E> {
 
     /*---------------- CLUSTERING ----------------*/
 
-    abstract fun getClusters(connectedness: Double = 0.5, kargerness: Int = 1000000): Collection<Graph<E>>
+    abstract fun getClusters(connectedness: Double = 0.5, kargerness: Int = 10000): Collection<Graph<E>>
 }

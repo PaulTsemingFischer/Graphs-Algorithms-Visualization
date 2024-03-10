@@ -21,7 +21,6 @@ import javafx.scene.paint.Color
 import javafx.scene.shape.Circle
 import javafx.scene.shape.Line
 import javafx.scene.text.Font
-import kotlinx.coroutines.*
 import java.util.*
 import java.util.concurrent.CountDownLatch
 import kotlin.math.*
@@ -117,7 +116,7 @@ class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, val stringT
         var vTranslateXBinding : DoubleBinding = pane.widthProperty().multiply(this.x).multiply(usablePercentPaneWidth).add(CIRCLE_RADIUS)
         var vtranslateYBinding : DoubleBinding = pane.heightProperty().multiply(this.y).multiply(usablePercentPaneHeight).add(CIRCLE_RADIUS)
 
-        fun bindAll(){
+        private fun bindAll(){
             //Circle
             circle.translateXProperty().bind(vTranslateXBinding.subtract(CIRCLE_RADIUS))
             circle.translateYProperty().bind(vtranslateYBinding.subtract(CIRCLE_RADIUS))
