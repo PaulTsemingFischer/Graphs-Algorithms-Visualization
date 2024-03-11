@@ -9,8 +9,7 @@ Features:
 - _Pathing algorithms including Dijkstra's_
 - _Unfinished coloring algorithm that definitely doesn't work_
 - _Highly Connected Subgraph clustering algorithm_
-- _Graph Randomization including clustered randomization_
--  
+- _Graph Randomization including clustered randomization_  
 
 Part 2: Graphics Implementation
 -
