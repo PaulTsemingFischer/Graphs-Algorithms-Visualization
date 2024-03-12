@@ -1,6 +1,6 @@
 Graph. A Data Structure with Algorithm's project co-authored by ___
 
-Part 1: Graph Implimentation
+Part 1: Graph Implementation
 -
 _A graph data structure in Kotlin using an adjacency matrix_
 
