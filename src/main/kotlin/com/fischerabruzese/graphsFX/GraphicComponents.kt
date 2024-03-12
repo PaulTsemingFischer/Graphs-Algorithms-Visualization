@@ -13,19 +13,26 @@ import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.shape.Circle
 import javafx.scene.shape.Line
+import javafx.scene.shape.StrokeType
 import javafx.scene.text.Font
 import java.util.*
 import java.util.concurrent.CountDownLatch
 import kotlin.math.*
 import kotlin.random.Random
 
-class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, val stringToVMap: HashMap<String, GraphicComponents<E>.Vertex>) {
+class GraphicComponents<E: Any>(
+    val graph: Graph<E>,
+    val pane: Pane,
+    val stringToVMap: HashMap<String, GraphicComponents<E>.Vertex>
+) {
     private val CIRCLE_RADIUS = 20.0
 
     private var selectedVertex: GraphicComponents<E>.Vertex? = null
-    private val hitboxes = ArrayList<Circle>()
-    internal var edges = ArrayList<Edge>()
 
+    private val hitboxes = ArrayList<Circle>()
+    private var edges = ArrayList<Edge>() //Made this private instead of internal, might break something
+
+    //Path storage
     internal var currentPathVertices = LinkedList<Vertex>()
     internal var currentPathConnections = LinkedList<Edge.Connection>()
 
@@ -41,9 +48,13 @@ class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, val stringT
 
 
     fun draw() {
+        //Clear the pane
         pane.children.clear()
 
+        //Get list of vertices from graph
         val verticesElements = ArrayList(graph.getVertices())
+
+        //Map the vertices to graphic representation using the old vertex positions if found or random positions if not
         val graphicVertices = verticesElements.mapIndexed { index, vertex ->
             Vertex(
                 vertex,
@@ -51,8 +62,9 @@ class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, val stringT
                 vertices.getOrNull(index)?.y?.get() ?: Math.random()
             )
         }
-        val edgeElements = ArrayList<Edge>()
 
+        //Iterate through the vertices to create edges
+        val edgeElements = ArrayList<Edge>()
         for((v1pos, vertex1) in verticesElements.withIndex()){
             for(vertex2 in verticesElements.subList(v1pos, verticesElements.size)){ //can't get index because we have a sublist
                 val v1tov2Weight = graph[vertex1, vertex2] ?: -1
@@ -61,8 +73,12 @@ class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, val stringT
                     edgeElements.add(Edge(graphicVertices[v1pos], graphicVertices[verticesElements.indexOf(vertex2)], v1tov2Weight, v2tov1Weight))
             }
         }
+
+        //Store references to edges and vertices
         edges = edgeElements
         vertices = ArrayList(graphicVertices)
+
+        //Add the elements to the pane
         pane.children.addAll(edgeElements)
         pane.children.addAll(graphicVertices)
         pane.children.addAll(hitboxes)
@@ -111,12 +127,15 @@ class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, val stringT
 
         private fun bindAll(){
             //Circle
-            circle.translateXProperty().bind(vTranslateXBinding.subtract(CIRCLE_RADIUS))
-            circle.translateYProperty().bind(vtranslateYBinding.subtract(CIRCLE_RADIUS))
+            val offsetBinding: DoubleBinding = circle.strokeWidthProperty().add(CIRCLE_RADIUS)
+            circle.translateXProperty().bind(vTranslateXBinding.subtract(offsetBinding))
+            circle.translateYProperty().bind(vtranslateYBinding.subtract(offsetBinding))
+            circle.strokeType = StrokeType.OUTSIDE
+            clearOutline()
 
             //Label
-            label.translateXProperty().bind(vTranslateXBinding.subtract(CIRCLE_RADIUS))
-            label.translateYProperty().bind(vtranslateYBinding.subtract(CIRCLE_RADIUS))
+            label.translateXProperty().bind(vTranslateXBinding.subtract(offsetBinding))
+            label.translateYProperty().bind(vtranslateYBinding.subtract(offsetBinding))
 
             label.textFill = Color.WHITE
 
@@ -430,7 +449,7 @@ class GraphicComponents<E: Any>(val graph: Graph<E>, val pane: Pane, val stringT
          * @param forceCapPerPos The maximum force cap per position, default is 0.1
          * @return The displacement calculated based on the provided parameters
          */
-        abstract fun calculateAdjustmentAtPos(at: Position, froms: List<Pair<Position, (Double) -> Double>>, forceCapPerPos: Double = 0.01): Displacement
+        abstract fun calculateAdjustmentAtPos(at: Position, froms: List<Pair<Position, (Double) -> Double>>, forceCapPerPos: Double = 0.1): Displacement
 
         abstract fun generateFrame(speed: Double, unaffected: List<GraphicComponents<E>.Vertex> = emptyList(), uneffectors: List<GraphicComponents<E>.Vertex> = emptyList()): Array<Displacement>
 
