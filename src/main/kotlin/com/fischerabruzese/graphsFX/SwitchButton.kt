@@ -11,7 +11,9 @@ import javafx.scene.shape.Rectangle
 import java.util.LinkedList
 
 class SwitchButton : StackPane() {
-    private val back = Rectangle(30.0, 10.0, Color.RED)
+    private val color1 = Color.PINK
+    private val color2 = Color.SKYBLUE
+    private val back = Rectangle(30.0, 10.0, color1)
     private val button = Button()
     private var buttonStyleLeft = "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 0.2, 0.0, 0.0, 2); -fx-background-color: WHITE;"
     private var buttonStyleRight = "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 0.2, 0.0, 0.0, 2); -fx-background-color: WHITE;"
@@ -35,7 +37,6 @@ class SwitchButton : StackPane() {
         back.minHeight(10.0)
         back.arcHeight = back.height
         back.arcWidth = back.height
-        back.fill = Color.SKYBLUE
         val r = 2.0
         button.shape = Circle(r)
         setAlignment(button, Pos.CENTER_LEFT)
@@ -49,12 +50,12 @@ class SwitchButton : StackPane() {
         val click = EventHandler<MouseEvent> { _ ->
             if (state == SwitchButtonState.RIGHT) {
                 button.style = buttonStyleLeft
-                back.fill = Color.SKYBLUE
+                back.fill = color1
                 setAlignment(button, Pos.CENTER_LEFT)
                 state = SwitchButtonState.LEFT
             } else {
                 button.style = buttonStyleRight
-                back.fill = Color.PINK
+                back.fill = color2
                 setAlignment(button, Pos.CENTER_RIGHT)
                 state = SwitchButtonState.RIGHT
             }
