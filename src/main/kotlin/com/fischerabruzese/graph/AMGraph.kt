@@ -251,10 +251,10 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
                 }
             }
         }
-        if(!allowDisjoint) mergeDisjoint(maxWeight, random)
+        if(!allowDisjoint) mergeDisjoint(minWeight, maxWeight, random)
     }
 
-    override fun mergeDisjoint(maxWeight: Int, random: Random){
+    override fun mergeDisjoint(minWeight: Int, maxWeight: Int, random: Random){
         val bidirectional = this.getBidirectionalUnweighted() as AMGraph<E>
         var vertex = random.nextInt(size())
         var unreachables : List<Int>
@@ -264,7 +264,7 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
         while(vertices.filterIndexed { id, _ -> id != vertex && bidirectional.path(vertex, id).isEmpty() }.map{indexLookup[it]!!}.also{ unreachables = it }.isNotEmpty()){
             val from : Int
             val to : Int
-            val weight = random.nextInt(maxWeight)
+            val weight = random.nextInt(minWeight, maxWeight)
             if(random.nextBoolean()) {
                 from = vertex
                 to = unreachables.random(random)
