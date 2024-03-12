@@ -8,13 +8,22 @@ import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.shape.Circle
 import javafx.scene.shape.Rectangle
+import java.util.LinkedList
 
 class SwitchButton : StackPane() {
     private val back = Rectangle(30.0, 10.0, Color.RED)
     private val button = Button()
-    private var buttonStyleOff = "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 0.2, 0.0, 0.0, 2); -fx-background-color: WHITE;"
-    private var buttonStyleOn = "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 0.2, 0.0, 0.0, 2); -fx-background-color: #00893d;"
-    private var state = false
+    private var buttonStyleLeft = "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 0.2, 0.0, 0.0, 2); -fx-background-color: WHITE;"
+    private var buttonStyleRight = "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 0.2, 0.0, 0.0, 2); -fx-background-color: WHITE;"
+    val switchedEvents: LinkedList<(SwitchButtonState) -> Unit> = LinkedList()
+
+    enum class SwitchButtonState {
+        LEFT, RIGHT
+    }
+
+    var state: SwitchButtonState = SwitchButtonState.LEFT
+        private set
+
 
     private fun init() {
         children.addAll(back, button)
@@ -26,29 +35,30 @@ class SwitchButton : StackPane() {
         back.minHeight(10.0)
         back.arcHeight = back.height
         back.arcWidth = back.height
-        back.fill = Color.valueOf("#ced5da")
+        back.fill = Color.SKYBLUE
         val r = 2.0
         button.shape = Circle(r)
         setAlignment(button, Pos.CENTER_LEFT)
         button.setMaxSize(15.0, 15.0)
         button.setMinSize(15.0, 15.0)
-        button.style = buttonStyleOff
+        button.style = buttonStyleLeft
     }
 
     init {
         init()
         val click = EventHandler<MouseEvent> { _ ->
-            if (state) {
-                button.style = buttonStyleOff
-                back.fill = Color.valueOf("#ced5da")
+            if (state == SwitchButtonState.RIGHT) {
+                button.style = buttonStyleLeft
+                back.fill = Color.SKYBLUE
                 setAlignment(button, Pos.CENTER_LEFT)
-                state = false
+                state = SwitchButtonState.LEFT
             } else {
-                button.style = buttonStyleOn
-                back.fill = Color.valueOf("#80C49E")
+                button.style = buttonStyleRight
+                back.fill = Color.PINK
                 setAlignment(button, Pos.CENTER_RIGHT)
-                state = true
+                state = SwitchButtonState.RIGHT
             }
+            for(s in switchedEvents) s(state)
         }
 
         button.isFocusTraversable = false

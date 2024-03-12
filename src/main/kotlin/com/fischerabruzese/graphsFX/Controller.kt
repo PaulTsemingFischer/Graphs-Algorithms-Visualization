@@ -4,6 +4,7 @@ import com.fischerabruzese.graph.Graph
 import javafx.beans.property.ReadOnlyDoubleProperty
 import javafx.fxml.FXML
 import javafx.scene.control.*
+import javafx.scene.layout.GridPane
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
 import javafx.scene.paint.Color
@@ -17,6 +18,7 @@ class Controller<E: Any> {
     private lateinit var paneWidth: ReadOnlyDoubleProperty
     private lateinit var paneHeight: ReadOnlyDoubleProperty
     private lateinit var graphicComponents: GraphicComponents<E>
+
 
     //User inputs
     @FXML
@@ -39,6 +41,12 @@ class Controller<E: Any> {
     private lateinit var connectednessSlider: Slider
     @FXML
     private lateinit var clusterColoringToggle: CheckBox
+
+    private lateinit var switchButton: SwitchButton
+    @FXML
+    private lateinit var pureRandGridPane: GridPane
+    @FXML
+    private lateinit var clusterRandGridPane: GridPane
 
     //Console
     @FXML
@@ -63,11 +71,11 @@ class Controller<E: Any> {
         initializePhysicsSlider()
         initializeVertexSelection()
         clusterRandomizationSwitchHBox.children.addAll(
-            Label("Cluster random"),
-            SwitchButton(),
-            Label("Pure random")
-
+            Label("Cluster Rand ").apply { textFill = Color.WHITE },
+            SwitchButton().also { switchButton = it },
+            Label(" Pure Rand").apply { textFill = Color.WHITE }
         )
+        switchButton.switchedEvents.addLast { switchSwitched(it) }
     }
 
     fun draw() {
@@ -256,5 +264,23 @@ class Controller<E: Any> {
         printClusters(graph.getClusters(connectedness), connectedness)
     }
 
-    //Randomization FXML
+
+    //Randomization
+    private fun switchSwitched(state: SwitchButton.SwitchButtonState) {
+        when(state){
+            SwitchButton.SwitchButtonState.LEFT -> {
+                pureRandGridPane.opacity = 0.0
+                pureRandGridPane.disableProperty().set(true)
+                clusterRandGridPane.opacity = 1.0
+                clusterRandGridPane.disableProperty().set(false)
+            }
+            SwitchButton.SwitchButtonState.RIGHT -> {
+                clusterRandGridPane.opacity = 0.0
+                clusterRandGridPane.disableProperty().set(true)
+                pureRandGridPane.opacity = 1.0
+                pureRandGridPane.disableProperty().set(false)
+            }
+        }
+    }
+
 }

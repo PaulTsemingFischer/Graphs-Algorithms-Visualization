@@ -9,7 +9,20 @@
 
 <HBox alignment="CENTER_RIGHT" prefHeight="820.0" prefWidth="1280.0" style="-fx-background-color: #282828;" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.fischerabruzese.graphsFX.Controller">
    <children>
-      <Pane fx:id="pane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="10.0" minWidth="10.0" style="-fx-background-color: lightgray;" HBox.hgrow="ALWAYS" />
+      <Pane fx:id="pane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="10.0" minWidth="10.0" style="-fx-background-color: lightgray;" HBox.hgrow="ALWAYS">
+         <children>
+            <GridPane fx:id="pureRandGridPane1" disable="true" layoutX="624.0" layoutY="183.0">
+               <columnConstraints>
+                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+               </columnConstraints>
+               <rowConstraints>
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+               </rowConstraints>
+            </GridPane>
+         </children></Pane>
       <ScrollPane hbarPolicy="NEVER" prefWidth="202.0" style="-fx-background-color: #282828;" vbarPolicy="NEVER">
          <content>
             <VBox alignment="CENTER" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefWidth="200.0" style="-fx-background-color: #282828;">
@@ -93,6 +106,57 @@
                         </Text>
                      </children>
                   </StackPane>
+                  <HBox fx:id="clusterRandomizationSwitchHBox" alignment="CENTER" />
+                  <StackPane prefHeight="50.0" prefWidth="200.0">
+                     <children>
+                        <GridPane fx:id="clusterRandGridPane">
+                           <columnConstraints>
+                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                           </columnConstraints>
+                           <rowConstraints>
+                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                           </rowConstraints>
+                           <children>
+                              <ComboBox fx:id="IntraConnectednessDropdown" prefWidth="150.0" scaleY="0.75" translateY="5.0" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+                              <ChoiceBox fx:id="InterConnectednessDropdown" prefHeight="0.0" prefWidth="48.0" scaleY="0.75" translateY="5.0" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                              <Label prefHeight="18.0" prefWidth="45.0" text="Inter" textFill="WHITE" translateY="-10.0" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                                 <font>
+                                    <Font size="10.0" />
+                                 </font>
+                              </Label>
+                              <Label layoutX="106.0" layoutY="47.0" prefHeight="18.0" prefWidth="45.0" text="Intra" textFill="WHITE" translateY="-10.0" GridPane.columnIndex="3" GridPane.rowIndex="1">
+                                 <font>
+                                    <Font size="10.0" />
+                                 </font>
+                              </Label>
+                              <Label text="Connectedness:" textFill="WHITE" GridPane.columnSpan="2" GridPane.rowIndex="1" />
+                              <Label text="Cluster Count:" textFill="WHITE" GridPane.columnSpan="2" />
+                              <TextField fx:id="ClusterCountTextBox" scaleY="0.9" GridPane.columnIndex="2" GridPane.columnSpan="2" />
+                           </children>
+                        </GridPane>
+                        <GridPane fx:id="pureRandGridPane" opacity="0.0">
+                           <columnConstraints>
+                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                              <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                           </columnConstraints>
+                           <rowConstraints>
+                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                              <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                           </rowConstraints>
+                           <children>
+                              <Label text="Avg Connections/Vertex:" textFill="WHITE" GridPane.columnSpan="3" />
+                              <TextField fx:id="AvgConnectionsPerVertexBox" prefHeight="25.0" prefWidth="35.0" scaleY="0.9" GridPane.columnIndex="3" />
+                              <Label layoutX="10.0" layoutY="17.0" text="Probability of Connection:" textFill="WHITE" GridPane.columnSpan="3" GridPane.rowIndex="1" />
+                              <TextField fx:id="AvgConnectionsPerVertexBox1" layoutX="152.0" layoutY="13.0" prefHeight="25.0" prefWidth="35.0" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+                           </children>
+                        </GridPane>
+                     </children></StackPane>
                   <GridPane>
                      <columnConstraints>
                         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
@@ -102,89 +166,28 @@
                      </columnConstraints>
                      <rowConstraints>
                         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                     </rowConstraints>
-                  </GridPane>
-                  <GridPane fx:id="ClusterRandGridPane" disable="true">
-                     <columnConstraints>
-                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                     </columnConstraints>
-                     <rowConstraints>
-                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                         <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                      </rowConstraints>
                      <children>
-                        <ComboBox fx:id="IntraConnectednessDropdown" prefWidth="150.0" scaleY="0.75" translateY="5.0" GridPane.columnIndex="3" GridPane.rowIndex="1" />
-                        <ChoiceBox fx:id="InterConnectednessDropdown" prefHeight="0.0" prefWidth="48.0" scaleY="0.75" translateY="5.0" GridPane.columnIndex="2" GridPane.rowIndex="1" />
-                        <Label prefHeight="18.0" prefWidth="45.0" text="Inter" textFill="WHITE" translateY="-10.0" GridPane.columnIndex="2" GridPane.rowIndex="1">
-                           <font>
-                              <Font size="10.0" />
-                           </font></Label>
-                        <Label layoutX="106.0" layoutY="47.0" prefHeight="18.0" prefWidth="45.0" text="Intra" textFill="WHITE" translateY="-10.0" GridPane.columnIndex="3" GridPane.rowIndex="1">
+                        <Label text="Edge Weights:" textFill="WHITE" GridPane.columnSpan="2" GridPane.rowIndex="1" />
+                        <Label layoutX="106.0" layoutY="77.0" prefHeight="18.0" prefWidth="45.0" text="Min" textFill="WHITE" GridPane.columnIndex="2" GridPane.rowIndex="1">
                            <font>
                               <Font size="10.0" />
                            </font>
                         </Label>
-                        <Label text="Connectedness:" textFill="WHITE" GridPane.columnSpan="2" GridPane.rowIndex="1" />
-                        <Label text="Cluster Count:" textFill="WHITE" GridPane.columnSpan="2" />
-                        <TextField fx:id="ClusterCountTextBox" scaleY="0.9" GridPane.columnIndex="2" GridPane.columnSpan="2" />
-                     </children>
-                  </GridPane>
-                  <GridPane>
-                     <columnConstraints>
-                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                     </columnConstraints>
-                     <rowConstraints>
-                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                     </rowConstraints>
-                     <children>
-                        <Label text="Edge Weights:" textFill="WHITE" GridPane.columnSpan="2" />
-                        <Label layoutX="106.0" layoutY="77.0" prefHeight="18.0" prefWidth="45.0" text="Min" textFill="WHITE" GridPane.columnIndex="2">
+                        <TextField fx:id="MinWeightTextBox" scaleX="0.5" scaleY="0.9" translateX="10.0" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                        <TextField fx:id="MaxWeightTextBox" scaleX="0.5" scaleY="0.9" translateX="10.0" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+                        <Label text="Max" textFill="WHITE" GridPane.columnIndex="3" GridPane.rowIndex="1">
                            <font>
                               <Font size="10.0" />
                            </font>
                         </Label>
-                        <TextField fx:id="MinWeightTextBox" scaleX="0.5" scaleY="0.9" translateX="10.0" GridPane.columnIndex="2" />
-                        <TextField fx:id="MaxWeightTextBox" scaleX="0.5" scaleY="0.9" translateX="10.0" GridPane.columnIndex="3" />
-                        <Label text="Max" textFill="WHITE" GridPane.columnIndex="3">
-                           <font>
-                              <Font size="10.0" />
-                           </font>
-                        </Label>
+                        <Label text="Allow Disjoint Graph:" textFill="WHITE" GridPane.columnSpan="3" />
+                        <CheckBox fx:id="AllowDisjointSelectionBox1" mnemonicParsing="false" translateX="25.0" GridPane.columnIndex="2" />
                      </children>
                   </GridPane>
-                  <GridPane fx:id="PureRandGridPane">
-                     <columnConstraints>
-                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                     </columnConstraints>
-                     <rowConstraints>
-                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                        <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                     </rowConstraints>
-                     <children>
-                        <Label text="Allow Disjoint Graph:" textFill="WHITE" GridPane.columnSpan="3" GridPane.rowIndex="1" />
-                        <Label text="Avg Connections/Vertex:" textFill="WHITE" GridPane.columnSpan="3" />
-                        <TextField fx:id="AvgConnectionsPerVertexBox" prefHeight="25.0" prefWidth="35.0" scaleY="0.9" GridPane.columnIndex="3" />
-                        <CheckBox fx:id="AllowDisjointSelectionBox" mnemonicParsing="false" scaleX="1.15" scaleY="1.15" translateX="25.0" GridPane.columnIndex="2" GridPane.rowIndex="1" />
-                     </children>
-                  </GridPane>
-                  <HBox>
-                     <children>
-                        <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#randomizePressed" prefWidth="200.0" text="Randomize">
-                           <HBox.margin>
-                              <Insets />
-                           </HBox.margin>
-                        </Button>
-                     </children>
-                  </HBox>
+                  <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#randomizePressed" prefWidth="200.0" text="Randomize" />
+                  <HBox />
                   <StackPane>
                      <children>
                         <Rectangle height="26.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="200.0">
@@ -414,7 +417,7 @@
                         </Text>
                      </children>
                   </StackPane>
-                  <TextArea fx:id="console" editable="false" maxHeight="1.7976931348623157E308" prefHeight="207.0" prefWidth="190.0" wrapText="true" VBox.vgrow="ALWAYS" />
+                  <TextArea fx:id="console" editable="false" maxHeight="1.7976931348623157E308" prefHeight="210.0" prefWidth="190.0" wrapText="true" VBox.vgrow="ALWAYS" />
                   <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#redrawPressed" text="Redraw">
                      <VBox.margin>
                         <Insets />
