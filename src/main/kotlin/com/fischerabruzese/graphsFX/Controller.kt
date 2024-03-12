@@ -3,10 +3,8 @@ package com.fischerabruzese.graphsFX
 import com.fischerabruzese.graph.Graph
 import javafx.beans.property.ReadOnlyDoubleProperty
 import javafx.fxml.FXML
-import javafx.scene.control.CheckBox
-import javafx.scene.control.Slider
-import javafx.scene.control.TextArea
-import javafx.scene.control.TextField
+import javafx.scene.control.*
+import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
 import javafx.scene.paint.Color
 import java.text.NumberFormat
@@ -21,6 +19,8 @@ class Controller<E: Any> {
     private lateinit var graphicComponents: GraphicComponents<E>
 
     //User inputs
+    @FXML
+    private lateinit var clusterRandomizationSwitchHBox: HBox
     @FXML
     private lateinit var probabilityField: TextField
     @FXML
@@ -62,6 +62,12 @@ class Controller<E: Any> {
         graphicComponents = GraphicComponents(graph, pane, stringToVMap)
         initializePhysicsSlider()
         initializeVertexSelection()
+        clusterRandomizationSwitchHBox.children.addAll(
+            Label("Cluster random"),
+            SwitchButton(),
+            Label("Pure random")
+
+        )
     }
 
     fun draw() {
