@@ -1,11 +1,10 @@
 package com.fischerabruzese.graphsFX
 
-import com.fischerabruzese.graph.*
+import com.fischerabruzese.graph.AMGraph
 import javafx.application.Application
 import javafx.fxml.FXMLLoader
 import javafx.scene.Scene
 import javafx.stage.Stage
-import kotlin.random.Random
 
 class GraphApp : Application() {
     override fun start(stage: Stage) {
@@ -22,7 +21,7 @@ class GraphApp : Application() {
 
         //val graph = createGraph(getText())
         val graph = AMGraph.fromCollection(verts)
-        graph.randomizeWithCluster(3, 9, .39, 0.004)
+        graph.randomizeWithCluster(3, 1, 9, .39, 0.004)
 
 
 //        val graph = AMGraph.graphOf<Int>(

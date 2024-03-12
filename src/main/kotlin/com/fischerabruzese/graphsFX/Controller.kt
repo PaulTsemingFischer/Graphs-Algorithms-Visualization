@@ -2,6 +2,7 @@ package com.fischerabruzese.graphsFX
 
 import com.fischerabruzese.graph.Graph
 import javafx.beans.property.ReadOnlyDoubleProperty
+import javafx.collections.FXCollections
 import javafx.fxml.FXML
 import javafx.scene.control.*
 import javafx.scene.layout.GridPane
@@ -47,6 +48,20 @@ class Controller<E: Any> {
     private lateinit var pureRandGridPane: GridPane
     @FXML
     private lateinit var clusterRandGridPane: GridPane
+    @FXML
+    private lateinit var clusterCountTextBox: TextField
+    @FXML
+    private lateinit var intraConnectednessChoiceBox: ChoiceBox<String>
+    @FXML
+    private lateinit var interConnectednessDropdown: ChoiceBox<String>
+    @FXML
+    private lateinit var allowDisjointSelectionBox: CheckBox
+    @FXML
+    private lateinit var minWeightTextBox: TextField
+    @FXML
+    private lateinit var maxWeightTextBox: TextField
+    @FXML
+    private lateinit var randomizeButton: Button
 
     //Console
     @FXML
@@ -76,6 +91,9 @@ class Controller<E: Any> {
             Label(" Pure Rand").apply { textFill = Color.WHITE }
         )
         switchButton.switchedEvents.addLast { switchSwitched(it) }
+        intraConnectednessChoiceBox.items = FXCollections.observableArrayList("Low", "Med", "High")
+        interConnectednessDropdown.items = FXCollections.observableArrayList("Low", "Med", "High")
+        switchSwitched(SwitchButton.SwitchButtonState.LEFT) //initialize properties in specific graphic
     }
 
     fun draw() {
@@ -154,11 +172,6 @@ class Controller<E: Any> {
             append("Path: $path\n")
             append("Time(ns): ${NumberFormat.getIntegerInstance().format(time)}\n")
         }
-    }
-
-    //Randomization
-    @FXML
-    private fun randomizePressed() {
     }
 
     //Physics
@@ -283,4 +296,41 @@ class Controller<E: Any> {
         }
     }
 
+    @FXML
+    private fun randomizePressed(){
+        val state = switchButton.state
+        when(state){
+            SwitchButton.SwitchButtonState.RIGHT -> {
+                generateRandomGraph()
+            }
+            SwitchButton.SwitchButtonState.LEFT -> {
+                generateClusteredGraph()
+            }
+        }
+    }
+
+    private fun generateClusteredGraph() {
+        val clusterCount = clusterCountTextBox.text.toInt()
+        var interConn = 0.0
+        var intraConn = 0.0
+        when(interConnectednessDropdown.value){
+            "Low" -> interConn = 0.003
+            "Med" -> interConn = 0.02
+            "High" -> interConn = 0.04
+        }
+        when(intraConnectednessChoiceBox.value){
+            "Low" -> intraConn = 0.11
+            "Med" -> intraConn = 0.33
+            "High" -> intraConn = 0.55
+        }
+        val min = minWeightTextBox.text.toInt()
+        val max = maxWeightTextBox.text.toInt()
+        this.graph.randomizeWithCluster(clusterCount, min, max, intraConn, interConn)
+        if(allowDisjointToggle.isSelected) this.graph.mergeDisjoint(min, max)
+        graphicComponents.draw()
+    }
+
+    private fun generateRandomGraph() {
+        TODO("Not yet implemented")
+    }
 }

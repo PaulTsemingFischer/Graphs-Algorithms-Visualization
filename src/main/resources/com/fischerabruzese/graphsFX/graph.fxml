@@ -9,20 +9,7 @@
 
 <HBox alignment="CENTER_RIGHT" prefHeight="820.0" prefWidth="1280.0" style="-fx-background-color: #282828;" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.fischerabruzese.graphsFX.Controller">
    <children>
-      <Pane fx:id="pane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="10.0" minWidth="10.0" style="-fx-background-color: lightgray;" HBox.hgrow="ALWAYS">
-         <children>
-            <GridPane fx:id="pureRandGridPane1" disable="true" layoutX="624.0" layoutY="183.0">
-               <columnConstraints>
-                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-                  <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
-               </columnConstraints>
-               <rowConstraints>
-                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-               </rowConstraints>
-            </GridPane>
-         </children></Pane>
+      <Pane fx:id="pane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="10.0" minWidth="10.0" style="-fx-background-color: lightgray;" HBox.hgrow="ALWAYS" />
       <ScrollPane fitToHeight="true" hbarPolicy="NEVER" maxHeight="1.7976931348623157E308" maxWidth="-Infinity" minWidth="-Infinity" prefWidth="200.0" style="-fx-background-color: #282828; -fx-background-insets: 0;" vbarPolicy="NEVER" HBox.hgrow="NEVER">
          <content>
             <VBox alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefWidth="200.0" style="-fx-background-color: #282828;">
@@ -121,21 +108,21 @@
                               <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
                            </rowConstraints>
                            <children>
-                              <ComboBox fx:id="IntraConnectednessDropdown" prefWidth="150.0" scaleY="0.75" translateY="5.0" GridPane.columnIndex="3" GridPane.rowIndex="1" />
-                              <ChoiceBox fx:id="InterConnectednessDropdown" prefHeight="0.0" prefWidth="48.0" scaleY="0.75" translateY="5.0" GridPane.columnIndex="2" GridPane.rowIndex="1" />
-                              <Label prefHeight="18.0" prefWidth="45.0" text="Inter" textFill="WHITE" translateY="-10.0" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                              <ChoiceBox fx:id="intraConnectednessChoiceBox" prefWidth="150.0" scaleX="0.75" scaleY="0.75" translateY="5.0" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+                              <ChoiceBox fx:id="interConnectednessDropdown" prefHeight="0.0" prefWidth="48.0" scaleX="0.75" scaleY="0.75" translateY="5.0" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                              <Label prefHeight="18.0" prefWidth="45.0" text="Inter" textFill="WHITE" translateX="20.0" translateY="-9.0" GridPane.columnIndex="2" GridPane.rowIndex="1">
                                  <font>
                                     <Font size="10.0" />
                                  </font>
                               </Label>
-                              <Label layoutX="106.0" layoutY="47.0" prefHeight="18.0" prefWidth="45.0" text="Intra" textFill="WHITE" translateY="-10.0" GridPane.columnIndex="3" GridPane.rowIndex="1">
+                              <Label layoutX="106.0" layoutY="47.0" prefHeight="18.0" prefWidth="45.0" text="Intra" textFill="WHITE" translateX="20.0" translateY="-9.0" GridPane.columnIndex="3" GridPane.rowIndex="1">
                                  <font>
                                     <Font size="10.0" />
                                  </font>
                               </Label>
                               <Label text="Connectedness:" textFill="WHITE" GridPane.columnSpan="2" GridPane.rowIndex="1" />
                               <Label text="Cluster Count:" textFill="WHITE" GridPane.columnSpan="2" />
-                              <TextField fx:id="ClusterCountTextBox" scaleY="0.9" GridPane.columnIndex="2" GridPane.columnSpan="2" />
+                              <TextField fx:id="clusterCountTextBox" scaleY="0.9" GridPane.columnIndex="2" GridPane.columnSpan="2" />
                            </children>
                         </GridPane>
                         <GridPane fx:id="pureRandGridPane" opacity="0.0">
@@ -175,18 +162,18 @@
                               <Font size="10.0" />
                            </font>
                         </Label>
-                        <TextField fx:id="MinWeightTextBox" scaleX="0.5" scaleY="0.9" translateX="10.0" GridPane.columnIndex="2" GridPane.rowIndex="1" />
-                        <TextField fx:id="MaxWeightTextBox" scaleX="0.5" scaleY="0.9" translateX="10.0" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+                        <TextField fx:id="minWeightTextBox" scaleX="0.5" scaleY="0.9" translateX="10.0" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                        <TextField fx:id="maxWeightTextBox" scaleX="0.5" scaleY="0.9" translateX="10.0" GridPane.columnIndex="3" GridPane.rowIndex="1" />
                         <Label text="Max" textFill="WHITE" GridPane.columnIndex="3" GridPane.rowIndex="1">
                            <font>
                               <Font size="10.0" />
                            </font>
                         </Label>
                         <Label text="Allow Disjoint Graph:" textFill="WHITE" GridPane.columnSpan="3" />
-                        <CheckBox fx:id="AllowDisjointSelectionBox1" mnemonicParsing="false" translateX="25.0" GridPane.columnIndex="2" />
+                        <CheckBox fx:id="allowDisjointSelectionBox" mnemonicParsing="false" translateX="25.0" GridPane.columnIndex="2" />
                      </children>
                   </GridPane>
-                  <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#randomizePressed" prefWidth="200.0" text="Randomize" />
+                  <Button fx:id="randomizeButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onMouseClicked="#randomizePressed" prefWidth="200.0" text="Randomize" />
                   <HBox />
                   <StackPane>
                      <children>

@@ -190,7 +190,7 @@ abstract class Graph<E : Any> : Iterable<E> {
                 }
             }
         }
-        if(!allowDisjoint) mergeDisjoint(maxWeight, random)
+        if(!allowDisjoint) mergeDisjoint(minWeight, maxWeight, random)
     }
     fun randomize(probability: Double, maxWeight: Int, allowDisjoint: Boolean = true, random: Random = Random) = randomize(probability, 1, maxWeight, allowDisjoint, random)
 
@@ -218,6 +218,7 @@ abstract class Graph<E : Any> : Iterable<E> {
      * @param random A random object that determines what graph is constructed
      */
     fun randomizeWithCluster(numClusters: Int,
+                             minEdgeWeight: Int,
                              maxEdgeWeight: Int,
                              intraClusterConnectedness: Double,
                              interClusterConnectedness: Double,
@@ -234,12 +235,12 @@ abstract class Graph<E : Any> : Iterable<E> {
             ).coerceIn(1 until remainingVertices.size - (numClusters-1 - cluster)) //ensure we have enough for numClusters
 
             clusters += AMGraph.fromCollection(remainingVertices.take(size)).apply {
-                randomize(intraClusterConnectedness, maxEdgeWeight, true, random)
+                randomize(intraClusterConnectedness, minEdgeWeight, maxEdgeWeight, true, random)
             }
             remainingVertices = LinkedList(remainingVertices.subList(size, remainingVertices.size))
         }
         clusters += AMGraph.fromCollection(remainingVertices).apply {
-            randomize(intraClusterConnectedness, maxEdgeWeight, true, random)
+            randomize(intraClusterConnectedness, minEdgeWeight, maxEdgeWeight, true, random)
         }
 
         val mergedGraph = AMGraph<E>()
@@ -275,7 +276,7 @@ abstract class Graph<E : Any> : Iterable<E> {
      *  @param maxWeight the highest value weight these edges should connect with
      *  @param random the random object that determines which edges get added and the weights
      */
-    open fun mergeDisjoint(maxWeight: Int, random: Random){
+    open fun mergeDisjoint(minWeight: Int, maxWeight: Int, random: Random = Random){
         val vertices = getVertices()
         val bidirectional = getBidirectionalUnweighted()
         var src = vertices.random()
@@ -284,7 +285,7 @@ abstract class Graph<E : Any> : Iterable<E> {
         //Runs while there are any unreachable vertices from `vertex` (store all the unreachable ones in `unreachables`)
         //Vertices --> Unreachable non-self vertices --> Unreachable non-self id's
         while(vertices.filter { dest -> dest != src && bidirectional.path(src, dest).isEmpty() }.also{ unreachables = it }.isNotEmpty()){
-            val weight = random.nextInt(maxWeight)
+            val weight = random.nextInt(minWeight, maxWeight)
 
             val (from, to) =
                 if (random.nextBoolean())
