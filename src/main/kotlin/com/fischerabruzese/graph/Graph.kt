@@ -254,7 +254,7 @@ abstract class Graph<E : Any> : Iterable<E> {
                     if(toCluster == fromCluster) continue //don't do an innerConnection
                     for (toVertex in toCluster) {
                         if (random.nextDouble() < interClusterConnectedness){
-                            mergedGraph[fromVertex, toVertex] = random.nextInt(1, maxEdgeWeight)
+                            mergedGraph[fromVertex, toVertex] = random.nextInt(minEdgeWeight, maxEdgeWeight)
                         }
                     }
                 }

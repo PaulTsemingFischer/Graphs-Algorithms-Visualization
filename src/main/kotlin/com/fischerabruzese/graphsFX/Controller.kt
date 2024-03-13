@@ -324,7 +324,7 @@ class Controller<E: Any> {
             "High" -> intraConn = 0.55
         }
         val min = minWeightTextBox.text.toInt()
-        val max = maxWeightTextBox.text.toInt()
+        val max = maxWeightTextBox.text.toInt() + 1
         this.graph.randomizeWithCluster(clusterCount, min, max, intraConn, interConn)
         if(allowDisjointSelectionBox.isSelected) this.graph.mergeDisjoint(min, max)
         graphicComponents.draw()
