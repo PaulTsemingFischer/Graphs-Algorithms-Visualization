@@ -17,6 +17,7 @@ import javafx.scene.shape.StrokeType
 import javafx.scene.text.Font
 import java.util.*
 import java.util.concurrent.CountDownLatch
+import kotlin.collections.HashMap
 import kotlin.math.*
 import kotlin.random.Random
 
@@ -148,41 +149,6 @@ class GraphicComponents<E: Any>(
         private var xDelta : Double = 0.0
         private var yDelta : Double = 0.0
 
-        init{
-            stringToVMap[v.toString()] = this
-
-            bindAll()
-
-            //Listeners
-            hitbox.setOnMouseEntered { if(currentPathVertices.isEmpty()) circle.fill = Color.GREEN }
-            hitbox.setOnMouseExited { if(currentPathVertices.isEmpty()) circle.fill = Color.BLUE }
-
-            hitbox.setOnMousePressed {
-                dragStart(it)
-                selectedVertex = this
-                if(!currentPathVertices.contains(this)){
-                    ungreyEverything()
-                    currentPathVertices.clear()
-                    currentPathConnections.clear()
-                    greyDetached(this) //normal selection greying
-                    circle.fill = Color.RED
-                }
-            }
-            hitbox.setOnMouseDragged { drag(it) }
-            hitbox.setOnMouseReleased {
-                if(!currentPathVertices.contains(this)) {
-                    ungreyEverything()
-                    circle.fill = Color.GREEN
-                }
-                selectedVertex = null
-            }
-            hitbox.pickOnBoundsProperty().set(true)
-
-            hitboxes.add(hitbox)
-
-            children.addAll(circle, label)
-        }
-
         private fun dragStart(event : MouseEvent) {
             xDelta = event.sceneX / pane.width - x.get()
             yDelta = event.sceneY / pane.height - y.get()
@@ -193,14 +159,8 @@ class GraphicComponents<E: Any>(
             y.set((event.sceneY / pane.height - yDelta).let{if(it > 1) 1.0 else if(it < 0) 0.0 else it})
         }
 
-        fun grey(){
-            setColor(Color(0.0, 0.0, 1.0, 0.3))
-        }
-        fun ungrey(){
-            setColor(Color.BLUE)
-        }
-
-        fun setColor(color: Color) {
+        //Coloring
+        private fun setColor(color: Color) {
             circle.fill = color
         }
 
@@ -214,9 +174,101 @@ class GraphicComponents<E: Any>(
             circle.strokeWidth = 0.0
         }
 
+        private val colorPriorityMap = hashMapOf(
+            ColorType.PATH to 0,
+            ColorType.SELECTED to 1,
+            ColorType.HOVERED to 2,
+            ColorType.GREYED to 3,
+            ColorType.CLUSTERED to 4,
+            ColorType.DEFAULT to 5
+        )
+        private val colorStorage = Array<Color?>(colorPriorityMap.size){ null}.apply{ this[colorPriorityMap[ColorType.DEFAULT]!!] = Color.BLUE }
+        private var topColorPriority = colorPriorityMap[ColorType.DEFAULT]!!
+        private fun getHighestPriority(): Int {
+            colorStorage.forEachIndexed() { index, color ->
+                if (color != null) return index
+            }
+            return colorPriorityMap[ColorType.DEFAULT]!!
+        }
+
+        fun setColor(type : ColorType, color : Color? = null){
+            val priority = colorPriorityMap[type]!!
+            colorStorage[priority] = when (type) {
+                ColorType.PATH -> color
+                ColorType.SELECTED -> Color.RED
+                ColorType.HOVERED -> Color.GREEN
+                ColorType.GREYED -> Color(0.0, 0.0, 1.0, 0.3)
+                ColorType.CLUSTERED -> color
+                ColorType.DEFAULT -> Color.BLUE
+            }
+            if(priority <= topColorPriority) {
+                setColor(colorStorage[priority]!!)
+                topColorPriority = priority
+            }
+        }
+
+        private fun setSelected(){
+            setColor(ColorType.SELECTED)
+            clearColor(ColorType.GREYED)
+        }
+
+        private fun setHovered(){
+            setColor(ColorType.HOVERED)
+            clearColor(ColorType.GREYED)
+        }
+
+        fun clearColor(type : ColorType){
+            val priority = colorPriorityMap[type]!!
+            colorStorage[priority] = null
+            if(priority == topColorPriority) {
+                val newGreatestPriority = getHighestPriority()
+                setColor(colorStorage[newGreatestPriority]!!)
+                topColorPriority = newGreatestPriority
+            }
+        }
+
+        init{
+            stringToVMap[v.toString()] = this
+
+            bindAll()
+
+            //Listeners
+            hitbox.setOnMouseEntered { if(currentPathVertices.isEmpty()) setHovered()}
+            hitbox.setOnMouseExited { if(currentPathVertices.isEmpty()) clearColor(ColorType.HOVERED) }
+
+            hitbox.setOnMousePressed {
+                dragStart(it)
+                selectedVertex = this
+                if(!currentPathVertices.contains(this)){
+                    ungreyEverything()
+                    currentPathVertices.clear()
+                    currentPathConnections.clear()
+                    greyDetached(this) //normal selection greying
+                    setSelected()
+                }
+            }
+            hitbox.setOnMouseDragged { drag(it) }
+            hitbox.setOnMouseReleased {
+                clearColor(ColorType.SELECTED)
+                if(!currentPathVertices.contains(this)) {
+                    ungreyEverything()
+                }
+                selectedVertex = null
+            }
+            hitbox.pickOnBoundsProperty().set(true)
+
+            hitboxes.add(hitbox)
+
+            children.addAll(circle, label)
+        }
+
         override fun toString(): String {
             return v.toString()
         }
+    }
+
+    enum class ColorType{
+        PATH, SELECTED, HOVERED, GREYED, CLUSTERED, DEFAULT
     }
 
     /**
@@ -565,14 +617,14 @@ class GraphicComponents<E: Any>(
     //Grey out non-attached vertices and edges in the graph
     fun greyDetached(src: GraphicComponents<E>.Vertex) {
         for (vert in vertices.filterNot{ it == src }) {
-            vert.grey()
+            vert.setColor(ColorType.GREYED)
         }
         for (edge in edges) {
             if (edge.v1 != src && edge.v2 != src) {
                 edge.grey()
             } else {
-                edge.v1.let { if (it != src) it.ungrey()}
-                edge.v2.let { if (it != src) it.ungrey() }
+                edge.v1.let { if (it != src) it.clearColor(ColorType.GREYED)}
+                edge.v2.let { if (it != src) it.clearColor(ColorType.GREYED) }
                 edge.setLineColor(Color.GREEN, Color.RED, src)
                 edge.setLabelColor(Color.GREEN, Color.RED, src)
             }
@@ -585,7 +637,8 @@ class GraphicComponents<E: Any>(
             edge.ungrey()
         }
         for (vert in vertices){
-            vert.ungrey()
+            vert.clearColor(ColorType.GREYED)
+            vert.clearColor(ColorType.PATH)
         }
     }
 
@@ -594,7 +647,7 @@ class GraphicComponents<E: Any>(
             edge.grey()
         }
         for (vert in vertices){
-            vert.grey()
+            vert.setColor(ColorType.GREYED)
         }
     }
 
@@ -635,7 +688,7 @@ class GraphicComponents<E: Any>(
 
         while(!verts.isEmpty()){
             val vert = verts.removeFirst()
-            if(verts.isEmpty()) vert.setColor(endColor) else vert.setColor(currColor)
+            if(verts.isEmpty()) vert.setColor(ColorType.PATH, endColor) else vert.setColor(ColorType.PATH, currColor)
             currColor = Color.color(
                 (currColor.red + ((endColor.red - startColor.red)/segments)),
                 (currColor.green + ((endColor.green - startColor.green)/segments)),
