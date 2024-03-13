@@ -209,7 +209,7 @@ class GraphicComponents<E: Any>(
 
         private fun grey(color : Color?) : Color?{
             if(color == null) return null
-            return Color.rgb((color.red * 0.5).toInt(), (color.green * 0.5).toInt(), (color.blue * 0.5).toInt())
+            return Color(color.red, color.green, color.blue, 0.3)
         }
 
         private fun setSelected(){
@@ -699,7 +699,7 @@ class GraphicComponents<E: Any>(
     }
 
     fun colorClusters(clusters: Collection<Graph<E>>){
-        val colors = LinkedList(listOf(Color.MAGENTA, Color.CYAN, Color.YELLOW, Color.PINK, Color.LIGHTBLUE, Color.DARKSEAGREEN, Color.DARKVIOLET, Color.DARKORANGE, Color.DARKSLATEBLUE, Color.DARKSLATEGRAY, Color.DARKTURQUOISE))
+        val colors = LinkedList(listOf(Color.MAGENTA, Color.PINK, Color.LIGHTBLUE, Color.DARKSEAGREEN, Color.DARKVIOLET, Color.DARKORANGE, Color.DARKSLATEBLUE, Color.DARKSLATEGRAY, Color.DARKTURQUOISE))
         for(cluster in clusters){
             val color = if(colors.isNotEmpty()) colors.removeFirst() else randomColor()
             for(vertex in cluster){
