@@ -236,11 +236,6 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
 
     /*------------------ RANDOMIZATION ------------------*/
 
-    override fun randomize(avgConnectionsPerVertex: Int, minWeight: Int, maxWeight: Int, allowDisjoint: Boolean, random: Random) { //when inheritance removed add default values
-        val probability = avgConnectionsPerVertex.toDouble()  / size()
-        randomize(probability, minWeight, maxWeight, allowDisjoint, random)
-    }
-
     override fun randomize(probability: Double, minWeight: Int, maxWeight: Int, allowDisjoint: Boolean, random: Random) { //when removed add default values
         for (i in edgeMatrix.indices) {
             for (j in edgeMatrix.indices) {

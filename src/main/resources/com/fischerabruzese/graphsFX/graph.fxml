@@ -138,9 +138,9 @@
                            </rowConstraints>
                            <children>
                               <Label text="Avg Connections/Vertex:" textFill="WHITE" GridPane.columnSpan="3" />
-                              <TextField fx:id="AvgConnectionsPerVertexBox" prefHeight="25.0" prefWidth="35.0" scaleY="0.9" GridPane.columnIndex="3" />
+                              <TextField fx:id="avgConnPerVertexText" onKeyTyped="#avgConnectionsPerVertexEdited" prefHeight="25.0" prefWidth="35.0" scaleY="0.9" GridPane.columnIndex="3" />
                               <Label layoutX="10.0" layoutY="17.0" text="Probability of Connection:" textFill="WHITE" GridPane.columnSpan="3" GridPane.rowIndex="1" />
-                              <TextField fx:id="AvgConnectionsPerVertexBox1" layoutX="152.0" layoutY="13.0" prefHeight="25.0" prefWidth="35.0" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+                              <TextField fx:id="probOfConnectionsText" layoutX="152.0" layoutY="13.0" onKeyTyped="#probOfConnectionsEdited" prefHeight="25.0" prefWidth="35.0" GridPane.columnIndex="3" GridPane.rowIndex="1" />
                            </children>
                         </GridPane>
                      </children></StackPane>
@@ -170,7 +170,7 @@
                            </font>
                         </Label>
                         <Label text="Allow Disjoint Graph:" textFill="WHITE" GridPane.columnSpan="3" />
-                        <CheckBox fx:id="allowDisjointSelectionBox" mnemonicParsing="false" selected="true" translateX="25.0" GridPane.columnIndex="2" />
+                        <CheckBox fx:id="allowDisjointSelectionBox" mnemonicParsing="false" onMousePressed="#avgConnectionsPerVertexEdited" selected="true" translateX="25.0" GridPane.columnIndex="2" />
                      </children>
                   </GridPane>
                   <Button fx:id="randomizeButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onMouseClicked="#randomizePressed" prefWidth="200.0" text="Randomize" />

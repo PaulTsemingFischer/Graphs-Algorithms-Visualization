@@ -194,20 +194,6 @@ abstract class Graph<E : Any> : Iterable<E> {
     }
     fun randomize(probability: Double, maxWeight: Int, allowDisjoint: Boolean = true, random: Random = Random) = randomize(probability, 1, maxWeight, allowDisjoint, random)
 
-    /**
-     * Sets random connections with a probability that will average a certain amount of connections per vertex. When [allowDisjoint] is false, it tries to accommodate the probability if edges to join the graphs.
-     * @param avgConnectionsPerVertex The average amount of a connections per vertex. If fully connected is set to true, it must be greater than or equal to 1.
-     * @param minWeight The minimum weight of a connection(inclusive).
-     * @param maxWeight The maximum weight of a connection(exclusive).
-     * @param allowDisjoint allows vertices to have zero inbound/outbound connections
-     * @param random A random object that determines what graph is constructed
-     */
-    open fun randomize(avgConnectionsPerVertex: Int, minWeight: Int, maxWeight: Int, allowDisjoint: Boolean = true, random: Random = Random){
-        val probability = ( avgConnectionsPerVertex.toDouble() + (if(!allowDisjoint && avgConnectionsPerVertex*5 < size()) -1 else 0) ) / size()
-        randomize(probability, minWeight, maxWeight, allowDisjoint, random)
-    }
-    fun randomize(avgConnectionsPerVertex: Int, maxWeight: Int, allowDisjoint: Boolean = true, random: Random = Random) = randomize(avgConnectionsPerVertex, 1, maxWeight, allowDisjoint, random)
-
     //TODO: Consider refactoring to new class
     /**
      * Randomizes the edges in a graph to create clusters. [interClusterConnectedness]/[intraClusterConnectedness] is essentially the clusteriness of the graph.
