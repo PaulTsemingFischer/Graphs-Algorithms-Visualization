@@ -25,14 +25,6 @@ class Controller<E: Any> {
     @FXML
     private lateinit var clusterRandomizationSwitchHBox: HBox
     @FXML
-    private lateinit var probabilityField: TextField
-    @FXML
-    private lateinit var minWeightField: TextField
-    @FXML
-    private lateinit var maxWeightField: TextField
-    @FXML
-    private lateinit var allowDisjointToggle: CheckBox
-    @FXML
     private lateinit var physicsSlider: Slider
     @FXML
     private lateinit var fromVertexField: TextField
@@ -62,6 +54,10 @@ class Controller<E: Any> {
     private lateinit var maxWeightTextBox: TextField
     @FXML
     private lateinit var randomizeButton: Button
+    @FXML
+    private lateinit var avgConnPerVertexText: TextField
+    @FXML
+    private lateinit var probOfConnectionsText: TextField
 
     //Console
     @FXML
@@ -351,13 +347,56 @@ class Controller<E: Any> {
             "High" -> intraConn = 0.55
         }
         val min = minWeightTextBox.text.toInt()
-        val max = maxWeightTextBox.text.toInt()
+        val max = maxWeightTextBox.text.toInt() + 1
         this.graph.randomizeWithCluster(clusterCount, min, max, intraConn, interConn)
-        if(allowDisjointSelectionBox.isSelected) this.graph.mergeDisjoint(min, max)
+        if(!allowDisjointSelectionBox.isSelected) this.graph.mergeDisjoint(min, max)
         graphicComponents.draw()
     }
 
     private fun generateRandomGraph() {
-        TODO("Not yet implemented")
+        val probConn = probOfConnectionsText.text.toDouble()
+        val min = minWeightTextBox.text.toInt()
+        val max = maxWeightTextBox.text.toInt() + 1
+        this.graph.randomize(probConn, min, max)
+        if(!allowDisjointSelectionBox.isSelected) this.graph.mergeDisjoint(min, max)
+        graphicComponents.draw()
+    }
+
+    //probOfConnectionsEdited
+    //avgConnectionsPerVertexEdited
+    @FXML
+    private fun probOfConnectionsEdited() {
+//        val prevVal = avgConnPerVertexText.text.toDoubleOrNull()?.let {
+//            ((it - if(!allowDisjointSelectionBox.isSelected) ((graph.size()-1.0)/graph.size()) else 0.0) / (2*(graph.size()-1))).toString()
+//        } ?: ""
+
+        if(probOfConnectionsText.text.toDoubleOrNull() != null) {
+            if(probOfConnectionsText.text.toDouble() > 1.0)
+                probOfConnectionsText.text = 1.0.toString()
+
+            else if(probOfConnectionsText.text.toDouble() < 0.0)
+                probOfConnectionsText.text = 0.0.toString()
+        }
+
+        avgConnPerVertexText.text = probOfConnectionsText.text.toDoubleOrNull()?.let {
+            ((2*it*(graph.size()-1)) + (if(!allowDisjointSelectionBox.isSelected) ((graph.size()-1)/graph.size()).toDouble() else 0.0)).toString()
+        } ?: ""
+    }
+
+    @FXML
+    private fun avgConnectionsPerVertexEdited() {
+//        val prevVal = probOfConnectionsText.text.toDoubleOrNull()?.let {
+//            ((2*it*(graph.size()-1)) + (if(!allowDisjointSelectionBox.isSelected) ((graph.size()-1)/graph.size()).toDouble() else 0.0)).toString()
+//        } ?: ""
+
+        probOfConnectionsText.text = avgConnPerVertexText.text.toDoubleOrNull()?.let {
+            ((it - if(!allowDisjointSelectionBox.isSelected) ((graph.size()-1.0)/graph.size()) else 0.0) / (2*(graph.size()-1))).toString()
+        } ?: ""
+
+        if(probOfConnectionsText.text.toDoubleOrNull() != null) {
+            if(probOfConnectionsText.text.toDouble() > 1.0 || probOfConnectionsText.text.toDouble() < 0.0) {
+                probOfConnectionsEdited() //illegal edit was made, this method will adjust
+            }
+        }
     }
 }
