@@ -8,6 +8,8 @@ import javafx.scene.layout.GridPane
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
 import javafx.scene.paint.Color
+import javafx.scene.text.Text
+import javafx.scene.text.TextFlow
 import java.text.NumberFormat
 import kotlin.system.measureNanoTime
 
@@ -65,7 +67,7 @@ class Controller<E: Any> {
 
     //Console
     @FXML
-    private lateinit var console: TextArea
+    private lateinit var console: TextFlow
     private val CONSOLE_LINE_SEPARATOR = "-".repeat(20) + "\n"
 
     //Data
@@ -89,13 +91,7 @@ class Controller<E: Any> {
         initializeClusterConnectednessSlider()
         switchButton.switchedEvents.addLast { switchSwitched(it) }
         switchSwitched(SwitchButton.SwitchButtonState.LEFT) //initialize properties in specific graphic
-        println(clusterColoringToggle.isSelected)
         updateClusterColoring()
-    }
-
-    @FXML
-    private fun redrawPressed() {
-        println(clusterColoringToggle.isSelected)
     }
 
     //Graph presets
@@ -124,40 +120,48 @@ class Controller<E: Any> {
     }
 
     //Console
+    private fun printEntry(text: String, color: Color = Color.BLACK){
+        val coloredText = Text(text).apply{fill = color}
+        console.children.add(0, Text(CONSOLE_LINE_SEPARATOR))
+        console.children.add(0, coloredText)
+    }
+
     private fun printClusters(clusters: Collection<Graph<E>>, connectedness: Double) {
-        console.text = buildString {
+        val text = buildString {
             append("Clusters (connectedness: ${NumberFormat.getNumberInstance().format(connectedness)})\n")
-            for (cluster in clusters) {
-                append("${cluster.getVertices()}\n\n")
+            val sortedClusters = clusters.sortedByDescending { it.size() }
+            for (cluster in sortedClusters) {
+                val sortedVertices = cluster.getVertices().sortedBy { it.toString() }
+                append("\nSize ${sortedVertices.size}: ${sortedVertices}\n")
             }
-            append(CONSOLE_LINE_SEPARATOR)
-        } + console.text
+        }
+        printEntry(text, Color.BLUE)
     }
 
     private fun printDijkstra(from: E, to: E, path: List<E>, distance: Int, time: Long) {
-        console.text = buildString {
+        val text = buildString {
             append("Dijkstra from $from to $to\n")
             append("Path: $path\n")
             append("Distance: $distance\n")
             append("Time(ns): ${NumberFormat.getIntegerInstance().format(time)}\n")
-            append(CONSOLE_LINE_SEPARATOR)
-        } + console.text
+        }
+        printEntry(text, Color.DEEPSKYBLUE)
     }
 
     private fun printBfs(from: E, to: E, path: List<E>, time: Long) {
-        console.text = buildString {
+        val text = buildString {
             append("Breadth first search from $from to $to\n")
             append(pathingString(path, time))
-            append(CONSOLE_LINE_SEPARATOR)
-        } + console.text
+        }
+        printEntry(text, Color.DEEPSKYBLUE)
     }
 
     private fun printDfs(from: E, to: E, path: List<E>, time: Long) {
-        console.text = buildString {
+        val text = buildString {
             append("Depth first search from $from to $to\n")
             append(pathingString(path, time))
-            append(CONSOLE_LINE_SEPARATOR)
-        } + console.text
+        }
+        printEntry(text, Color.DEEPSKYBLUE)
     }
 
     private fun pathingString(path: List<E>, time: Long): String{

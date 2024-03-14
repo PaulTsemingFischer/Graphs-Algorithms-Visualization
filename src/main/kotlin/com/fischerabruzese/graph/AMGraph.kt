@@ -40,14 +40,14 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
 
         /**
          * Creates a graph from vertices with outbound connections with no weights
-         * @param outboundConnections: pairs containing the vertex paired with an array of all vertices it has an outbound connection to
+         * @param connections: pairs containing the vertex paired with an array of all vertices it has an outbound connection to
          */
         @JvmName("graphOfConnectionsVararg")
         fun <E:Any> graphOf(vararg connections: Pair<E, Iterable<E>?>) = fromConnections(connections.toList())
 
         /**
          * Creates a graph from vertices with outbound connections with no weights
-         * @param outboundConnections: A list of pairs containing the vertex paired with an array of all vertices it has an outbound connection to
+         * @param connectionsList: A list of pairs containing the vertex paired with an array of all vertices it has an outbound connection to
          */
         @JvmName("graphOfConnectionsList")
         fun <E:Any> fromConnections(connectionsList: List<Pair<E, Iterable<E>?>>) = AMGraph(0,
