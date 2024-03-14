@@ -139,7 +139,6 @@ class GraphApp : Application() {
 
         /* Launch the application */
 */
-        controller.draw()
         stage.show()
         //controller.unfixSimulationLag()
     }

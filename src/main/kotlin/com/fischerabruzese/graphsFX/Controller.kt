@@ -13,13 +13,18 @@ import java.text.NumberFormat
 import kotlin.system.measureNanoTime
 
 class Controller<E: Any> {
+    //Constants
+    companion object {
+        val PATH_START = Color.ORANGE
+        val PATH_END = Color.rgb(207, 3, 252)
+    }
+
     //Pane
     @FXML
     private lateinit var pane: Pane
     private lateinit var paneWidth: ReadOnlyDoubleProperty
     private lateinit var paneHeight: ReadOnlyDoubleProperty
     private lateinit var graphicComponents: GraphicComponents<E>
-
 
     //User inputs
     @FXML
@@ -78,7 +83,8 @@ class Controller<E: Any> {
     //Initialization for anything involving the graph
     fun initializeGraph(graph: Graph<E>) {
         this.graph = graph
-        graphicComponents = GraphicComponents(graph, pane, stringToVMap)
+        graphicComponents = GraphicComponents(graph, pane, stringToVMap) //Create the graphic components
+        graphicComponents.draw() //Draw the graphic components
         initializeClusterRandomizationSwitch()
         initializePhysicsSlider()
         initializeVertexSelection()
@@ -87,15 +93,13 @@ class Controller<E: Any> {
         intraConnectednessChoiceBox.items = FXCollections.observableArrayList("Low", "Med", "High")
         interConnectednessDropdown.items = FXCollections.observableArrayList("Low", "Med", "High")
         switchSwitched(SwitchButton.SwitchButtonState.LEFT) //initialize properties in specific graphic
-    }
-
-    fun draw() {
-        graphicComponents.draw()
+        println(clusterColoringToggle.isSelected)
+        updateClusterColoring()
     }
 
     @FXML
     private fun redrawPressed() {
-        graphicComponents.draw()
+        println(clusterColoringToggle.isSelected)
     }
 
     //Graph presets
@@ -190,7 +194,7 @@ class Controller<E: Any> {
                 clearOutline()
             }
             stringToVMap[newValue]?.run{
-                setOutline(Color.ORANGE)
+                setOutline(Companion.PATH_START)
             }
         }
         toVertexField.textProperty().addListener { _, oldValue, newValue ->
@@ -198,7 +202,7 @@ class Controller<E: Any> {
                 clearOutline()
             }
             stringToVMap[newValue]?.run{
-                setOutline(Color.rgb(207, 3, 252))
+                setOutline(PATH_END)
             }
         }
     }
