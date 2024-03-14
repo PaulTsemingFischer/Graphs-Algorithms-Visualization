@@ -48,9 +48,9 @@ class Controller<E: Any> {
     @FXML
     private lateinit var clusterCountTextBox: TextField
     @FXML
-    private lateinit var intraConnectednessChoiceBox: ChoiceBox<String>
+    private lateinit var intraConnectednessSlider: Slider
     @FXML
-    private lateinit var interConnectednessDropdown: ChoiceBox<String>
+    private lateinit var interConnectednessSlider: Slider
     @FXML
     private lateinit var allowDisjointSelectionBox: CheckBox
     @FXML
@@ -90,8 +90,6 @@ class Controller<E: Any> {
         initializeVertexSelection()
         initializeClusterConnectednessSlider()
         switchButton.switchedEvents.addLast { switchSwitched(it) }
-        intraConnectednessChoiceBox.items = FXCollections.observableArrayList("Low", "Med", "High")
-        interConnectednessDropdown.items = FXCollections.observableArrayList("Low", "Med", "High")
         switchSwitched(SwitchButton.SwitchButtonState.LEFT) //initialize properties in specific graphic
         println(clusterColoringToggle.isSelected)
         updateClusterColoring()
@@ -334,25 +332,18 @@ class Controller<E: Any> {
                 generateClusteredGraph()
             }
         }
+        updateClusterColoring()
     }
 
     private fun generateClusteredGraph() {
         val clusterCount = clusterCountTextBox.text.toInt()
-        var interConn = 0.0
-        var intraConn = 0.0
-        when(interConnectednessDropdown.value){
-            "Low" -> interConn = 0.003
-            "Med" -> interConn = 0.02
-            "High" -> interConn = 0.04
-        }
-        when(intraConnectednessChoiceBox.value){
-            "Low" -> intraConn = 0.11
-            "Med" -> intraConn = 0.33
-            "High" -> intraConn = 0.55
-        }
+        val interConn = interConnectednessSlider.value
+        val intraConn = intraConnectednessSlider.value
+
         var unweighted = false
         val max: Int = try { maxWeightTextBox.text.toInt() + 1 } catch (e: NumberFormatException) { 2.also{unweighted = true} }
         val min: Int = try { minWeightTextBox.text.toInt() } catch (e: NumberFormatException) { 1 }
+
         this.graph.randomizeWithCluster(clusterCount, min, max, intraConn, interConn)
         if(!allowDisjointSelectionBox.isSelected) this.graph.mergeDisjoint(min, max)
 
