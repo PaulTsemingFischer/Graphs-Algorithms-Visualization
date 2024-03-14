@@ -26,10 +26,13 @@ class GraphicComponents<E: Any>(
     val pane: Pane,
     val stringToVMap: HashMap<String, GraphicComponents<E>.Vertex>
 ) {
-    private val CIRCLE_RADIUS = 20.0
+    //Constants
+    companion object {
+        private val CIRCLE_RADIUS = 20.0
+    }
 
+    //Vertex + edge storage
     private var selectedVertex: GraphicComponents<E>.Vertex? = null
-
     private val hitboxes = ArrayList<Circle>()
     private var edges = ArrayList<Edge>() //Made this private instead of internal, might break something
 
@@ -107,28 +110,32 @@ class GraphicComponents<E: Any>(
 
 
         //Components
-        private val circle = Circle(CIRCLE_RADIUS, Color.BLUE)
+        private val circle = Circle(Companion.CIRCLE_RADIUS, Color.BLUE)
         private val label = Label(v.toString())
-        private val hitbox = Circle(CIRCLE_RADIUS, Color.TRANSPARENT)
+        private val hitbox = Circle(Companion.CIRCLE_RADIUS, Color.TRANSPARENT)
 
         //Location Bindings
         private val usablePercentPaneWidth: DoubleBinding = Bindings.createDoubleBinding(
-            { 1.0 - 2 * CIRCLE_RADIUS / pane.widthProperty().get() },
+            { 1.0 - 2 * Companion.CIRCLE_RADIUS / pane.widthProperty().get() },
             pane.widthProperty()
         )
         private val usablePercentPaneHeight: DoubleBinding = Bindings.createDoubleBinding(
-            { 1.0 - 2 * CIRCLE_RADIUS / pane.heightProperty().get() },
+            { 1.0 - 2 * Companion.CIRCLE_RADIUS / pane.heightProperty().get() },
             pane.heightProperty()
         )
 
         //Bindings
             //These are actually what get read by the components
-        var vTranslateXBinding : DoubleBinding = pane.widthProperty().multiply(this.x).multiply(usablePercentPaneWidth).add(CIRCLE_RADIUS)
-        var vtranslateYBinding : DoubleBinding = pane.heightProperty().multiply(this.y).multiply(usablePercentPaneHeight).add(CIRCLE_RADIUS)
+        var vTranslateXBinding : DoubleBinding = pane.widthProperty().multiply(this.x).multiply(usablePercentPaneWidth).add(
+            Companion.CIRCLE_RADIUS
+        )
+        var vtranslateYBinding : DoubleBinding = pane.heightProperty().multiply(this.y).multiply(usablePercentPaneHeight).add(
+            Companion.CIRCLE_RADIUS
+        )
 
         private fun bindAll(){
             //Circle
-            val offsetBinding: DoubleBinding = circle.strokeWidthProperty().add(CIRCLE_RADIUS)
+            val offsetBinding: DoubleBinding = circle.strokeWidthProperty().add(Companion.CIRCLE_RADIUS)
             circle.translateXProperty().bind(vTranslateXBinding.subtract(offsetBinding))
             circle.translateYProperty().bind(vtranslateYBinding.subtract(offsetBinding))
             circle.strokeType = StrokeType.OUTSIDE
@@ -234,7 +241,6 @@ class GraphicComponents<E: Any>(
 
         init{
             stringToVMap[v.toString()] = this
-
             bindAll()
 
             //Listeners
@@ -319,8 +325,8 @@ class GraphicComponents<E: Any>(
                     dyTotal, dxTotal
                 )
 
-                val dy = dxTotal.multiply(CIRCLE_RADIUS / 4).divide(length).multiply(-1)
-                val dx = dyTotal.multiply(CIRCLE_RADIUS / 4).divide(length)
+                val dy = dxTotal.multiply(Companion.CIRCLE_RADIUS / 4).divide(length).multiply(-1)
+                val dx = dyTotal.multiply(Companion.CIRCLE_RADIUS / 4).divide(length)
 
                 line.startXProperty().bind(from.vTranslateXBinding.add(dx))
                 line.startYProperty().bind(from.vtranslateYBinding.add(dy))
@@ -384,19 +390,19 @@ class GraphicComponents<E: Any>(
                     )
 
                     val dx1 = Bindings.createDoubleBinding(
-                        { CIRCLE_RADIUS/4.8 * cos(theta.get() + (PI /4)) },
+                        { Companion.CIRCLE_RADIUS /4.8 * cos(theta.get() + (PI /4)) },
                         theta
                     )
                     val dy1 = Bindings.createDoubleBinding(
-                        { CIRCLE_RADIUS/4.8 * sin(theta.get() + (PI /4)) },
+                        { Companion.CIRCLE_RADIUS /4.8 * sin(theta.get() + (PI /4)) },
                         theta
                     )
                     val dx2 = Bindings.createDoubleBinding(
-                        { CIRCLE_RADIUS/4.8 * cos(theta.get() - (PI /4)) },
+                        { Companion.CIRCLE_RADIUS /4.8 * cos(theta.get() - (PI /4)) },
                         theta
                     )
                     val dy2 = Bindings.createDoubleBinding(
-                        { CIRCLE_RADIUS/4.8 * sin(theta.get() - (PI /4)) },
+                        { Companion.CIRCLE_RADIUS /4.8 * sin(theta.get() - (PI /4)) },
                         theta
                     )
                     val endX1 = startposX.add(dx1.multiply(if(mirror) -1 else 1))
@@ -669,8 +675,8 @@ class GraphicComponents<E: Any>(
     }
 
     fun makePathFancyColors() {
-        val startColor = Color.ORANGE
-        val endColor = Color.rgb(207, 3, 252)
+        val startColor = Controller.PATH_START
+        val endColor = Controller.PATH_END
         val segments: Double = currentPathVertices.size + currentPathConnections.size.toDouble()
         var currColor = startColor
         val connections = LinkedList(currentPathConnections)
