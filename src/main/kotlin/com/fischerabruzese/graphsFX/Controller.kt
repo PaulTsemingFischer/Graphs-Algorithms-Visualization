@@ -2,7 +2,6 @@ package com.fischerabruzese.graphsFX
 
 import com.fischerabruzese.graph.Graph
 import javafx.beans.property.ReadOnlyDoubleProperty
-import javafx.collections.FXCollections
 import javafx.fxml.FXML
 import javafx.scene.control.*
 import javafx.scene.layout.GridPane
