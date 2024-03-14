@@ -169,6 +169,17 @@ abstract class Graph<E : Any> : Iterable<E> {
         return Objects.hash(getVertices(), getEdges())
     }
 
+    /**
+     * @return true if the graphs contain the same vertices with the same connections and is the same type of graph
+     */
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is Graph<*>) return false
+        if (getVertices() != other.getVertices()) return false
+        if (getEdges() != other.getEdges()) return false
+        return true
+    }
+
     override fun toString(): String{
         return getEdges().toString()
     }
@@ -324,9 +335,19 @@ abstract class Graph<E : Any> : Iterable<E> {
 
     /*---------------- CLUSTERING ----------------*/
 
+    /**
+     * Uses Highly Connected Subgraph (with Kargers for finding min-cut) algorithm to find clusters in this graph
+     * @param connectedness the minimum proportion of vertices that must be connected to form a cluster
+     * @param kargerness the number of probabilistic attempts at finding the min-cut before the best option is taken
+     * @return a collection of subgraphs that are the clusters of this graph
+     */
     abstract fun getClusters(connectedness: Double = 0.5, kargerness: Int = 1000): Collection<Graph<E>>
 
-    open fun getClusters(proportionConnectedThreshold: Double = 0.25, confidence: Double){
+    /**
+     * @see getClusters
+     * @param confidence the desired probability of finding the min-cut during each iteration of Kargers algorithm
+     */
+    open fun getClusters(connectedness: Double = 0.25, confidence: Double){
         require(confidence < 1.0 && confidence > 0.0)
 
         fun calculateNumRuns(n: Int, pDesired: Double): Int {
@@ -335,6 +356,6 @@ abstract class Graph<E : Any> : Iterable<E> {
             return t.toInt()
         }
 
-        getClusters(proportionConnectedThreshold, calculateNumRuns(size(), 1.0 - confidence))
+        getClusters(connectedness, calculateNumRuns(size(), 1.0 - confidence))
     }
 }

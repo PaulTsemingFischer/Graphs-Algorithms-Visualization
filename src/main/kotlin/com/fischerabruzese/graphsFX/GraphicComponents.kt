@@ -17,7 +17,6 @@ import javafx.scene.shape.StrokeType
 import javafx.scene.text.Font
 import java.util.*
 import java.util.concurrent.CountDownLatch
-import kotlin.collections.HashMap
 import kotlin.math.*
 import kotlin.random.Random
 
@@ -25,7 +24,6 @@ import kotlin.random.Random
  * Represents all the components of a graph in the graphics pane
  * @param graph graph contained in [pane]
  * @param pane the pane to contain the graph
- * @param stringToVMap the lookup table of
  */
 class GraphicComponents<E: Any>(
     val graph: Graph<E>,
@@ -335,8 +333,8 @@ class GraphicComponents<E: Any>(
      *
      * @property v1 The first vertex of the edge.
      * @property v2 The second vertex of the edge.
-     * @property v1tov2 The weight of the edge between v1 and v2.
-     * @property v2tov1 The weight of the edge between v2 and v1.
+     * @param v1tov2 The weight of the edge between v1 and v2.
+     * @param v2tov1 The weight of the edge between v2 and v1.
      */
     inner class Edge(val v1 : Vertex, val v2 : Vertex, v1tov2 : Int, v2tov1: Int) : StackPane(){
         /* Connections */
