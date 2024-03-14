@@ -70,7 +70,6 @@ class Controller<E: Any> {
 
     //Data
     private lateinit var graph: Graph<E>
-    private val stringToVMap = HashMap<String, GraphicComponents<E>.Vertex>()
 
     //Window initialization
     @FXML
@@ -82,7 +81,7 @@ class Controller<E: Any> {
     //Initialization for anything involving the graph
     fun initializeGraph(graph: Graph<E>) {
         this.graph = graph
-        graphicComponents = GraphicComponents(graph, pane, stringToVMap) //Create the graphic components
+        graphicComponents = GraphicComponents(graph, pane) //Create the graphic components
         graphicComponents.draw() //Draw the graphic components
         initializeClusterRandomizationSwitch()
         initializePhysicsSlider()
@@ -172,12 +171,13 @@ class Controller<E: Any> {
     private fun initializePhysicsSlider(){
         physicsSlider.valueProperty().addListener { _, _, newValue ->
             newValue?.let {
-                if(it.toDouble() < 0.02) graphicComponents.physics.on = false
+                if(it.toDouble() < 0.02)
+                    graphicComponents.physicsC.on = false
                 else {
-                    graphicComponents.physics.speed = it.toDouble()
-                    if (!graphicComponents.physics.on) {
-                        graphicComponents.physics.on = true
-                        graphicComponents.physics.simulate()
+                    graphicComponents.physicsC.speed = it.toDouble()
+                    if (!graphicComponents.physicsC.on) {
+                        graphicComponents.physicsC.on = true
+                        graphicComponents.physicsC.simulate()
                     }
                 }
             }
@@ -187,24 +187,24 @@ class Controller<E: Any> {
     //Vertex selection
     private fun initializeVertexSelection() {
         fromVertexField.textProperty().addListener { _, oldValue, newValue ->
-            stringToVMap[oldValue]?.run{
+            graphicComponents.stringToVMap[oldValue]?.run{
                 clearOutline()
             }
-            stringToVMap[newValue]?.run{
+            graphicComponents.stringToVMap[newValue]?.run{
                 setOutline(PATH_START)
             }
         }
         toVertexField.textProperty().addListener { _, oldValue, newValue ->
-            stringToVMap[oldValue]?.run{
+            graphicComponents.stringToVMap[oldValue]?.run{
                 clearOutline()
             }
-            stringToVMap[newValue]?.run{
+            graphicComponents.stringToVMap[newValue]?.run{
                 setOutline(PATH_END)
             }
         }
     }
     private fun retrieveVertexElement(lookupKey: String): E? {
-        return stringToVMap[lookupKey]?.v
+        return graphicComponents.stringToVMap[lookupKey]?.v
     }
     //throw InvalidKeyException("user input: \"${fromVertexField.text}\" is not an existing vertex")
 

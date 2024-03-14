@@ -1,6 +1,7 @@
 package com.fischerabruzese.graph
 
 import java.util.*
+import kotlin.math.ln
 import kotlin.random.Random
 @Suppress("unused")
 
@@ -324,4 +325,16 @@ abstract class Graph<E : Any> : Iterable<E> {
     /*---------------- CLUSTERING ----------------*/
 
     abstract fun getClusters(connectedness: Double = 0.5, kargerness: Int = 1000): Collection<Graph<E>>
+
+    open fun getClusters(proportionConnectedThreshold: Double = 0.25, confidence: Double){
+        require(confidence < 1.0 && confidence > 0.0)
+
+        fun calculateNumRuns(n: Int, pDesired: Double): Int {
+            val p = 1.0 / (n * n / 2 - n / 2)
+            val t = ln(1 - pDesired) / ln(1 - p)
+            return t.toInt()
+        }
+
+        getClusters(proportionConnectedThreshold, calculateNumRuns(size(), 1.0 - confidence))
+    }
 }
