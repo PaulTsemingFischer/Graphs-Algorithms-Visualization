@@ -17,7 +17,6 @@ import javafx.scene.shape.StrokeType
 import javafx.scene.text.Font
 import java.util.*
 import java.util.concurrent.CountDownLatch
-import kotlin.collections.HashMap
 import kotlin.math.*
 import kotlin.random.Random
 
@@ -358,6 +357,10 @@ class GraphicComponents<E: Any>(
 
             fun setWeight(weight : String) {
                 label.text = weight
+            }
+
+            fun visibleWeight(isVisible : Boolean) {
+                label.isVisible = isVisible
             }
 
             inner class Director(startposX : DoubleBinding, startposY : DoubleBinding, mirror: Boolean) : Pane() {
@@ -705,6 +708,13 @@ class GraphicComponents<E: Any>(
                     (currColor.blue + ((endColor.blue - startColor.blue)/segments))
                 )
             }
+        }
+    }
+
+    fun hideWeight() {
+        for(edge in edges){
+            edge.v2tov1Connection.visibleWeight(false)
+            edge.v1tov2Connection.visibleWeight(false)
         }
     }
 
