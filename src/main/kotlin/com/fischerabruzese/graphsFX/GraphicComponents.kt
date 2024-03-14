@@ -372,6 +372,16 @@ class GraphicComponents<E: Any>(
             v2tov1Connection.unboldLine()
         }
 
+        fun hideLabels(){
+            v1tov2Connection.hideLabel()
+            v2tov1Connection.hideLabel()
+        }
+
+        fun showLabels(){
+            v1tov2Connection.showLabel()
+            v2tov1Connection.showLabel()
+        }
+
         /**
          * Make both connections in this edge whatever color you want
          */
@@ -496,6 +506,14 @@ class GraphicComponents<E: Any>(
                 label.textFill = color
             }
 
+            fun hideLabel() {
+                label.isVisible = false
+            }
+
+            fun showLabel() {
+                label.isVisible = true
+            }
+
             fun setWeight(weight : String) {
                 label.text = weight
             }
@@ -581,7 +599,7 @@ class GraphicComponents<E: Any>(
      */
     fun hideWeight() {
         for(edge in edges){
-            edge.setLabelColor(Color.TRANSPARENT)
+            edge.hideLabels()
         }
     }
 

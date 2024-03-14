@@ -120,48 +120,45 @@ class Controller<E: Any> {
     }
 
     //Console
-    private fun printEntry(text: String, color: Color = Color.BLACK){
+    private fun printEntry(title: String? = null, text: String, color: Color = Color.BLACK){
+        val coloredTitle = Text(title).apply{fill = color; style = "-fx-font-weight: bold"}
         val coloredText = Text(text).apply{fill = color}
-        console.children.add(0, Text(CONSOLE_LINE_SEPARATOR))
-        console.children.add(0, coloredText)
+        console.children.addAll(0, listOf(coloredTitle, coloredText, Text(CONSOLE_LINE_SEPARATOR)))
     }
 
-    private fun printClusters(clusters: Collection<Graph<E>>, connectedness: Double) {
+    private fun printClusters(clusters: Collection<Graph<E>>, connectedness: Double, time: Long) {
+        val title = "Clusters (connectedness: ${NumberFormat.getNumberInstance().format(connectedness)})\n"
         val text = buildString {
-            append("Clusters (connectedness: ${NumberFormat.getNumberInstance().format(connectedness)})\n")
             val sortedClusters = clusters.sortedByDescending { it.size() }
             for (cluster in sortedClusters) {
                 val sortedVertices = cluster.getVertices().sortedBy { it.toString() }
                 append("\nSize ${sortedVertices.size}: ${sortedVertices}\n")
             }
+            append("\nTime(ns): ${NumberFormat.getIntegerInstance().format(time)}\n")
         }
-        printEntry(text, Color.BLUE)
+        printEntry(title, text, Color.BLUE)
     }
 
     private fun printDijkstra(from: E, to: E, path: List<E>, distance: Int, time: Long) {
+        val title = "Dijkstra from $from to $to\n"
         val text = buildString {
-            append("Dijkstra from $from to $to\n")
             append("Path: $path\n")
             append("Distance: $distance\n")
             append("Time(ns): ${NumberFormat.getIntegerInstance().format(time)}\n")
         }
-        printEntry(text, Color.DEEPSKYBLUE)
+        printEntry(title, text, Color.DEEPSKYBLUE)
     }
 
     private fun printBfs(from: E, to: E, path: List<E>, time: Long) {
-        val text = buildString {
-            append("Breadth first search from $from to $to\n")
-            append(pathingString(path, time))
-        }
-        printEntry(text, Color.DEEPSKYBLUE)
+        val title = "Breadth first search from $from to $to\n"
+        val text = pathingString(path, time)
+        printEntry(title, text, Color.DEEPSKYBLUE)
     }
 
     private fun printDfs(from: E, to: E, path: List<E>, time: Long) {
-        val text = buildString {
-            append("Depth first search from $from to $to\n")
-            append(pathingString(path, time))
-        }
-        printEntry(text, Color.DEEPSKYBLUE)
+        val title = "Depth first search from $from to $to\n"
+        val text = pathingString(path, time)
+        printEntry(title, text, Color.DEEPSKYBLUE)
     }
 
     private fun pathingString(path: List<E>, time: Long): String{
@@ -275,8 +272,11 @@ class Controller<E: Any> {
 
     @FXML
     private fun printClustersPressed() {
-        val (clusters, connectedness) = getClusters()
-        printClusters(clusters, connectedness)
+        val clusters: Pair<Collection<Graph<E>>, Double>
+        val time = measureNanoTime {
+            clusters = getClusters()
+        }
+        printClusters(clusters.first, clusters.second, time)
     }
 
     private fun updateClusterColoring(){
