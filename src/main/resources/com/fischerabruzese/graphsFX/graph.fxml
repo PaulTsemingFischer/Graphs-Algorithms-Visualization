@@ -363,7 +363,7 @@
                               <Insets left="20.0" right="10.0" />
                            </HBox.margin>
                         </Label>
-                        <CheckBox fx:id="clusterColoringToggle" mnemonicParsing="false" />
+                        <CheckBox fx:id="clusterColoringToggle" mnemonicParsing="false" onAction="#clusterColoringToggled" />
                      </children>
                   </HBox>
                   <StackPane>

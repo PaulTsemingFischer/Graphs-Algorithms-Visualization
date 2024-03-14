@@ -79,13 +79,10 @@ class Controller<E: Any> {
     fun initializeGraph(graph: Graph<E>) {
         this.graph = graph
         graphicComponents = GraphicComponents(graph, pane, stringToVMap)
+        initializeClusterRandomizationSwitch()
         initializePhysicsSlider()
         initializeVertexSelection()
-        clusterRandomizationSwitchHBox.children.addAll(
-            Label("Cluster Rand ").apply { textFill = Color.WHITE },
-            SwitchButton().also { switchButton = it },
-            Label(" Pure Rand").apply { textFill = Color.WHITE }
-        )
+        initializeClusterConnectednessSlider()
         switchButton.switchedEvents.addLast { switchSwitched(it) }
         intraConnectednessChoiceBox.items = FXCollections.observableArrayList("Low", "Med", "High")
         interConnectednessDropdown.items = FXCollections.observableArrayList("Low", "Med", "High")
@@ -264,17 +261,47 @@ class Controller<E: Any> {
         return Triple((from to to), path, time)
     }
 
-
-
     //Clustering
-    @FXML
-    private fun printClustersPressed() {
+    private fun getClusters(): Pair<Collection<Graph<E>>, Double> {
         val connectedness = connectednessSlider.value
-        printClusters(graph.getClusters(connectedness), connectedness)
+        val clusters = graph.getClusters(connectedness)
+        return Pair(clusters, connectedness)
     }
 
+    @FXML
+    private fun printClustersPressed() {
+        val (clusters, connectedness) = getClusters()
+        printClusters(clusters, connectedness)
+    }
+
+    private fun updateClusterColoring(){
+        if(clusterColoringToggle.isSelected){
+            graphicComponents.colorClusters(getClusters().first)
+        }else{
+            graphicComponents.clearClusterColoring()
+        }
+    }
+
+    private fun initializeClusterConnectednessSlider(){
+        connectednessSlider.valueProperty().addListener { _, _, _ ->
+            updateClusterColoring()
+        }
+    }
+
+    @FXML
+    private fun clusterColoringToggled(){
+        updateClusterColoring()
+    }
 
     //Randomization
+    private fun initializeClusterRandomizationSwitch(){
+        clusterRandomizationSwitchHBox.children.addAll(
+            Label("Cluster Rand ").apply { textFill = Color.WHITE },
+            SwitchButton().also { switchButton = it },
+            Label(" Pure Rand").apply { textFill = Color.WHITE }
+        )
+    }
+
     private fun switchSwitched(state: SwitchButton.SwitchButtonState) {
         when(state){
             SwitchButton.SwitchButtonState.LEFT -> {

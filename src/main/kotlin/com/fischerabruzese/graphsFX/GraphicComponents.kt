@@ -17,6 +17,7 @@ import javafx.scene.shape.StrokeType
 import javafx.scene.text.Font
 import java.util.*
 import java.util.concurrent.CountDownLatch
+import kotlin.collections.HashMap
 import kotlin.math.*
 import kotlin.random.Random
 
@@ -196,14 +197,19 @@ class GraphicComponents<E: Any>(
                 ColorType.PATH -> color
                 ColorType.SELECTED -> Color.RED
                 ColorType.HOVERED -> Color.GREEN
-                ColorType.GREYED -> Color(0.0, 0.0, 1.0, 0.3)
-                ColorType.CLUSTERED -> color
-                ColorType.DEFAULT -> Color.BLUE
+                ColorType.GREYED -> grey(colorStorage[getHighestPriority()])
+                ColorType.CLUSTERED -> color.also{if(colorStorage[colorPriorityMap[ColorType.GREYED]!!] != null) setColor(ColorType.GREYED)}
+                ColorType.DEFAULT -> Color.BLUE.also{if(colorStorage[colorPriorityMap[ColorType.GREYED]!!] != null) setColor(ColorType.GREYED)}
             }
             if(priority <= topColorPriority) {
                 setColor(colorStorage[priority]!!)
                 topColorPriority = priority
             }
+        }
+
+        private fun grey(color : Color?) : Color?{
+            if(color == null) return null
+            return Color(color.red, color.green, color.blue, 0.3)
         }
 
         private fun setSelected(){
@@ -357,10 +363,6 @@ class GraphicComponents<E: Any>(
 
             fun setWeight(weight : String) {
                 label.text = weight
-            }
-
-            fun visibleWeight(isVisible : Boolean) {
-                label.isVisible = isVisible
             }
 
             inner class Director(startposX : DoubleBinding, startposY : DoubleBinding, mirror: Boolean) : Pane() {
@@ -601,21 +603,6 @@ class GraphicComponents<E: Any>(
             }
         }
     }
-/*
-    fun greyNonPath() {
-        for (vert in vertices) {
-            if(!currentPathVertices.contains(vert))
-                vert.grey()
-        }
-        for (edge in edges){
-            if(!currentPathEdges.contains(edge)){
-                edge.grey()
-            }
-        }
-    }
-
- */
-
 
     //Grey out non-attached vertices and edges in the graph
     fun greyDetached(src: GraphicComponents<E>.Vertex) {
@@ -711,12 +698,23 @@ class GraphicComponents<E: Any>(
         }
     }
 
-    fun hideWeight() {
-        for(edge in edges){
-            edge.v2tov1Connection.visibleWeight(false)
-            edge.v1tov2Connection.visibleWeight(false)
+    fun colorClusters(clusters: Collection<Graph<E>>){
+        val colors = LinkedList(listOf(Color.MAGENTA, Color.PINK, Color.LIGHTBLUE, Color.DARKSEAGREEN, Color.DARKVIOLET, Color.DARKORANGE, Color.DARKSLATEBLUE, Color.DARKSLATEGRAY, Color.DARKTURQUOISE))
+        for(cluster in clusters){
+            val color = if(colors.isNotEmpty()) colors.removeFirst() else randomColor()
+            for(vertex in cluster){
+                stringToVMap[vertex.toString()]?.setColor(ColorType.CLUSTERED, color)
+            }
         }
     }
+
+    fun clearClusterColoring(){
+        for(vertex in vertices){
+            vertex.clearColor(ColorType.CLUSTERED)
+        }
+    }
+
+    private fun randomColor(): Color = Color.color(Math.random(), Math.random(), Math.random())
 
 
 //    val clustering = object : Clustering() {}
