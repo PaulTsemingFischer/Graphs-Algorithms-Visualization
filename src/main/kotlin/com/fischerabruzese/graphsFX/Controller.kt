@@ -355,10 +355,10 @@ class Controller<E: Any> {
         val min: Int = try { minWeightTextBox.text.toInt() } catch (e: NumberFormatException) { 1 }
         this.graph.randomizeWithCluster(clusterCount, min, max, intraConn, interConn)
         if(!allowDisjointSelectionBox.isSelected) this.graph.mergeDisjoint(min, max)
-        if(unweighted)
-            graphicComponents.hideWeight()
 
         graphicComponents.draw()
+        if(unweighted)
+            graphicComponents.hideWeight()
     }
 
     private fun generateRandomGraph() {
@@ -369,10 +369,10 @@ class Controller<E: Any> {
 
         this.graph.randomize(probConn, min, max)
         if(!allowDisjointSelectionBox.isSelected) this.graph.mergeDisjoint(min, max)
-        if(unweighted)
-            graphicComponents.hideWeight()
 
         graphicComponents.draw()
+        if(unweighted)
+            graphicComponents.hideWeight()
     }
     
     @FXML

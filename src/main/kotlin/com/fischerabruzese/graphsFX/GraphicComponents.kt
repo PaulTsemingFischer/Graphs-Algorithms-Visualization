@@ -722,6 +722,11 @@ class GraphicComponents<E: Any>(
 
     private fun randomColor(): Color = Color.color(Math.random(), Math.random(), Math.random())
 
+    fun hideWeight() {
+        for(edge in edges){
+            edge.setLabelColor(Color.TRANSPARENT)
+        }
+    }
 
 //    val clustering = object : Clustering() {}
 //    abstract inner class Clustering{
