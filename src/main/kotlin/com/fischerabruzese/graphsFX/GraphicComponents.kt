@@ -723,7 +723,8 @@ class GraphicComponents<E: Any>(
             Color.rgb(255, 215, 0), // Gold
             Color.rgb(255, 160, 122) // Light Salmon
         ))
-        for(cluster in clusters){
+        val sortedClusters = clusters.sortedByDescending { it.size() }
+        for(cluster in sortedClusters){
             val color = if(colors.isNotEmpty()) colors.removeFirst() else randomColor()
             for(vertex in cluster){
                 stringToVMap[vertex.toString()]?.setColor(ColorType.CLUSTERED, color)
