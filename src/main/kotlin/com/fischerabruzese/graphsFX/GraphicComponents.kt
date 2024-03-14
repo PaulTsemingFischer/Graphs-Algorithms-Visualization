@@ -705,7 +705,24 @@ class GraphicComponents<E: Any>(
     }
 
     fun colorClusters(clusters: Collection<Graph<E>>){
-        val colors = LinkedList(listOf(Color.MAGENTA, Color.PINK, Color.LIGHTBLUE, Color.DARKSEAGREEN, Color.DARKVIOLET, Color.DARKORANGE, Color.DARKSLATEBLUE, Color.DARKSLATEGRAY, Color.DARKTURQUOISE))
+        val colors = LinkedList(listOf(
+            Color.rgb(148, 0, 211), // Deep Purple
+            Color.rgb(102, 205, 170), // Aquamarine
+            Color.rgb(218, 165, 32), // Goldenrod
+            Color.rgb(0, 191, 255), // Deep Sky Blue
+            Color.rgb(218, 112, 214), // Orchid
+            Color.rgb(154, 205, 50), // Yellow Green
+            Color.rgb(32, 178, 170), // Light Sea Green
+            Color.rgb(255, 69, 0), // Orange Red
+            Color.rgb(139, 69, 19), // Saddle Brown
+            Color.rgb(176, 224, 230), // Powder Blue
+            Color.rgb(255, 105, 180), // Hot Pink
+            Color.rgb(70, 130, 180), // Steel Blue
+            Color.rgb(0, 128, 128), // Teal
+            Color.rgb(255, 99, 71), // Tomato
+            Color.rgb(255, 215, 0), // Gold
+            Color.rgb(255, 160, 122) // Light Salmon
+        ))
         for(cluster in clusters){
             val color = if(colors.isNotEmpty()) colors.removeFirst() else randomColor()
             for(vertex in cluster){

@@ -191,7 +191,7 @@ class Controller<E: Any> {
                 clearOutline()
             }
             stringToVMap[newValue]?.run{
-                setOutline(Companion.PATH_START)
+                setOutline(PATH_START)
             }
         }
         toVertexField.textProperty().addListener { _, oldValue, newValue ->
