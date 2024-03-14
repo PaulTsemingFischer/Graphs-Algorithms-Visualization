@@ -364,7 +364,7 @@
                   <HBox alignment="CENTER" layoutX="15.0" layoutY="295.0" prefWidth="200.0">
                      <children>
                         <Label prefWidth="130.0" text="Connectedness" textFill="WHITE" />
-                        <Slider fx:id="connectednessSlider" blockIncrement="0.0" max="0.7" value="0.2" />
+                        <Slider fx:id="connectednessSlider" blockIncrement="0.0" max="1.0" value="0.2" />
                      </children>
                      <VBox.margin>
                         <Insets bottom="5.0" />
