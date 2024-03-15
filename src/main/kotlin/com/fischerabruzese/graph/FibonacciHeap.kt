@@ -3,7 +3,10 @@ package com.fischerabruzese.graph
 /**
  * Represents a node in the Fibonacci Heap data structure.
  *
- * @param V The type of the value stored in the node, must implement Comparable.
+ * @param P The type of the priority to compare the nodes against must implement Comparable.
+ * @param V The type of value you want to store
+ * @param priority the priority of the node
+ * @param value the value you want to store at that priority
  */
 class Node<P : Comparable<P>, V>(var priority : P, var value: V) {
     var parent: Node<P, V>? = null
@@ -50,7 +53,8 @@ class FibonacciHeap<P : Comparable<P>, V>(var minNode: Node<P, V>? = null) {
     /**
      * Inserts a new value into the heap and returns the corresponding node.
      *
-     * @param v The value to insert.
+     * @param priority The priority of the value to insert.
+     * @param value The value to store at that priority
      * @return The node containing the inserted value.
      */
     fun insert(priority : P, value: V): Node<P, V> {
@@ -171,7 +175,7 @@ class FibonacciHeap<P : Comparable<P>, V>(var minNode: Node<P, V>? = null) {
      * Decreases the key of a node to a new value.
      *
      * @param n The node whose key should be decreased.
-     * @param v The new value for the node.
+     * @param newPriority The new priority for the node.
      * @throws IllegalArgumentException if the new value is greater than the existing value.
      */
     fun decreaseKey(n: Node<P, V>, newPriority: P) {
@@ -189,8 +193,7 @@ class FibonacciHeap<P : Comparable<P>, V>(var minNode: Node<P, V>? = null) {
     }
 
     private fun cut(x: Node<P,V>) {
-        val p = x.parent
-        if (p == null) return
+        val p = x.parent ?: return
         p.rank--
         if (p.rank == 0) {
             p.child = null
@@ -232,88 +235,12 @@ class FibonacciHeap<P : Comparable<P>, V>(var minNode: Node<P, V>? = null) {
         else {
             cut(n)
         }
-        var c = n.child
-        if (c == null) return
+        var c: Node<P,V>? = n.child ?: return
         while (true) {
             c!!.parent = null
-            c = c.next
+            c = c.next!!
             if (c == n.child) break
         }
         this.minNode?.meld2(c!!)
     }
-
-    /**
-     * Visualizes the structure of the heap.
-     */
-    fun visualize() {
-        if (this.minNode == null) {
-            println("<empty>")
-            return
-        }
-
-        fun f(n: Node<P,V>, pre: String) {
-            var pc = "│ "
-            var x = n
-            while (true) {
-                if (x.next != n) {
-                    print("$pre├─")
-                }
-                else {
-                    print("$pre└─")
-                    pc = "  "
-                }
-                if (x.child == null) {
-                    println("╴ ${x.value}")
-                }
-                else {
-                    println("┐ ${x.value}")
-                    f(x.child!!, pre + pc)
-                }
-                if (x.next == n) break
-                x = x.next!!
-            }
-        }
-        f(this.minNode!!, "")
-    }
 }
-
-//fun main(args: Array<String>) {
-//    println("MakeHeap:")
-//    val h = makeHeap<String>()
-//    h.visualize()
-//
-//    println("\nInsert:")
-//    h.insert("cat")
-//    h.visualize()
-//
-//    println("\nUnion:")
-//    val h2 = makeHeap<String>()
-//    h2.insert("rat")
-//    h.union(h2)
-//    h.visualize()
-//
-//    println("\nMinimum:")
-//    var m = h.minimum()
-//    println(m)
-//
-//    println("\nExtractMin:")
-//    // add a couple more items to demonstrate parent-child linking that
-//    // happens on delete min.
-//    h.insert("bat")
-//    val x = h.insert("meerkat")  // save x for decrease key and delete demos.
-//    m = h.extractMin()
-//    println("(extracted $m)")
-//    h.visualize()
-//
-//    println("\nDecreaseKey:")
-//    h.decreaseKey(x, "gnat")
-//    h.visualize()
-//
-//    println("\nDelete:")
-//    // add a couple more items.
-//    h.insert("bobcat")
-//    h.insert("bat")
-//    println("(deleting ${x.value})")
-//    h.delete(x)
-//    h.visualize()
-//}
