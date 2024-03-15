@@ -180,6 +180,13 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
         dijkstraTables = Array(size()) { null }
     }
 
+    override fun<R : Any> mapVertices(transform: (vertex: E) -> R) : Graph<R> {
+        val newGraph = AMGraph<R>()
+        newGraph.edgeMatrix = edgeMatrix.map { it.clone() }.toTypedArray()
+        newGraph.vertices = ArrayList(vertices.map{transform(it)})
+        return newGraph
+    }
+
     override fun toString(): String {
         val string = StringBuilder()
         for (destinations in edgeMatrix) {

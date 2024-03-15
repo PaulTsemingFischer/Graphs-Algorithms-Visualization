@@ -858,7 +858,6 @@ class GraphicComponents<E: Any>(
             Color.rgb(0, 191, 255), // Deep Sky Blue
             Color.rgb(218, 112, 214), // Orchid
             Color.rgb(154, 205, 50), // Yellow Green
-            Color.rgb(32, 178, 170), // Light Sea Green
             Color.rgb(255, 69, 0), // Orange Red
             Color.rgb(139, 69, 19), // Saddle Brown
             Color.rgb(176, 224, 230), // Powder Blue

@@ -1,5 +1,6 @@
 package com.fischerabruzese.graphsFX
 
+import com.fischerabruzese.graph.AMGraph
 import com.fischerabruzese.graph.Graph
 import javafx.beans.property.ReadOnlyDoubleProperty
 import javafx.fxml.FXML
@@ -61,9 +62,11 @@ class Controller<E: Any> {
     @FXML
     private lateinit var randomizeButton: Button
     @FXML
-    private lateinit var avgConnPerVertexText: TextField
+    private lateinit var vertexCountField: TextField
     @FXML
-    private lateinit var probOfConnectionsText: TextField
+    private lateinit var avgConnPerVertexField: TextField
+    @FXML
+    private lateinit var probOfConnectionsField: TextField
 
     //Console
     @FXML
@@ -71,7 +74,7 @@ class Controller<E: Any> {
     private val CONSOLE_LINE_SEPARATOR = "-".repeat(20) + "\n"
 
     //Data
-    private lateinit var graph: Graph<E>
+    private lateinit var graph: Graph<Any>
 
     //Window initialization
     @FXML
@@ -82,7 +85,7 @@ class Controller<E: Any> {
 
     //Initialization for anything involving the graph
     fun initializeGraph(graph: Graph<E>) {
-        this.graph = graph
+        this.graph = graph.mapVertices {it}
         graphicComponents = GraphicComponents(graph, pane) //Create the graphic components
         graphicComponents.draw() //Draw the graphic components
         initializeClusterRandomizationSwitch()
@@ -339,6 +342,9 @@ class Controller<E: Any> {
     }
 
     private fun generateClusteredGraph() {
+        if(!vertexCountField.textProperty().isEmpty.get()) {
+            this.graph = AMGraph<Any>()
+        }
         val clusterCount = clusterCountTextBox.text.toInt()
         val interConn = interConnectednessSlider.value
         val intraConn = intraConnectednessSlider.value
@@ -356,7 +362,7 @@ class Controller<E: Any> {
     }
 
     private fun generateRandomGraph() {
-        val probConn = probOfConnectionsText.text.toDouble()
+        val probConn = probOfConnectionsField.text.toDouble()
         var unweighted = false
         val max: Int = try { maxWeightTextBox.text.toInt() + 1 } catch (e: NumberFormatException) { 2.also{unweighted = true} }
         val min: Int = try { minWeightTextBox.text.toInt() } catch (e: NumberFormatException) { 1 }
@@ -371,27 +377,27 @@ class Controller<E: Any> {
     
     @FXML
     private fun probOfConnectionsEdited() {
-        if(probOfConnectionsText.text.toDoubleOrNull() != null) {
-            if(probOfConnectionsText.text.toDouble() > 1.0)
-                probOfConnectionsText.text = 1.0.toString()
+        if(probOfConnectionsField.text.toDoubleOrNull() != null) {
+            if(probOfConnectionsField.text.toDouble() > 1.0)
+                probOfConnectionsField.text = 1.0.toString()
 
-            else if(probOfConnectionsText.text.toDouble() < 0.0)
-                probOfConnectionsText.text = 0.0.toString()
+            else if(probOfConnectionsField.text.toDouble() < 0.0)
+                probOfConnectionsField.text = 0.0.toString()
         }
 
-        avgConnPerVertexText.text = probOfConnectionsText.text.toDoubleOrNull()?.let {
+        avgConnPerVertexField.text = probOfConnectionsField.text.toDoubleOrNull()?.let {
             ((2*it*(graph.size()-1)) + (if(!allowDisjointSelectionBox.isSelected) ((graph.size()-1)/graph.size()).toDouble() else 0.0)).toString()
         } ?: ""
     }
 
     @FXML
     private fun avgConnectionsPerVertexEdited() {
-        probOfConnectionsText.text = avgConnPerVertexText.text.toDoubleOrNull()?.let {
+        probOfConnectionsField.text = avgConnPerVertexField.text.toDoubleOrNull()?.let {
             ((it - if(!allowDisjointSelectionBox.isSelected) ((graph.size()-1.0)/graph.size()) else 0.0) / (2*(graph.size()-1))).toString()
         } ?: ""
 
-        if(probOfConnectionsText.text.toDoubleOrNull() != null) {
-            if(probOfConnectionsText.text.toDouble() > 1.0 || probOfConnectionsText.text.toDouble() < 0.0) {
+        if(probOfConnectionsField.text.toDoubleOrNull() != null) {
+            if(probOfConnectionsField.text.toDouble() > 1.0 || probOfConnectionsField.text.toDouble() < 0.0) {
                 probOfConnectionsEdited() //illegal edit was made, this method does data validation
             }
         }

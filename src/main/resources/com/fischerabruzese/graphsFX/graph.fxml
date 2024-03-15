@@ -23,7 +23,7 @@
 <?import javafx.scene.text.Text?>
 <?import javafx.scene.text.TextFlow?>
 
-<HBox alignment="CENTER_RIGHT" prefHeight="820.0" prefWidth="1280.0" style="-fx-background-color: #282828;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.fischerabruzese.graphsFX.Controller">
+<HBox alignment="CENTER_RIGHT" prefHeight="820.0" prefWidth="1280.0" style="-fx-background-color: #282828;" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.fischerabruzese.graphsFX.Controller">
    <children>
       <Pane fx:id="pane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="10.0" minWidth="10.0" style="-fx-background-color: lightgray;" HBox.hgrow="ALWAYS" />
       <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" maxHeight="1.7976931348623157E308" maxWidth="-Infinity" minWidth="-Infinity" style="-fx-background-color: #282828; -fx-background-insets: 0;" vbarPolicy="NEVER" HBox.hgrow="NEVER">
@@ -110,6 +110,19 @@
                      </children>
                   </StackPane>
                   <HBox fx:id="clusterRandomizationSwitchHBox" alignment="CENTER" />
+                  <GridPane>
+                    <columnConstraints>
+                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                    </columnConstraints>
+                    <rowConstraints>
+                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                    </rowConstraints>
+                     <children>
+                        <Label text="Vertex Count:" textFill="WHITE" />
+                        <TextField fx:id="vertexCountField" onKeyTyped="#avgConnectionsPerVertexEdited" prefHeight="25.0" prefWidth="35.0" GridPane.columnIndex="1" />
+                     </children>
+                  </GridPane>
                   <StackPane prefHeight="50.0" prefWidth="200.0">
                      <children>
                         <GridPane fx:id="clusterRandGridPane">
@@ -154,7 +167,7 @@
                            </rowConstraints>
                            <children>
                               <Label text="Avg Connections/Vertex:" textFill="WHITE" GridPane.columnSpan="3" />
-                              <TextField fx:id="avgConnPerVertexText" onKeyTyped="#avgConnectionsPerVertexEdited" prefHeight="25.0" prefWidth="35.0" scaleY="0.9" GridPane.columnIndex="3" />
+                              <TextField fx:id="avgConnPerVertexField" onKeyTyped="#avgConnectionsPerVertexEdited" prefHeight="25.0" prefWidth="35.0" scaleY="0.9" GridPane.columnIndex="3" />
                               <Label layoutX="10.0" layoutY="17.0" text="Probability of Connection:" textFill="WHITE" GridPane.columnSpan="3" GridPane.rowIndex="1" />
                               <TextField fx:id="probOfConnectionsText" layoutX="152.0" layoutY="13.0" onKeyTyped="#probOfConnectionsEdited" prefHeight="25.0" prefWidth="35.0" GridPane.columnIndex="3" GridPane.rowIndex="1" />
                            </children>
