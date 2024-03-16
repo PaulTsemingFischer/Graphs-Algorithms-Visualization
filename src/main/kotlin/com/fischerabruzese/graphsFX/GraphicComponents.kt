@@ -26,7 +26,7 @@ import kotlin.random.Random
  * @param pane the pane to contain the graph
  */
 class GraphicComponents<E: Any>(
-    val graph: Graph<E>,
+    var graph: Graph<E>,
     val pane: Pane,
 ) {
     //Constants
@@ -60,7 +60,6 @@ class GraphicComponents<E: Any>(
 
         //Get list of vertices from graph
         val verticesElements = ArrayList(graph.getVertices())
-
         //Map the vertices to graphic representation using the old vertex positions if found or random positions if not
         val graphicVertices = verticesElements.mapIndexed { index, vertex ->
             Vertex(
@@ -72,6 +71,7 @@ class GraphicComponents<E: Any>(
 
         //Iterate through the vertices to create edges
         val edgeElements = ArrayList<Edge>()
+        println(graph)
         for((v1pos, vertex1) in verticesElements.withIndex()){
             for(vertex2 in verticesElements.subList(v1pos, verticesElements.size)){
                 val v1tov2Weight = graph[vertex1, vertex2] ?: -1
@@ -784,7 +784,7 @@ class GraphicComponents<E: Any>(
     /**
      * Given [path] grey stuff no in path and make the path fancy. And add path to [currentPathVertices] and [currentPathConnections]
      */
-    fun colorPath(path: List<E>){
+    fun colorPath(path: List<Any>){
         currentPathVertices.clear()
         for(v in path){
             for(vertex in vertices){
@@ -847,7 +847,7 @@ class GraphicComponents<E: Any>(
     /**
      * Given [clusters] colors the graph so that each cluster is a distinct color
      */
-    fun colorClusters(clusters: Collection<Graph<E>>){
+    fun colorClusters(clusters: Collection<Graph<Any>>){
         fun randomColor(): Color = Color.color(Math.random(), Math.random(), Math.random())
         val colors = LinkedList(listOf(
             Color.rgb(148, 0, 211), // Deep Purple

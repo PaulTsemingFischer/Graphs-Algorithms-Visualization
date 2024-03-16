@@ -6,6 +6,7 @@ package com.fischerabruzese.graph
 
 import java.math.BigInteger
 import java.util.*
+import kotlin.collections.HashMap
 import kotlin.math.min
 import kotlin.math.pow
 import kotlin.random.Random
@@ -126,7 +127,6 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
         }
     }
 
-
     override operator fun get(from: E, to: E): Int? {
         return indexLookup[from]?.let { f ->
             indexLookup[to]?.let { t ->
@@ -236,7 +236,7 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
     override fun<R : Any> mapVertices(transform: (vertex: E) -> R) : Graph<R> {
         val newGraph = AMGraph<R>()
         newGraph.edgeMatrix = edgeMatrix.map { it.clone() }.toTypedArray()
-        newGraph.vertices = ArrayList(vertices.map{transform(it)})
+        newGraph.vertices = ArrayList(vertices.mapIndexed{index, e -> transform(e).also{ r -> newGraph.indexLookup[r] = index}})
         return newGraph
     }
 
