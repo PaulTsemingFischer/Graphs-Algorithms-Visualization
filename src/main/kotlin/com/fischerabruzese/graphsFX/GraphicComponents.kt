@@ -326,6 +326,10 @@ class GraphicComponents<E: Any>(
         override fun toString(): String {
             return v.toString()
         }
+
+        fun copy(): Vertex {
+            return Vertex(v,x.get(), y.get())
+        }
     }
 
     /**
@@ -590,16 +594,25 @@ class GraphicComponents<E: Any>(
      * @param speed determines the speed of the simulation. This could be implemented by modifying the fps or the effect of each frame.
      */
     abstract inner class Physics(var on: Boolean, var speed: Double) {
+        private var ghostVertices = vertices.map { it to it.pos }.toTypedArray()
+
         /**
          * Opens a thread that will generate and push frames to the gui at [speed] until [on] is false
          */
         fun simulate() {
+            ghostVertices = vertices.map { it to it.pos }.toTypedArray()
             Thread {
                 while(on){
+                    pushGhostFrame(generateFrame(speed, unaffected = listOfNotNull(selectedVertex)))
+                    Thread.sleep(1)
+                }
+            }.start()
+
+            Thread {
+                while (on) {
                     val latch = CountDownLatch(1) // Initialize with a count of 1
-                    val nextFrame = generateFrame(speed, unaffected = listOfNotNull(selectedVertex))
                     Platform.runLater {
-                        pushFrame(nextFrame)
+                        pushRealFrame()
                         latch.countDown() //signal that Platform has executed our frame
                     }
                     latch.await() //wait for platform to execute our frame
@@ -625,9 +638,15 @@ class GraphicComponents<E: Any>(
         abstract fun generateFrame(speed: Double, unaffected: List<GraphicComponents<E>.Vertex> = emptyList(), uneffectors: List<GraphicComponents<E>.Vertex> = emptyList()): Array<Displacement>
 
         /** Updates every vertex with the calculated displacements */
-        private fun pushFrame(displacementArr: Array<Displacement>){
+        private fun pushRealFrame(){
+            for(vertexIndex in vertices.indices){
+                vertices[vertexIndex].pos = ghostVertices[vertexIndex].second
+            }
+        }
+
+        private fun pushGhostFrame(displacementArr: Array<Displacement>){
             for((vertexIndex, displacement) in displacementArr.withIndex()){
-                vertices[vertexIndex].pos += displacement
+                ghostVertices[vertexIndex] = ghostVertices[vertexIndex].let { it.first to it.second.plus(displacement) }
             }
         }
     }
@@ -704,9 +723,9 @@ class GraphicComponents<E: Any>(
                             }
                     }
 
-                edges.zip(edges.dumpPositions())
-                    .filterNot { (e, _) -> e.v1 == vertex || e.v2 == vertex } //should I add another filter for effector stuff
-                    .mapTo(effectors) { (_, pos) -> Pair(pos, edgeFieldEquation) }
+//                edges.zip(edges.dumpPositions())
+//                    .filterNot { (e, _) -> e.v1 == vertex || e.v2 == vertex } //should I add another filter for effector stuff
+//                    .mapTo(effectors) { (_, pos) -> Pair(pos, edgeFieldEquation) }
 
                 //walls
                 listOf(Position(1.0, vertex.pos.y), Position(0.0, vertex.pos.y), Position(vertex.pos.x, 1.0), Position(vertex.pos.x, 0.0))
