@@ -114,7 +114,6 @@ abstract class Graph<E : Any> : Iterable<E> {
      */
     abstract fun contains(vertex: E): Boolean
 
-
     /**
      * @param vertex the source vertex of the neighbors
      * @return a collection of vertices that are connected to the given vertex
@@ -147,7 +146,7 @@ abstract class Graph<E : Any> : Iterable<E> {
      * @return a new graph containing only the specified vertices
      */
     abstract fun subgraph(verts: Collection<E>):Graph<E>
-    
+
     fun union(other: Graph<E>) {
         for(v in other){
             add(v)
@@ -163,6 +162,19 @@ abstract class Graph<E : Any> : Iterable<E> {
      */
     inline fun filter(predicate: (vertex: E) -> Boolean) : Graph<E>{
         return subgraph(getVertices().filter{predicate(it)})
+    }
+
+    open fun<R : Any> mapVertices(transform: (vertex: E) -> R) : Graph<R> {
+        val graph = AMGraph<R>()
+        graph.addAll(this.map(transform))
+        for(f in this){
+            for(t in this){
+                if(this[f,t] != null){
+                    graph[transform(f),transform(t)] = this[f,t]!!
+                }
+            }
+        }
+        return graph
     }
 
     override fun hashCode(): Int {
@@ -262,12 +274,12 @@ abstract class Graph<E : Any> : Iterable<E> {
         becomeCloneOf(mergedGraph)
     }
 
-    private fun becomeCloneOf(graph: Graph<E>){
+    //TODO: javadoc
+    fun becomeCloneOf(graph: Graph<E>){
         clearConnections()
         removeAll(getVertices())
         union(graph)
     }
-
 
     /**
      *  Adds edges to the current so that the graph is not disjoint. Randomly adds edges that will merge 2 disjoint sections until everything is joined.

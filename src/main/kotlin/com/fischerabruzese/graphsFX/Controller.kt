@@ -1,5 +1,6 @@
 package com.fischerabruzese.graphsFX
 
+import com.fischerabruzese.graph.AMGraph
 import com.fischerabruzese.graph.Graph
 import javafx.beans.property.ReadOnlyDoubleProperty
 import javafx.fxml.FXML
@@ -13,7 +14,7 @@ import javafx.scene.text.TextFlow
 import java.text.NumberFormat
 import kotlin.system.measureNanoTime
 
-class Controller<E: Any> {
+class Controller {
     //Constants
     companion object {
         val PATH_START = Color.ORANGE
@@ -25,7 +26,7 @@ class Controller<E: Any> {
     private lateinit var pane: Pane
     private lateinit var paneWidth: ReadOnlyDoubleProperty
     private lateinit var paneHeight: ReadOnlyDoubleProperty
-    private lateinit var graphicComponents: GraphicComponents<E>
+    private lateinit var graphicComponents: GraphicComponents<Any>
 
     //User inputs
     @FXML
@@ -61,9 +62,11 @@ class Controller<E: Any> {
     @FXML
     private lateinit var randomizeButton: Button
     @FXML
-    private lateinit var avgConnPerVertexText: TextField
+    private lateinit var vertexCountField: TextField
     @FXML
-    private lateinit var probOfConnectionsText: TextField
+    private lateinit var avgConnPerVertexField: TextField
+    @FXML
+    private lateinit var probOfConnectionsField: TextField
 
     //Console
     @FXML
@@ -71,7 +74,7 @@ class Controller<E: Any> {
     private val CONSOLE_LINE_SEPARATOR = "-".repeat(20) + "\n"
 
     //Data
-    private lateinit var graph: Graph<E>
+    private lateinit var graph: Graph<Any>
 
     //Window initialization
     @FXML
@@ -81,9 +84,9 @@ class Controller<E: Any> {
     }
 
     //Initialization for anything involving the graph
-    fun initializeGraph(graph: Graph<E>) {
-        this.graph = graph
-        graphicComponents = GraphicComponents(graph, pane) //Create the graphic components
+    fun<E: Any> initializeGraph(graph: Graph<E>) {
+        this.graph = graph.mapVertices {it as Any}
+        graphicComponents = GraphicComponents(this.graph, pane) //Create the graphic components
         graphicComponents.draw() //Draw the graphic components
         initializeClusterRandomizationSwitch()
         initializePhysicsSlider()
@@ -120,51 +123,53 @@ class Controller<E: Any> {
     }
 
     //Console
-    private fun printEntry(text: String, color: Color = Color.BLACK){
+        //General console printing
+    private fun printEntry(title: String? = null, text: String, color: Color = Color.BLACK){
+        val coloredTitle = Text(title).apply{fill = color; style = "-fx-font-weight: bold"}
         val coloredText = Text(text).apply{fill = color}
-        console.children.add(0, Text(CONSOLE_LINE_SEPARATOR))
-        console.children.add(0, coloredText)
+        console.children.addAll(0, listOf(coloredTitle, coloredText, Text(CONSOLE_LINE_SEPARATOR)))
     }
 
-    private fun printClusters(clusters: Collection<Graph<E>>, connectedness: Double) {
+        //Error printing
+
+        //Cluster console printing
+    private fun printClusters(clusters: Collection<Graph<Any>>, connectedness: Double, time: Long) {
+        val title = "Clusters (connectedness: ${NumberFormat.getNumberInstance().format(connectedness)})\n"
         val text = buildString {
-            append("Clusters (connectedness: ${NumberFormat.getNumberInstance().format(connectedness)})\n")
             val sortedClusters = clusters.sortedByDescending { it.size() }
             for (cluster in sortedClusters) {
                 val sortedVertices = cluster.getVertices().sortedBy { it.toString() }
                 append("\nSize ${sortedVertices.size}: ${sortedVertices}\n")
             }
+            append("\nTime(ns): ${NumberFormat.getIntegerInstance().format(time)}\n")
         }
-        printEntry(text, Color.BLUE)
+        printEntry(title, text, Color.BLUE)
     }
 
-    private fun printDijkstra(from: E, to: E, path: List<E>, distance: Int, time: Long) {
+        //Pathing console printing
+    private fun printDijkstra(from: Any, to: Any, path: List<Any>, distance: Int, time: Long) {
+        val title = "Dijkstra from $from to $to\n"
         val text = buildString {
-            append("Dijkstra from $from to $to\n")
             append("Path: $path\n")
             append("Distance: $distance\n")
             append("Time(ns): ${NumberFormat.getIntegerInstance().format(time)}\n")
         }
-        printEntry(text, Color.DEEPSKYBLUE)
+        printEntry(title, text, Color.DEEPSKYBLUE)
     }
 
-    private fun printBfs(from: E, to: E, path: List<E>, time: Long) {
-        val text = buildString {
-            append("Breadth first search from $from to $to\n")
-            append(pathingString(path, time))
-        }
-        printEntry(text, Color.DEEPSKYBLUE)
+    private fun printBfs(from: Any, to: Any, path: List<Any>, time: Long) {
+        val title = "Breadth first search from $from to $to\n"
+        val text = pathingString(path, time)
+        printEntry(title, text, Color.DEEPSKYBLUE)
     }
 
-    private fun printDfs(from: E, to: E, path: List<E>, time: Long) {
-        val text = buildString {
-            append("Depth first search from $from to $to\n")
-            append(pathingString(path, time))
-        }
-        printEntry(text, Color.DEEPSKYBLUE)
+    private fun printDfs(from: Any, to: Any, path: List<Any>, time: Long) {
+        val title = "Depth first search from $from to $to\n"
+        val text = pathingString(path, time)
+        printEntry(title, text, Color.DEEPSKYBLUE)
     }
 
-    private fun pathingString(path: List<E>, time: Long): String{
+    private fun pathingString(path: List<Any>, time: Long): String{
         return buildString {
             append("Path: $path\n")
             append("Time(ns): ${NumberFormat.getIntegerInstance().format(time)}\n")
@@ -207,16 +212,16 @@ class Controller<E: Any> {
             }
         }
     }
-    private fun retrieveVertexElement(lookupKey: String): E? {
+    private fun retrieveVertexElement(lookupKey: String): Any? {
         return graphicComponents.stringToVMap[lookupKey]?.v
     }
     //throw InvalidKeyException("user input: \"${fromVertexField.text}\" is not an existing vertex")
 
-    private fun getFromField(): E? {
+    private fun getFromField(): Any? {
         return retrieveVertexElement(fromVertexField.text)
     }
 
-    private fun getToField(): E? {
+    private fun getToField(): Any? {
         return retrieveVertexElement(toVertexField.text)
     }
 
@@ -253,11 +258,11 @@ class Controller<E: Any> {
         pathingButtonPressed(graph::path)?.let { printDfs(it.first.first, it.first.second, it.second, it.third) }
     }
 
-    private fun pathingButtonPressed(algorithm: (E, E) -> List<E>): Triple<Pair<E, E>, List<E>, Long>? {
+    private fun pathingButtonPressed(algorithm: (Any, Any) -> List<Any>): Triple<Pair<Any, Any>, List<Any>, Long>? {
         val from = getFromField()
         val to = getToField()
         from?:return null; to?:return null
-        val path: List<E>
+        val path: List<Any>
 
         val time = measureNanoTime {
             path = algorithm(from, to)
@@ -267,7 +272,7 @@ class Controller<E: Any> {
     }
 
     //Clustering
-    private fun getClusters(): Pair<Collection<Graph<E>>, Double> {
+    private fun getClusters(): Pair<Collection<Graph<Any>>, Double> {
         val connectedness = connectednessSlider.value
         val clusters = graph.getClusters(connectedness)
         return Pair(clusters, connectedness)
@@ -275,8 +280,11 @@ class Controller<E: Any> {
 
     @FXML
     private fun printClustersPressed() {
-        val (clusters, connectedness) = getClusters()
-        printClusters(clusters, connectedness)
+        val clusters: Pair<Collection<Graph<Any>>, Double>
+        val time = measureNanoTime {
+            clusters = getClusters()
+        }
+        printClusters(clusters.first, clusters.second, time)
     }
 
     private fun updateClusterColoring(){
@@ -327,6 +335,16 @@ class Controller<E: Any> {
     @FXML
     private fun randomizePressed(){
         val state = switchButton.state
+        if(!vertexCountField.textProperty().isEmpty.get()) {
+            graphicComponents.physicsC.on = false
+            this.graph = AMGraph()
+            val newVerts = (0 until vertexCountField.text.toInt()).toList()
+            graph.addAll(newVerts)
+            graphicComponents.graph = graph
+            graphicComponents.physicsC.on = true
+            graphicComponents.physicsC.simulate()
+        }
+
         when(state){
             SwitchButton.SwitchButtonState.RIGHT -> {
                 generateRandomGraph()
@@ -339,6 +357,7 @@ class Controller<E: Any> {
     }
 
     private fun generateClusteredGraph() {
+
         val clusterCount = clusterCountTextBox.text.toInt()
         val interConn = interConnectednessSlider.value
         val intraConn = intraConnectednessSlider.value
@@ -356,7 +375,7 @@ class Controller<E: Any> {
     }
 
     private fun generateRandomGraph() {
-        val probConn = probOfConnectionsText.text.toDouble()
+        val probConn = probOfConnectionsField.text.toDouble()
         var unweighted = false
         val max: Int = try { maxWeightTextBox.text.toInt() + 1 } catch (e: NumberFormatException) { 2.also{unweighted = true} }
         val min: Int = try { minWeightTextBox.text.toInt() } catch (e: NumberFormatException) { 1 }
@@ -371,27 +390,27 @@ class Controller<E: Any> {
     
     @FXML
     private fun probOfConnectionsEdited() {
-        if(probOfConnectionsText.text.toDoubleOrNull() != null) {
-            if(probOfConnectionsText.text.toDouble() > 1.0)
-                probOfConnectionsText.text = 1.0.toString()
+        if(probOfConnectionsField.text.toDoubleOrNull() != null) {
+            if(probOfConnectionsField.text.toDouble() > 1.0)
+                probOfConnectionsField.text = 1.0.toString()
 
-            else if(probOfConnectionsText.text.toDouble() < 0.0)
-                probOfConnectionsText.text = 0.0.toString()
+            else if(probOfConnectionsField.text.toDouble() < 0.0)
+                probOfConnectionsField.text = 0.0.toString()
         }
 
-        avgConnPerVertexText.text = probOfConnectionsText.text.toDoubleOrNull()?.let {
+        avgConnPerVertexField.text = probOfConnectionsField.text.toDoubleOrNull()?.let {
             ((2*it*(graph.size()-1)) + (if(!allowDisjointSelectionBox.isSelected) ((graph.size()-1)/graph.size()).toDouble() else 0.0)).toString()
         } ?: ""
     }
 
     @FXML
     private fun avgConnectionsPerVertexEdited() {
-        probOfConnectionsText.text = avgConnPerVertexText.text.toDoubleOrNull()?.let {
+        probOfConnectionsField.text = avgConnPerVertexField.text.toDoubleOrNull()?.let {
             ((it - if(!allowDisjointSelectionBox.isSelected) ((graph.size()-1.0)/graph.size()) else 0.0) / (2*(graph.size()-1))).toString()
         } ?: ""
 
-        if(probOfConnectionsText.text.toDoubleOrNull() != null) {
-            if(probOfConnectionsText.text.toDouble() > 1.0 || probOfConnectionsText.text.toDouble() < 0.0) {
+        if(probOfConnectionsField.text.toDoubleOrNull() != null) {
+            if(probOfConnectionsField.text.toDouble() > 1.0 || probOfConnectionsField.text.toDouble() < 0.0) {
                 probOfConnectionsEdited() //illegal edit was made, this method does data validation
             }
         }
