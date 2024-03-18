@@ -121,7 +121,7 @@ class GraphicComponents<E: Any>(
         //Graphical Display Components
         private val circle = Circle(Companion.CIRCLE_RADIUS, Color.BLUE)
         private val label = Label(v.toString())
-        private val hitbox = Circle(Companion.CIRCLE_RADIUS, Color.TRANSPARENT)
+        internal val hitbox = Circle(Companion.CIRCLE_RADIUS, Color.TRANSPARENT)
 
         /*Location Bindings*/
         private val usablePercentPaneWidth: DoubleBinding = Bindings.createDoubleBinding(
@@ -280,8 +280,15 @@ class GraphicComponents<E: Any>(
         }
 
         private fun grey(color : Color?) : Color?{
+            val greyFactor = 0.5
             if(color == null) return null
-            return Color(color.red, color.green, color.blue, 0.3)
+            val newColor = Color.color(
+                (color.red + ((Color.LIGHTGREY.red - color.red)* greyFactor)),
+                (color.green + ((Color.LIGHTGREY.green - color.green)* greyFactor)),
+                (color.blue + ((Color.LIGHTGREY.blue - color.blue)* greyFactor))
+            )
+
+            return Color(newColor.red, newColor.green, newColor.blue, 0.3)
         }
 
         /**

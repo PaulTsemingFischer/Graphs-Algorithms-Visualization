@@ -109,7 +109,7 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
             }
         }
 
-        dijkstraTables = Array(size()) { null }
+        dijkstraTables = null
         edgeMatrix = Array(size()) { IntArray(size()) { -1 } }
 
         //Add edges
@@ -188,7 +188,7 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
 
     override fun clearConnections() {
         edgeMatrix = Array(size()) { IntArray(size()) { -1 } }
-        dijkstraTables = Array(size()) { null }
+        dijkstraTables = null
     }
 
     override fun addAll(verts: Collection<E>) {
@@ -230,7 +230,7 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
             }
         }
         edgeMatrix = newEdgeMatrix
-        dijkstraTables = Array(size()) { null }
+        dijkstraTables = null
     }
 
     override fun<R : Any> mapVertices(transform: (vertex: E) -> R) : Graph<R> {
