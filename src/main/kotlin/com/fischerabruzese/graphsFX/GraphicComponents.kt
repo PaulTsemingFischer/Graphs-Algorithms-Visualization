@@ -71,7 +71,6 @@ class GraphicComponents<E: Any>(
 
         //Iterate through the vertices to create edges
         val edgeElements = ArrayList<Edge>()
-        println(graph)
         for((v1pos, vertex1) in verticesElements.withIndex()){
             for(vertex2 in verticesElements.subList(v1pos, verticesElements.size)){
                 val v1tov2Weight = graph[vertex1, vertex2] ?: -1
@@ -162,6 +161,7 @@ class GraphicComponents<E: Any>(
             hitbox.setOnMouseExited { if(currentPathVertices.isEmpty()) clearColor(ColorType.HOVERED) }
 
             hitbox.setOnMousePressed {
+                draggingFlag = true
                 dragStart(it)
                 selectedVertex = this
                 if(!currentPathVertices.contains(this)){
@@ -179,6 +179,7 @@ class GraphicComponents<E: Any>(
                     ungreyEverything()
                 }
                 selectedVertex = null
+                draggingFlag = false
             }
             hitbox.pickOnBoundsProperty().set(true)
 
@@ -188,6 +189,7 @@ class GraphicComponents<E: Any>(
         /*Dragging*/
         private var xDelta : Double = 0.0
         private var yDelta : Double = 0.0
+        internal var draggingFlag = false
 
         /**
          * Stores the mouse position on the vertex so that it doesn't matter where you click on the vertex
@@ -658,13 +660,24 @@ class GraphicComponents<E: Any>(
         /** Updates every vertex with the calculated displacements */
         private fun pushRealFrame(){
             for(vertexIndex in vertices.indices){
-                vertices[vertexIndex].pos = ghostVertices[vertexIndex].second
+                if(!vertices[vertexIndex].draggingFlag){
+                    vertices[vertexIndex].pos = ghostVertices[vertexIndex].second
+                }
             }
+            ghostVertices = vertices.map { it to it.pos }.toTypedArray() //reset ghost vertices
         }
 
         private fun pushGhostFrame(displacementArr: Array<Displacement>){
-            for((vertexIndex, displacement) in displacementArr.withIndex()){
-                ghostVertices[vertexIndex] = ghostVertices[vertexIndex].let { it.first to it.second.plus(displacement) }
+            for((vertexIndex, displacement) in displacementArr.withIndex()) {
+                if(!ghostVertices[vertexIndex].first.draggingFlag){
+                    ghostVertices[vertexIndex] = ghostVertices[vertexIndex].let { it.first to it.second.plus(displacement) }
+                    ghostVertices[vertexIndex] = ghostVertices[vertexIndex].let {
+                        it.first to Position( //recreating position will constrain position data, but tbh position class should be rewritten anyway its kinda trash
+                            it.second.x,
+                            it.second.y
+                        )
+                    }
+                }
             }
         }
     }
@@ -709,11 +722,11 @@ class GraphicComponents<E: Any>(
             val fdx = magnitude * cos(angle)
             val fdy = magnitude * sin(angle)
 
-            return Displacement(fdx, fdy)
+            return Displacement(fdx, fdy, 0.9, -0.9)
         }
 
         override fun generateFrame(speed: Double, unaffected: List<GraphicComponents<E>.Vertex>, uneffectors: List<GraphicComponents<E>.Vertex>): Array<Displacement>{
-            val max = 200
+            val max = 1000
             val scaleFactor = speed.pow(4) * max
 
             val displacements = Array(vertices.size) { Displacement(0.0, 0.0) }

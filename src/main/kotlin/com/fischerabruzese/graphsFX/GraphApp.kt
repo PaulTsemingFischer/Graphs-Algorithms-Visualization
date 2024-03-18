@@ -17,7 +17,7 @@ class GraphApp : Application() {
         stage.scene = scene
 
         /* Customize your graph */
-        val verts = (0 until 40).toList()
+        val verts = (0 until 100).toList()
 
         //val graph = createGraph(getText())
         val graph = AMGraph.fromCollection(verts)
