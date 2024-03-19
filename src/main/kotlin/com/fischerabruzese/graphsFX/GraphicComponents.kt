@@ -627,15 +627,16 @@ class GraphicComponents<E: Any>(
          * Opens a thread that will generate and push frames to the gui at [speed] until [on] is false
          */
         fun simulate() {
+            val tg = ThreadGroup("SimulationThreads")
             ghostVertices = vertices.map { it to it.pos }.toTypedArray()
-            Thread {
+            Thread(tg, {
                 while(on){
                     pushGhostFrame(generateFrame(speed, unaffected = listOfNotNull(selectedVertex), verticesPos = ghostVertices.toList()))
-                    Thread.sleep(1)
+                    //Thread.sleep(1)
                 }
-            }.start()
+            }, "GhostFramePusher").start()
 
-            Thread {
+            Thread(tg, {
                 while (on) {
                     val latch = CountDownLatch(1) // Initialize with a count of 1
                     Platform.runLater {
@@ -644,7 +645,7 @@ class GraphicComponents<E: Any>(
                     }
                     latch.await() //wait for platform to execute our frame
                 }
-            }.start()
+            }, "RealFramePusher").start()
         }
         /**
          * Sums all the displacements from all the effectors of [at]
