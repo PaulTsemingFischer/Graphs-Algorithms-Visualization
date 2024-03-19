@@ -630,7 +630,7 @@ class GraphicComponents<E: Any>(
             ghostVertices = vertices.map { it to it.pos }.toTypedArray()
             Thread {
                 while(on){
-                    pushGhostFrame(generateFrame(speed, unaffected = listOfNotNull(selectedVertex)))
+                    pushGhostFrame(generateFrame(speed, unaffected = listOfNotNull(selectedVertex), verticesPos = ghostVertices.toList()))
                     Thread.sleep(1)
                 }
             }.start()
@@ -662,7 +662,7 @@ class GraphicComponents<E: Any>(
          * @param uneffectors all the vertices that do not cause movements
          * @returns An array of displacements such that the displacement at each index correspondents with [vertices]
          */
-        abstract fun generateFrame(speed: Double, unaffected: List<GraphicComponents<E>.Vertex> = emptyList(), uneffectors: List<GraphicComponents<E>.Vertex> = emptyList()): Array<Displacement>
+        abstract fun generateFrame(speed: Double, unaffected: List<GraphicComponents<E>.Vertex> = emptyList(), uneffectors: List<GraphicComponents<E>.Vertex> = emptyList(), verticesPos: List<Pair<GraphicComponents<E>.Vertex,Position>> = vertices.map{it to it.pos}): Array<Displacement>
 
         /** Updates every vertex with the calculated displacements */
         private fun pushRealFrame(){
@@ -732,13 +732,13 @@ class GraphicComponents<E: Any>(
             return Displacement(fdx, fdy, 0.9, -0.9)
         }
 
-        override fun generateFrame(speed: Double, unaffected: List<GraphicComponents<E>.Vertex>, uneffectors: List<GraphicComponents<E>.Vertex>): Array<Displacement>{
-            val max = 1000
+        override fun generateFrame(speed: Double, unaffected: List<GraphicComponents<E>.Vertex>, uneffectors: List<GraphicComponents<E>.Vertex>, verticesPos: List<Pair<GraphicComponents<E>.Vertex,Position>>): Array<Displacement>{
+            val max = 10000
             val scaleFactor = speed.pow(4) * max
 
             val displacements = Array(vertices.size) { Displacement(0.0, 0.0) }
-            for((id, vertex) in vertices.withIndex()){
-                if(unaffected.contains(vertex)) continue
+            for((affectedVertex, affectedPos) in verticesPos){
+                if(unaffected.contains(affectedVertex)) continue
                 val effectors = LinkedList<Pair<Position, (Double) -> Double>>()
 
                 val vertexRepulsionField: (Double) -> Double = { rSqr ->  (scaleFactor / rSqr)}
@@ -751,25 +751,25 @@ class GraphicComponents<E: Any>(
                 val wallFieldEquation: (Double) -> Double = { rSqr ->  0.5 * vertexRepulsionField(rSqr) }
 
                 //vertices
-                vertices
-                    .filterNot{ uneffectors.contains(it) || vertex === it }
-                    .mapTo(effectors) { vertexEffector ->
-                        when(graph.bidirectionalConnections(vertexEffector.v, vertex.v)){
-                                1 -> Pair(vertexEffector.pos, singleConnectedVertexField)
-                                2 -> Pair(vertexEffector.pos, doubleConnectedVertexField)
-                                else -> Pair(vertexEffector.pos, unconnectedVertexField)
+                val (effectorVerts, effectorPos) = verticesPos.filterNot{ (uneffectors.contains(it.first) || affectedVertex === it.first) }.unzip()
+                effectorVerts
+                    .mapIndexedTo(effectors) { i, vertexEffector ->
+                        when(graph.bidirectionalConnections(vertexEffector.v, affectedVertex.v)){
+                                1 -> Pair(effectorPos[i], singleConnectedVertexField)
+                                2 -> Pair(effectorPos[i], doubleConnectedVertexField)
+                                else -> Pair(effectorPos[i], unconnectedVertexField)
                             }
                     }
 
 //                edges.zip(edges.dumpPositions())
-//                    .filterNot { (e, _) -> e.v1 == vertex || e.v2 == vertex } //should I add another filter for effector stuff
-//                    .mapTo(effectors) { (_, pos) -> Pair(pos, edgeFieldEquation) }
+//                    .filterNot { (e, _) -> e.v1 == affectedVertex || e.v2 == affectedVertex } //should I add another filter for effector stuff
+//                    .mapTo(effectors) { (_, effectorPos) -> Pair(effectorPos, edgeFieldEquation) }
 
                 //walls
-                listOf(Position(1.0, vertex.pos.y), Position(0.0, vertex.pos.y), Position(vertex.pos.x, 1.0), Position(vertex.pos.x, 0.0))
+                listOf(Position(1.0, affectedPos.y), Position(0.0, affectedPos.y), Position(affectedPos.x, 1.0), Position(affectedPos.x, 0.0))
                     .mapTo(effectors){ wallEffectorPos -> Pair(wallEffectorPos, wallFieldEquation)}
 
-                displacements[id] += calculateAdjustmentAtPos(vertex.pos, effectors)
+                displacements[vertices.indexOf(affectedVertex)] += calculateAdjustmentAtPos(affectedPos, effectors)
             }
 
             return displacements
