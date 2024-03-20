@@ -15,6 +15,7 @@ import javafx.scene.layout.Pane
 import javafx.scene.paint.Color
 import javafx.scene.text.Text
 import javafx.scene.text.TextFlow
+import javafx.stage.Stage
 import java.text.NumberFormat
 import kotlin.math.ln
 import kotlin.system.measureNanoTime
@@ -76,6 +77,9 @@ class Controller {
     private lateinit var console: TextFlow
     private val CONSOLE_LINE_SEPARATOR = "-".repeat(20) + "\n"
 
+    //Stage
+    private lateinit var stage: Stage
+
     //Data
     private lateinit var graph: Graph<Any>
 
@@ -89,17 +93,34 @@ class Controller {
     }
 
     //Initialization for anything involving the graph
-    fun<E: Any> initializeGraph(graph: Graph<E>) {
+    fun<E: Any> initializeGraph(graph: Graph<E>, stage: Stage) {
+        //Stage
+        this.stage = stage
+
+        //Graphic components
         this.graph = graph.mapVertices {it as Any}
         graphicComponents = GraphicComponents(this.graph, pane) //Create the graphic components
         graphicComponents.draw() //Draw the graphic components
+
+        //Controls
         initializeClusterRandomizationSwitch()
         initializePhysicsSlider()
         initializeVertexSelection()
         initializeClusterConnectednessSlider()
         switchButton.switchedEvents.addLast { switchSwitched(it) }
         switchSwitched(SwitchButton.SwitchButtonState.LEFT) //initialize properties in specific graphic
+
+        //Misc
         updateClusterColoring()
+    }
+
+    //Window title
+    private fun setTitle(numVerts: Int = graph.size(),
+                         numEdges: Int = graph.getEdges().size,
+                         numClusters: Int = graph.getClusters().size,
+                         kargerness: Int = calculateNumRuns(graph.size(), 0.995)
+                         ) {
+        stage.title = "Vertices: $numVerts | Edges: $numEdges | Clusters: $numClusters | Kargerness: $kargerness"
     }
 
     //Graph presets
@@ -307,15 +328,16 @@ class Controller {
     }
 
     //Clustering
+    private fun calculateNumRuns(n: Int, pDesired: Double): Int {
+        val p = 1.0 / (n * n / 2 - n / 2)
+        val t = ln(1 - pDesired) / ln(1 - p)
+        return t.toInt()
+    }
     private fun getClusters(): Pair<Collection<Graph<Any>>, Double> {
-        fun calculateNumRuns(n: Int, pDesired: Double): Int {
-            val p = 1.0 / (n * n / 2 - n / 2)
-            val t = ln(1 - pDesired) / ln(1 - p)
-            return t.toInt()
-        }
-
         val connectedness = connectednessSlider.value
-        val clusters = graph.getClusters(connectedness, calculateNumRuns(graph.size(),0.997))
+        val numRuns = calculateNumRuns(graph.size(),0.995)
+        val clusters = graph.getClusters(connectedness, numRuns)
+        setTitle(numClusters = clusters.size, kargerness = numRuns)
         return Pair(clusters, connectedness)
     }
 
