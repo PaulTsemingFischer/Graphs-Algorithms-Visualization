@@ -634,8 +634,8 @@ class GraphicComponents<E: Any>(
                     try {
                         pushGhostFrame(generateFrame(speed, unaffected = listOfNotNull(selectedVertex), verticesPos = ghostVertices.toList()))
                     } catch (e: IndexOutOfBoundsException) {
-                        stopSimulation()
-                        startSimulation()
+                        Platform.runLater { stopSimulation(); startSimulation() }
+                        return@Thread
                     }
                     //Thread.sleep(1)
                 }
@@ -652,6 +652,7 @@ class GraphicComponents<E: Any>(
                         catch(_: IndexOutOfBoundsException){
                             stopSimulation()
                             startSimulation()
+                            return@runLater //Don't count down latch and cause a InterruptedException in thread
                         }
                         latch.countDown() //signal that Platform has executed our frame
                     }
