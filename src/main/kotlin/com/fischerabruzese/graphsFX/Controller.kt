@@ -412,11 +412,8 @@ class Controller {
                 return@Thread
             }
 
-            graphicComponents.physicsC.stopSimulation()
-            this.graph = AMGraph()
-            val newVerts = (0 until vertexCount).toList()
-            graph.addAll(newVerts)
-            graphicComponents.graph = graph
+            this.graph = AMGraph.fromCollection((0 until vertexCount).toList())
+            graphicComponents.graph = this.graph
 
             when(state){
                 SwitchButton.SwitchButtonState.RIGHT -> {
