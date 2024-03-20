@@ -62,7 +62,7 @@ class GraphApp : Application() {
 
 
 //        graph.randomize(2, 9, true, Random(69))
-        controller.initializeGraph(graph)
+        controller.initializeGraph(graph, stage)
         //controller.moveClusters(graph.getClusters(0.501))
 
 
