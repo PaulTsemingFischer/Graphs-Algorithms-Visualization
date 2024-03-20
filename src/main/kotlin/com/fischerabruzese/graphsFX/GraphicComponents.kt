@@ -617,31 +617,31 @@ class GraphicComponents<E: Any>(
     /* PHYSICS */
     /**
      * An object that represent a physics model for a some objects at some positions
-     * @param on determines whether the physics simulation should be running. Note that [simulate] must be called whenever physics is switched from off to on so that the simulation thread automatically closes.
      * @param speed determines the speed of the simulation. This could be implemented by modifying the fps or the effect of each frame.
      */
     abstract inner class Physics(var speed: Double = 0.0) {
-        private var ghostVertices = vertices.map { it to it.pos }.toTypedArray()
+        private var ghostVertices = ArrayList(vertices.map { it to it.pos })
         private val simulationThreadGroup = ThreadGroup("Simulation Threads")
-        private val simulationThreads = LinkedList<Thread>()
+        private var simulationThreads = LinkedList<Thread>()
 
         /**
          * Opens a thread that will generate and push frames to the gui at [speed] until [on] is false
          */
         private fun simulate() {
-            ghostVertices = vertices.map { it to it.pos }.toTypedArray()
+            ghostVertices = ArrayList(vertices.map { it to it.pos })
             Thread(simulationThreadGroup, {
                 while(!Thread.interrupted()){
                     pushGhostFrame(generateFrame(speed, unaffected = listOfNotNull(selectedVertex), verticesPos = ghostVertices.toList()))
                     //Thread.sleep(1)
                 }
-            }, "Ghost Frame Pusher").also{simulationThreads.add(it)}.start()
+            }, "Ghost Frame Pusher").also{Platform.runLater{simulationThreads.add(it)}}.start()
 
             Thread(simulationThreadGroup, {
+                val thisThread = Thread.currentThread()
                 while (!Thread.interrupted()) {
                     val latch = CountDownLatch(1) // Initialize with a count of 1
                     Platform.runLater {
-                        if (isActive()){
+                        if (!thisThread.isInterrupted){
                             pushRealFrame()
                         }
                         latch.countDown() //signal that Platform has executed our frame
@@ -649,22 +649,20 @@ class GraphicComponents<E: Any>(
                     try { latch.await() }
                     catch (e: InterruptedException) { return@Thread } //wait for platform to execute our frame
                 }
-            }, "Real Frame Pusher").also{simulationThreads.add(it)}.start()
+            }, "Real Frame Pusher").also{Platform.runLater{simulationThreads.add(it)}}.start()
         }
 
         fun stopSimulation(){
-            simulationThreadGroup.interrupt()
             for(t in simulationThreads){
+                t.interrupt()
                 t.join() //wait for each thread to die
-                simulationThreads.removeFirst()
             }
+            ghostVertices = ArrayList()
+            simulationThreads = LinkedList<Thread>()
         }
 
         fun isActive(): Boolean{
-            for(t in simulationThreads){
-                if (t.isAlive) return false //unstarted threads won't be in simulationThreads array
-            }
-            return true
+            return simulationThreads.isNotEmpty()
         }
 
         /**
@@ -672,12 +670,12 @@ class GraphicComponents<E: Any>(
          * @return true if the simulation was inactive and has been started. False if the simulation was already active
          */
         fun startSimulation(): Boolean{
-            if(!isActive()) {
-                simulate()
-                return true
-            }
-            return false
+            if(isActive()) return false
+
+            simulate()
+            return true
         }
+
         /**
          * Sums all the displacements from all the effectors of [at]
          *
@@ -703,7 +701,7 @@ class GraphicComponents<E: Any>(
                     vertices[vertexIndex].pos = ghostVertices[vertexIndex].second
                 }
             }
-            ghostVertices = vertices.map { it to it.pos }.toTypedArray() //reset ghost vertices
+            ghostVertices = ArrayList(vertices.map { it to it.pos }) //reset ghost vertices
         }
 
         private fun pushGhostFrame(displacementArr: Array<Displacement>){

@@ -390,15 +390,11 @@ class Controller {
                 return@Thread
             }
 
-            graphicComponents.physicsC.stopSimulation() //violently slaughter all physics threads
+            graphicComponents.physicsC.stopSimulation()
             this.graph = AMGraph()
             val newVerts = (0 until vertexCount).toList()
             graph.addAll(newVerts)
             graphicComponents.graph = graph
-            graphicComponents.physicsC.startSimulation()
-
-             //bring em back to life when the javafx wants to
-
 
             when(state){
                 SwitchButton.SwitchButtonState.RIGHT -> {
@@ -408,6 +404,7 @@ class Controller {
                     generateClusteredGraph()
                 }
             }
+            graphicComponents.physicsC.startSimulation()
         }, "Graph Creator").start()
     }
 
