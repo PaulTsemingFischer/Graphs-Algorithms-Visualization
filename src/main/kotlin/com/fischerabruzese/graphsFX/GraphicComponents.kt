@@ -631,7 +631,12 @@ class GraphicComponents<E: Any>(
             ghostVertices = ArrayList(vertices.map { it to it.pos })
             Thread(simulationThreadGroup, {
                 while(!Thread.interrupted()){
-                    pushGhostFrame(generateFrame(speed, unaffected = listOfNotNull(selectedVertex), verticesPos = ghostVertices.toList()))
+                    try {
+                        pushGhostFrame(generateFrame(speed, unaffected = listOfNotNull(selectedVertex), verticesPos = ghostVertices.toList()))
+                    } catch (e: IndexOutOfBoundsException) {
+                        stopSimulation()
+                        startSimulation()
+                    }
                     //Thread.sleep(1)
                 }
             }, "Ghost Frame Pusher").also{Platform.runLater{simulationThreads.add(it)}}.start()
@@ -641,8 +646,12 @@ class GraphicComponents<E: Any>(
                 while (!Thread.interrupted()) {
                     val latch = CountDownLatch(1) // Initialize with a count of 1
                     Platform.runLater {
-                        if (!thisThread.isInterrupted){
+                        try{
                             pushRealFrame()
+                        }
+                        catch(_: IndexOutOfBoundsException){
+                            stopSimulation()
+                            startSimulation()
                         }
                         latch.countDown() //signal that Platform has executed our frame
                     }
