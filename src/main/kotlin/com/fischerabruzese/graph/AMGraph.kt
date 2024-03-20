@@ -6,7 +6,6 @@ package com.fischerabruzese.graph
 
 import java.math.BigInteger
 import java.util.*
-import kotlin.collections.HashMap
 import kotlin.math.min
 import kotlin.math.pow
 import kotlin.random.Random
@@ -264,8 +263,8 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
 
     override fun bidirectionalConnections(v1: E, v2: E): Int{
         var connections = 0
-        get(v1,v2)?.let{if(it > 0) connections++}
-        get(v2,v1)?.let{if(it > 0) connections++}
+        get(v1,v2)?.let{connections++}
+        get(v2,v1)?.let{connections++}
         return connections
     }
 
