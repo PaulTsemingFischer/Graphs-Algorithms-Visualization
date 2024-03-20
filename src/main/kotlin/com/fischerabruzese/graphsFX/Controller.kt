@@ -2,6 +2,7 @@ package com.fischerabruzese.graphsFX
 
 import com.fischerabruzese.graph.AMGraph
 import com.fischerabruzese.graph.Graph
+import javafx.application.Platform
 import javafx.beans.property.ReadOnlyDoubleProperty
 import javafx.fxml.FXML
 import javafx.scene.control.*
@@ -60,8 +61,6 @@ class Controller {
     @FXML
     private lateinit var maxWeightTextBox: TextField
     @FXML
-    private lateinit var randomizeButton: Button
-    @FXML
     private lateinit var vertexCountField: TextField
     @FXML
     private lateinit var avgConnPerVertexField: TextField
@@ -75,6 +74,8 @@ class Controller {
 
     //Data
     private lateinit var graph: Graph<Any>
+
+    private val controllerSubroutines = ThreadGroup("Controller Subroutines")
 
     //Window initialization
     @FXML
@@ -124,55 +125,80 @@ class Controller {
 
     //Console
         //General console printing
-    private fun printEntry(title: String? = null, text: String, color: Color = Color.BLACK){
-        val coloredTitle = Text(title).apply{fill = color; style = "-fx-font-weight: bold"}
-        val coloredText = Text(text).apply{fill = color}
-        console.children.addAll(0, listOf(coloredTitle, coloredText, Text(CONSOLE_LINE_SEPARATOR)))
+    private fun queuePrintEntry(color: Color = Color.BLACK, text: String?, title: String? = null, titleSeparator: String = "\n"){
+        Platform.runLater {
+            val coloredTitle =
+                title?.let { Text(it + titleSeparator).apply { fill = color; style = "-fx-font-weight: bold" } }
+            val coloredText = text?.let { Text(it + "\n").apply { fill = color } }
+            console.children.addAll(0, listOfNotNull(coloredTitle, coloredText, Text(CONSOLE_LINE_SEPARATOR)))
+        }
     }
 
         //Error printing
+    private enum class ErrorType {
+        VERTEX_COUNT, CLUSTER_COUNT, EDGEWEIGHT_MIN, EDGEWEIGHT_MAX, FROM_VERTEX, TO_VERTEX
+    }
+    private fun printError(error:  ErrorType) {
+        val errorName = when(error) {
+            ErrorType.VERTEX_COUNT -> "Invalid vertex count"
+            ErrorType.CLUSTER_COUNT -> "Invalid cluster count"
+            ErrorType.EDGEWEIGHT_MIN -> "Invalid minimum edge weight"
+            ErrorType.EDGEWEIGHT_MAX -> "Invalid maximum edge weight"
+            ErrorType.FROM_VERTEX -> "Invalid from vertex"
+            ErrorType.TO_VERTEX -> "Invalid to vertex"
+        }
+        val errorDescription = when(error) {
+            ErrorType.VERTEX_COUNT -> "'vertex count' requires: Int, >= 0"
+            ErrorType.CLUSTER_COUNT -> "'cluster count' requires: Int, >= 0, <= 'vertex count'"
+            ErrorType.EDGEWEIGHT_MIN -> "'min edge weight' requires: Int or blank, >= 0"
+            ErrorType.EDGEWEIGHT_MAX -> "'max edge weight' requires: Int  or blank, >= 'min edge weight'"
+            ErrorType.FROM_VERTEX -> null
+            ErrorType.TO_VERTEX -> null
+        }
+        queuePrintEntry(Color.RED, errorDescription, errorName)
+    }
 
         //Cluster console printing
     private fun printClusters(clusters: Collection<Graph<Any>>, connectedness: Double, time: Long) {
-        val title = "Clusters (connectedness: ${NumberFormat.getNumberInstance().format(connectedness)})\n"
+        val title = "Clusters (connectedness: ${NumberFormat.getNumberInstance().format(connectedness)})"
         val text = buildString {
             val sortedClusters = clusters.sortedByDescending { it.size() }
             for (cluster in sortedClusters) {
                 val sortedVertices = cluster.getVertices().sortedBy { it.toString() }
                 append("\nSize ${sortedVertices.size}: ${sortedVertices}\n")
             }
-            append("\nTime(ns): ${NumberFormat.getIntegerInstance().format(time)}\n")
+            append("\nTime(ns): ${NumberFormat.getIntegerInstance().format(time)}")
         }
-        printEntry(title, text, Color.BLUE)
+        queuePrintEntry(Color.BLUE, text, title)
     }
 
         //Pathing console printing
     private fun printDijkstra(from: Any, to: Any, path: List<Any>, distance: Int, time: Long) {
-        val title = "Dijkstra from $from to $to\n"
+        val title = "Dijkstra from $from to $to"
         val text = buildString {
             append("Path: $path\n")
             append("Distance: $distance\n")
-            append("Time(ns): ${NumberFormat.getIntegerInstance().format(time)}\n")
+            append("Time(ns): ${NumberFormat.getIntegerInstance().format(time)}")
         }
-        printEntry(title, text, Color.DEEPSKYBLUE)
+        queuePrintEntry(Color.DEEPSKYBLUE, text, title)
     }
 
     private fun printBfs(from: Any, to: Any, path: List<Any>, time: Long) {
-        val title = "Breadth first search from $from to $to\n"
+        val title = "Breadth first search from $from to $to"
         val text = pathingString(path, time)
-        printEntry(title, text, Color.DEEPSKYBLUE)
+        queuePrintEntry(Color.DEEPSKYBLUE, text, title)
     }
 
     private fun printDfs(from: Any, to: Any, path: List<Any>, time: Long) {
-        val title = "Depth first search from $from to $to\n"
+        val title = "Depth first search from $from to $to"
         val text = pathingString(path, time)
-        printEntry(title, text, Color.DEEPSKYBLUE)
+        queuePrintEntry(Color.DEEPSKYBLUE, text, title)
     }
 
     private fun pathingString(path: List<Any>, time: Long): String{
         return buildString {
             append("Path: $path\n")
-            append("Time(ns): ${NumberFormat.getIntegerInstance().format(time)}\n")
+            append("Time(ns): ${NumberFormat.getIntegerInstance().format(time)}")
         }
     }
 
@@ -261,7 +287,15 @@ class Controller {
     private fun pathingButtonPressed(algorithm: (Any, Any) -> List<Any>): Triple<Pair<Any, Any>, List<Any>, Long>? {
         val from = getFromField()
         val to = getToField()
-        from?:return null; to?:return null
+        if(from == null){
+            printError(ErrorType.FROM_VERTEX)
+            return null
+        }
+        if(to == null){
+            printError(ErrorType.TO_VERTEX)
+            return null
+        }
+
         val path: List<Any>
 
         val time = measureNanoTime {
@@ -331,61 +365,117 @@ class Controller {
             }
         }
     }
-
+    private fun showAlert(title: String, content: String) {
+        val alert = Alert(Alert.AlertType.ERROR)
+        alert.title = title
+        alert.headerText = null
+        alert.contentText = content
+        alert.showAndWait()
+    }
     @FXML
     private fun randomizePressed(){
         val state = switchButton.state
-        if(!vertexCountField.textProperty().isEmpty.get()) {
-            graphicComponents.physicsC.on = false
+
+        Thread(controllerSubroutines, {
+            //Validate vertex count
+            val vertexCount = try {
+                vertexCountField.text.toInt().also {
+                    if (it < 0) throw IllegalArgumentException()
+                }
+            } catch(e: Exception){
+                printError(ErrorType.VERTEX_COUNT)
+                return@Thread
+            }
+
+            graphicComponents.physicsC.simulationThreads.interrupt() //violently slaughter all physics threads
             this.graph = AMGraph()
-            val newVerts = (0 until vertexCountField.text.toInt()).toList()
+            val newVerts = (0 until vertexCount).toList()
             graph.addAll(newVerts)
             graphicComponents.graph = graph
-            graphicComponents.physicsC.on = true
-            graphicComponents.physicsC.simulate()
-        }
 
-        when(state){
-            SwitchButton.SwitchButtonState.RIGHT -> {
-                generateRandomGraph()
+             //bring em back to life when the javafx wants to
+
+
+            when(state){
+                SwitchButton.SwitchButtonState.RIGHT -> {
+                    generateRandomGraph()
+                }
+                SwitchButton.SwitchButtonState.LEFT -> {
+                    generateClusteredGraph()
+                }
             }
-            SwitchButton.SwitchButtonState.LEFT -> {
-                generateClusteredGraph()
-            }
-        }
-        updateClusterColoring()
+        }, "Graph Creator").start()
     }
 
     private fun generateClusteredGraph() {
-
-        val clusterCount = clusterCountTextBox.text.toInt()
+        //Validate cluster count
+        val clusterCount = try{
+            clusterCountTextBox.text.toInt().also {
+                if(it < 0 || it > graph.size()) throw IllegalArgumentException()
+            }
+        } catch(e: Exception){
+            printError(ErrorType.CLUSTER_COUNT)
+            return
+        }
         val interConn = interConnectednessSlider.value
         val intraConn = intraConnectednessSlider.value
 
-        var unweighted = false
-        val max: Int = try { maxWeightTextBox.text.toInt() + 1 } catch (e: NumberFormatException) { 2.also{unweighted = true} }
-        val min: Int = try { minWeightTextBox.text.toInt() } catch (e: NumberFormatException) { 1 }
-
+        val (min, max) = getEdgeWeights() ?: return
         this.graph.randomizeWithCluster(clusterCount, min, max, intraConn, interConn)
+
         if(!allowDisjointSelectionBox.isSelected) this.graph.mergeDisjoint(min, max)
 
-        graphicComponents.draw()
-        if(unweighted)
-            graphicComponents.hideWeight()
+        Platform.runLater { graphicComponents.draw()
+            if(min == 0 && max == 1)
+                graphicComponents.hideWeight()
+            updateClusterColoring()
+        }
     }
 
     private fun generateRandomGraph() {
+        val (min, max) = getEdgeWeights() ?: return
         val probConn = probOfConnectionsField.text.toDouble()
-        var unweighted = false
-        val max: Int = try { maxWeightTextBox.text.toInt() + 1 } catch (e: NumberFormatException) { 2.also{unweighted = true} }
-        val min: Int = try { minWeightTextBox.text.toInt() } catch (e: NumberFormatException) { 1 }
-
         this.graph.randomize(probConn, min, max)
+
         if(!allowDisjointSelectionBox.isSelected) this.graph.mergeDisjoint(min, max)
 
-        graphicComponents.draw()
-        if(unweighted)
-            graphicComponents.hideWeight()
+        Platform.runLater { graphicComponents.draw()
+            if(min == 0 && max == 1)
+                graphicComponents.hideWeight()
+            updateClusterColoring()
+        }
+    }
+
+    //Return: null if error, (0, 1) if unweighted
+    private fun getEdgeWeights(): Pair<Int, Int>? {
+        //Validate min
+        var min: Int = try {
+            val text = minWeightTextBox.text
+            if(text.isEmpty()) 0
+            else {
+                text.toInt().also {
+                    if (it < 0) throw IllegalArgumentException()
+                }
+            }
+        } catch (e: Exception) {
+            printError(ErrorType.EDGEWEIGHT_MIN)
+            return null
+        }
+
+        //Validate max
+        val max: Int = try {
+            val text = maxWeightTextBox.text
+            if(text.isEmpty()) 0.also{min = 0}
+            else {
+                text.toInt().also {
+                    if (it < min) throw IllegalArgumentException()
+                }
+            }
+        } catch (e: Exception) {
+            printError(ErrorType.EDGEWEIGHT_MAX)
+            return null
+        }
+        return Pair(min, max + 1)
     }
     
     @FXML

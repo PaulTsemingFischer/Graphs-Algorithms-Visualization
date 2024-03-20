@@ -153,7 +153,7 @@
                               <Label text="Avg Connections/Vertex:" textFill="WHITE" GridPane.columnSpan="3" />
                               <TextField fx:id="avgConnPerVertexField" onKeyTyped="#avgConnectionsPerVertexEdited" prefHeight="25.0" prefWidth="35.0" scaleY="0.9" text="0" GridPane.columnIndex="3" />
                               <Label layoutX="10.0" layoutY="17.0" text="Probability of Connection:" textFill="WHITE" GridPane.columnSpan="3" GridPane.rowIndex="1" />
-                              <TextField fx:id="probOfConnectionsText" layoutX="152.0" layoutY="13.0" onKeyTyped="#probOfConnectionsEdited" prefHeight="25.0" prefWidth="35.0" text="0" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+                              <TextField fx:id="probOfConnectionsField" layoutX="152.0" layoutY="13.0" onKeyTyped="#probOfConnectionsEdited" prefHeight="25.0" prefWidth="35.0" text="0" GridPane.columnIndex="3" GridPane.rowIndex="1" />
                            </children>
                         </GridPane>
                      </children></StackPane>

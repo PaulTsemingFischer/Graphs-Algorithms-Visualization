@@ -622,30 +622,31 @@ class GraphicComponents<E: Any>(
      */
     abstract inner class Physics(var on: Boolean, var speed: Double) {
         private var ghostVertices = vertices.map { it to it.pos }.toTypedArray()
+        internal val simulationThreads = ThreadGroup("Simulation Threads")
 
         /**
          * Opens a thread that will generate and push frames to the gui at [speed] until [on] is false
          */
         fun simulate() {
-            val tg = ThreadGroup("SimulationThreads")
             ghostVertices = vertices.map { it to it.pos }.toTypedArray()
-            Thread(tg, {
+            Thread(simulationThreads, {
                 while(on){
                     pushGhostFrame(generateFrame(speed, unaffected = listOfNotNull(selectedVertex), verticesPos = ghostVertices.toList()))
                     //Thread.sleep(1)
                 }
-            }, "GhostFramePusher").start()
+            }, "Ghost Frame Pusher").start()
 
-            Thread(tg, {
+            Thread(simulationThreads, {
                 while (on) {
                     val latch = CountDownLatch(1) // Initialize with a count of 1
                     Platform.runLater {
                         pushRealFrame()
                         latch.countDown() //signal that Platform has executed our frame
                     }
-                    latch.await() //wait for platform to execute our frame
+                    try { latch.await() }
+                    catch (e: InterruptedException) { return@Thread } //wait for platform to execute our frame
                 }
-            }, "RealFramePusher").start()
+            }, "Real Frame Pusher").start()
         }
         /**
          * Sums all the displacements from all the effectors of [at]
@@ -734,7 +735,7 @@ class GraphicComponents<E: Any>(
         }
 
         override fun generateFrame(speed: Double, unaffected: List<GraphicComponents<E>.Vertex>, uneffectors: List<GraphicComponents<E>.Vertex>, verticesPos: List<Pair<GraphicComponents<E>.Vertex,Position>>): Array<Displacement>{
-            val max = 10000
+            val max = 2000
             val scaleFactor = speed.pow(4) * max
 
             val displacements = Array(vertices.size) { Displacement(0.0, 0.0) }
