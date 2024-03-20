@@ -620,33 +620,63 @@ class GraphicComponents<E: Any>(
      * @param on determines whether the physics simulation should be running. Note that [simulate] must be called whenever physics is switched from off to on so that the simulation thread automatically closes.
      * @param speed determines the speed of the simulation. This could be implemented by modifying the fps or the effect of each frame.
      */
-    abstract inner class Physics(var on: Boolean, var speed: Double) {
+    abstract inner class Physics(var speed: Double = 0.0) {
         private var ghostVertices = vertices.map { it to it.pos }.toTypedArray()
-        internal val simulationThreads = ThreadGroup("Simulation Threads")
+        private val simulationThreadGroup = ThreadGroup("Simulation Threads")
+        private val simulationThreads = LinkedList<Thread>()
 
         /**
          * Opens a thread that will generate and push frames to the gui at [speed] until [on] is false
          */
-        fun simulate() {
+        private fun simulate() {
             ghostVertices = vertices.map { it to it.pos }.toTypedArray()
-            Thread(simulationThreads, {
-                while(on){
+            Thread(simulationThreadGroup, {
+                while(!Thread.interrupted()){
                     pushGhostFrame(generateFrame(speed, unaffected = listOfNotNull(selectedVertex), verticesPos = ghostVertices.toList()))
                     //Thread.sleep(1)
                 }
-            }, "Ghost Frame Pusher").start()
+            }, "Ghost Frame Pusher").also{simulationThreads.add(it)}.start()
 
-            Thread(simulationThreads, {
-                while (on) {
+            Thread(simulationThreadGroup, {
+                while (!Thread.interrupted()) {
                     val latch = CountDownLatch(1) // Initialize with a count of 1
                     Platform.runLater {
-                        pushRealFrame()
+                        if (isActive()){
+                            pushRealFrame()
+                        }
                         latch.countDown() //signal that Platform has executed our frame
                     }
                     try { latch.await() }
                     catch (e: InterruptedException) { return@Thread } //wait for platform to execute our frame
                 }
-            }, "Real Frame Pusher").start()
+            }, "Real Frame Pusher").also{simulationThreads.add(it)}.start()
+        }
+
+        fun stopSimulation(){
+            simulationThreadGroup.interrupt()
+            for(t in simulationThreads){
+                t.join() //wait for each thread to die
+                simulationThreads.removeFirst()
+            }
+        }
+
+        fun isActive(): Boolean{
+            for(t in simulationThreads){
+                if (t.isAlive) return false //unstarted threads won't be in simulationThreads array
+            }
+            return true
+        }
+
+        /**
+         * Starts the simulation if it is inactive
+         * @return true if the simulation was inactive and has been started. False if the simulation was already active
+         */
+        fun startSimulation(): Boolean{
+            if(!isActive()) {
+                simulate()
+                return true
+            }
+            return false
         }
         /**
          * Sums all the displacements from all the effectors of [at]
@@ -694,7 +724,7 @@ class GraphicComponents<E: Any>(
     /**
      * The custom physics object used for this graphic
      */
-    val physicsC = object: Physics(false, 0.0) {
+    val physicsC = object: Physics(0.0) {
         override fun calculateAdjustmentAtPos(at: Position, froms: List<Pair<Position, (Double) -> Double>>, forceCapPerPos: Double): Displacement{
             val displacement = Displacement(0.0, 0.0)
 

@@ -5,7 +5,10 @@ import com.fischerabruzese.graph.Graph
 import javafx.application.Platform
 import javafx.beans.property.ReadOnlyDoubleProperty
 import javafx.fxml.FXML
-import javafx.scene.control.*
+import javafx.scene.control.CheckBox
+import javafx.scene.control.Label
+import javafx.scene.control.Slider
+import javafx.scene.control.TextField
 import javafx.scene.layout.GridPane
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
@@ -13,6 +16,7 @@ import javafx.scene.paint.Color
 import javafx.scene.text.Text
 import javafx.scene.text.TextFlow
 import java.text.NumberFormat
+import kotlin.math.ln
 import kotlin.system.measureNanoTime
 
 class Controller {
@@ -207,13 +211,10 @@ class Controller {
         physicsSlider.valueProperty().addListener { _, _, newValue ->
             newValue?.let {
                 if(it.toDouble() < 0.02)
-                    graphicComponents.physicsC.on = false
+                    graphicComponents.physicsC.stopSimulation()
                 else {
                     graphicComponents.physicsC.speed = it.toDouble()
-                    if (!graphicComponents.physicsC.on) {
-                        graphicComponents.physicsC.on = true
-                        graphicComponents.physicsC.simulate()
-                    }
+                    graphicComponents.physicsC.startSimulation()
                 }
             }
         }
@@ -307,10 +308,18 @@ class Controller {
 
     //Clustering
     private fun getClusters(): Pair<Collection<Graph<Any>>, Double> {
+        fun calculateNumRuns(n: Int, pDesired: Double): Int {
+            val p = 1.0 / (n * n / 2 - n / 2)
+            val t = ln(1 - pDesired) / ln(1 - p)
+            return t.toInt()
+        }
+
         val connectedness = connectednessSlider.value
-        val clusters = graph.getClusters(connectedness)
+        val clusters = graph.getClusters(connectedness, calculateNumRuns(graph.size(),0.997))
         return Pair(clusters, connectedness)
     }
+
+
 
     @FXML
     private fun printClustersPressed() {
@@ -365,13 +374,7 @@ class Controller {
             }
         }
     }
-    private fun showAlert(title: String, content: String) {
-        val alert = Alert(Alert.AlertType.ERROR)
-        alert.title = title
-        alert.headerText = null
-        alert.contentText = content
-        alert.showAndWait()
-    }
+
     @FXML
     private fun randomizePressed(){
         val state = switchButton.state
@@ -387,11 +390,12 @@ class Controller {
                 return@Thread
             }
 
-            graphicComponents.physicsC.simulationThreads.interrupt() //violently slaughter all physics threads
+            graphicComponents.physicsC.stopSimulation() //violently slaughter all physics threads
             this.graph = AMGraph()
             val newVerts = (0 until vertexCount).toList()
             graph.addAll(newVerts)
             graphicComponents.graph = graph
+            graphicComponents.physicsC.startSimulation()
 
              //bring em back to life when the javafx wants to
 
