@@ -328,10 +328,10 @@ class Controller {
     }
 
     //Clustering
-    private fun calculateNumRuns(n: Int, pDesired: Double): Int {
-        val p = 1.0 / (n * n / 2 - n / 2)
-        val t = ln(1 - pDesired) / ln(1 - p)
-        return t.toInt()
+    private fun calculateNumRuns(numVerts: Int, pDesired: Double): Int {
+        val pMinCutSuccess = 1.0 / (numVerts * numVerts / 2 - numVerts / 2)
+        val requiredIterations = ln(1 - pDesired) / ln(1 - pMinCutSuccess)
+        return requiredIterations.toInt()
     }
     private fun getClusters(): Pair<Collection<Graph<Any>>, Double> {
         val connectedness = connectednessSlider.value
