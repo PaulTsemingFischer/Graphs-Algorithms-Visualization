@@ -350,13 +350,78 @@ abstract class Graph<E : Any> : Iterable<E> {
     /*---------------- CLUSTERING ----------------*/
 
     /**
-     * Uses Highly Connected Subgraph (with Kargers for finding min-cut) algorithm to find clusters in this graph. Implementation may or may not merge singletons
+     * Uses Highly Connected Subgraph (with Kargers for finding min-cut) algorithm to find clusters in this graph. Implementation may or may not merge singletons TODO:FIX
      * @param connectedness the minimum proportion of vertices that must be connected to form a cluster
      * @param kargerness the number of probabilistic attempts at finding the min-cut before the best option is taken
      * @return a collection of subgraphs that are the clusters of this graph
      * @throws InterruptedException since clustering is an expensive algorithm it will throw an exception when the thread is interrupted during calculation instead of completing the calculation
      */
-    abstract fun getClusters(connectedness: Double = 0.5, kargerness: Int = 1000): Collection<Graph<E>>
+    open fun getClusters(connectedness: Double = 0.5, kargerness: Int = 1000): Collection<Graph<E>>{
+        return mergeSingletons(highlyConnectedSubgraphs(connectedness, kargerness))
+    }
+
+    /**
+     * TODO: WRITE THIS JAVADOC
+     */
+    abstract fun highlyConnectedSubgraphs(connectedness: Double = 0.5, kargerness: Int = 1000): Collection<Graph<E>>
+
+    private fun mergeSingletons(clusters: Collection<Graph<E>>):  Collection<Graph<E>>{
+        val clusters = ArrayList(clusters)
+
+        //singletons to remove
+        val removeQueue = LinkedList<Graph<E>>()
+
+        //for each singleton
+        for (cluster in clusters) {
+            if (Thread.currentThread().isInterrupted) throw InterruptedException()
+            if (cluster.size() != 1) continue //not a singleton
+
+            val singleton = cluster.getVertices().first()
+
+            //aka hcc
+            var highestConnectedCluster = cluster
+            var hccInbounds = LinkedList<E>()
+            var hccOutbounds = LinkedList<E>()
+
+            //find hcc
+            for (neighborCluster in clusters) {
+                if (neighborCluster === cluster) continue
+
+                val obConnections = LinkedList<E>()
+                val ibConnections = LinkedList<E>()
+                for (v in neighborCluster) {
+                    if (this[v, singleton] != null) ibConnections.add(v)
+                    if (this[singleton, v] != null) obConnections.add(v)
+                }
+
+                val highestConnectedness = hccInbounds.size + hccOutbounds.size
+                val newConnectedness = ibConnections.size + obConnections.size
+                if (newConnectedness > highestConnectedness || (newConnectedness == highestConnectedness && neighborCluster.size() > highestConnectedCluster.size())) {
+                    hccInbounds = ibConnections
+                    hccOutbounds = obConnections
+                    highestConnectedCluster = neighborCluster
+                }
+            }
+
+            //if the singleton has no connections to another cluster and is still the default value, do nothing
+            if (highestConnectedCluster === cluster) continue
+
+            //merge singleton into hcc
+            highestConnectedCluster.add(singleton)
+            for (ib in hccInbounds) {
+                highestConnectedCluster[ib, singleton] = this[ib, singleton]!!
+            }
+            for (ob in hccOutbounds) {
+                highestConnectedCluster[singleton, ob] = this[singleton, ob]!!
+            }
+
+            //remove singleton cluster
+            removeQueue.add(cluster)
+        }
+        clusters.removeAll(removeQueue)
+
+        return clusters
+    }
 
     /**
      * @see getClusters
