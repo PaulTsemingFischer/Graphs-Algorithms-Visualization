@@ -3,10 +3,16 @@ package com.fischerabruzese.graphsFX
 import com.fischerabruzese.graph.AMGraph
 import com.fischerabruzese.graph.Graph
 import javafx.application.Platform
+import javafx.beans.binding.Bindings
+import javafx.beans.property.DoubleProperty
 import javafx.beans.property.ReadOnlyDoubleProperty
+import javafx.beans.property.SimpleDoubleProperty
+import javafx.beans.property.SimpleIntegerProperty
 import javafx.fxml.FXML
 import javafx.scene.control.CheckBox
 import javafx.scene.control.Label
+import javafx.scene.control.ProgressBar
+import javafx.scene.control.ProgressIndicator
 import javafx.scene.control.Slider
 import javafx.scene.control.TextField
 import javafx.scene.layout.GridPane
@@ -17,8 +23,13 @@ import javafx.scene.text.Text
 import javafx.scene.text.TextFlow
 import javafx.stage.Stage
 import java.text.NumberFormat
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.FutureTask
 import kotlin.math.ln
+import kotlin.math.pow
 import kotlin.system.measureNanoTime
+
 
 class Controller {
     //Constants
@@ -71,6 +82,8 @@ class Controller {
     private lateinit var avgConnPerVertexField: TextField
     @FXML
     private lateinit var probOfConnectionsField: TextField
+    @FXML
+    private lateinit var clusteringProgress: ProgressIndicator
 
     //Console
     @FXML
@@ -111,16 +124,17 @@ class Controller {
         switchSwitched(SwitchButton.SwitchButtonState.LEFT) //initialize properties in specific graphic
 
         //Misc
-        updateClusterColoring()
+        updateClusterColoringAsync()
     }
 
     //Window title
     private fun setTitle(numVerts: Int = graph.size(),
                          numEdges: Int = graph.getEdges().size,
-                         numClusters: Int = graph.getClusters().size,
-                         kargerness: Int = calculateNumRuns(graph.size(), 0.995)
+                         clusterInfo: ClusterInfo? = null
                          ) {
-        stage.title = "Vertices: $numVerts | Edges: $numEdges | Clusters: $numClusters | Kargerness: $kargerness"
+        val title = StringBuilder("Vertices: $numVerts | Edges: $numEdges")
+        if(clusterInfo != null) title.append(" | Clusters: ${clusterInfo.clusters.size} | Kargerness: ${clusterInfo.kargerness} (${String.format("%.1f",clusterInfo.confidence*100)}%)")
+        stage.title = title.toString()
     }
 
     //Graph presets
@@ -184,15 +198,15 @@ class Controller {
     }
 
         //Cluster console printing
-    private fun printClusters(clusters: Collection<Graph<Any>>, connectedness: Double, time: Long) {
-        val title = "Clusters (connectedness: ${NumberFormat.getNumberInstance().format(connectedness)})"
+    private fun printClusters(info: ClusterInfo) {
+        val title = "Clusters (connectedness: ${NumberFormat.getNumberInstance().format(info.connectedness)})"
         val text = buildString {
-            val sortedClusters = clusters.sortedByDescending { it.size() }
+            val sortedClusters = info.clusters.sortedByDescending { it.size() }
             for (cluster in sortedClusters) {
                 val sortedVertices = cluster.getVertices().sortedBy { it.toString() }
                 append("\nSize ${sortedVertices.size}: ${sortedVertices}\n")
             }
-            append("\nTime(ns): ${NumberFormat.getIntegerInstance().format(time)}")
+            append("\nTime(ns): ${NumberFormat.getIntegerInstance().format(info.time ?: "untimed")}")
         }
         queuePrintEntry(Color.BLUE, text, title)
     }
@@ -333,42 +347,108 @@ class Controller {
         val requiredIterations = ln(1 - pDesired) / ln(1 - pMinCutSuccess)
         return requiredIterations.toInt()
     }
-    private fun getClusters(): Pair<Collection<Graph<Any>>, Double> {
-        val connectedness = connectednessSlider.value
-        val numRuns = calculateNumRuns(graph.size(),0.995)
-        val clusters = graph.getClusters(connectedness, numRuns)
-        setTitle(numClusters = clusters.size, kargerness = numRuns)
-        return Pair(clusters, connectedness)
+    private fun confidenceAfterIterations(numVerts: Int, iterations: Int): Double {
+        val pMinCutSuccess = 1.0 / (numVerts * numVerts / 2 - numVerts / 2)
+        val confidence = 1 - (1 - pMinCutSuccess).pow(iterations.toDouble())
+        return confidence
     }
 
+    private data class ClusterInfo(
+        val clusters: Collection<Graph<Any>>,
+        val connectedness: Double,
+        val kargerness: Int,
+        val confidence: Double,
+        val time: Long? = null
+    )
 
+    private fun getClusters(): ClusterInfo {
+        val connectedness = connectednessSlider.value
+        val numRuns = 10000//calculateNumRuns(graph.size(),0.995).coerceIn(1..100000)
+        val clusters: Collection<Graph<Any>>
+        val time = measureNanoTime {
+            clusters = graph.getClusters(connectedness, numRuns)
+        }
+        val info = ClusterInfo(clusters, connectedness, numRuns, confidenceAfterIterations(graph.size(), numRuns), time)
+        Platform.runLater{
+            setTitle(clusterInfo = info)
+        }
+        return info
+    }
 
+    private var clusteringThread: Thread? = null
     @FXML
     private fun printClustersPressed() {
-        val clusters: Pair<Collection<Graph<Any>>, Double>
-        val time = measureNanoTime {
-            clusters = getClusters()
-        }
-        printClusters(clusters.first, clusters.second, time)
+        var clustersInfo: ClusterInfo
+        clusteringThread?.interrupt()
+        clusteringProgress(1)
+        Thread(null, {
+            clusteringThread?.join()
+            clusteringThread = Thread.currentThread()
+
+            try{ clustersInfo = getClusters() }
+            catch (_: InterruptedException){
+                Platform.runLater{
+                    clusteringProgress(-1)
+                }
+                return@Thread
+            }
+            Platform.runLater {
+                printClusters(clustersInfo)
+                graphicComponents.colorClusters(clustersInfo.clusters)
+                clusteringProgress(-1)
+            }
+        }, "Clustering Thread").start()
     }
 
-    private fun updateClusterColoring(){
+    private fun updateClusterColoringAsync(){
         if(clusterColoringToggle.isSelected){
-            graphicComponents.colorClusters(getClusters().first)
-        }else{
+            clusteringThread?.interrupt()
+            clusteringProgress(1)
+            Thread(null, {
+                clusteringThread?.join()
+                clusteringThread = Thread.currentThread()
+
+                val clusters: Collection<Graph<Any>>
+                try{ clusters = getClusters().clusters }
+                catch (_: InterruptedException){
+                    Platform.runLater{
+                        clusteringProgress(-1)
+                    }
+                    return@Thread
+                }
+                Platform.runLater{
+                    graphicComponents.colorClusters(clusters)
+                    clusteringProgress(-1)
+                }
+            }, "Clustering Thread").start()
+        } else {
             graphicComponents.clearClusterColoring()
+        }
+    }
+
+    private var numClusterTasks = 0
+    private var completedClusterTasks = 0
+    private fun clusteringProgress(i: Int) {
+        when(i){
+            1 -> numClusterTasks++
+            -1 -> completedClusterTasks++
+        }
+        clusteringProgress.progress = completedClusterTasks.toDouble()/numClusterTasks
+        if(clusteringProgress.progress == 1.0){
+            completedClusterTasks = 0
+            numClusterTasks = 0
         }
     }
 
     private fun initializeClusterConnectednessSlider(){
         connectednessSlider.valueProperty().addListener { _, _, _ ->
-            updateClusterColoring()
+            updateClusterColoringAsync()
         }
     }
 
     @FXML
     private fun clusterColoringToggled(){
-        updateClusterColoring()
+        updateClusterColoringAsync()
     }
 
     //Randomization
@@ -448,7 +528,7 @@ class Controller {
         Platform.runLater { graphicComponents.draw()
             if(min == 0 && max == 1)
                 graphicComponents.hideWeight()
-            updateClusterColoring()
+            updateClusterColoringAsync()
         }
     }
 
@@ -462,7 +542,7 @@ class Controller {
         Platform.runLater { graphicComponents.draw()
             if(min == 0 && max == 1)
                 graphicComponents.hideWeight()
-            updateClusterColoring()
+            updateClusterColoringAsync()
         }
     }
 

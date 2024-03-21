@@ -370,8 +370,9 @@
                   </HBox>
                   <HBox alignment="CENTER" prefWidth="200.0">
                      <children>
-                        <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#printClustersPressed" text="Print clusters" />
-                        <Label text="Coloring" textFill="WHITE">
+                        <ProgressIndicator fx:id="clusteringProgress" prefWidth="40.0" progress="1.0" translateY="8.0" />
+                        <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#printClustersPressed" prefHeight="16.0" prefWidth="47.0" text="Print" translateX="20.0" />
+                        <Label prefHeight="27.0" prefWidth="64.0" text="Coloring" textFill="WHITE" translateX="20.0">
                            <HBox.margin>
                               <Insets left="20.0" right="10.0" />
                            </HBox.margin>
