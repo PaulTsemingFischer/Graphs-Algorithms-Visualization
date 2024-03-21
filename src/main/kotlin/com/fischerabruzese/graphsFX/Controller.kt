@@ -3,18 +3,9 @@ package com.fischerabruzese.graphsFX
 import com.fischerabruzese.graph.AMGraph
 import com.fischerabruzese.graph.Graph
 import javafx.application.Platform
-import javafx.beans.binding.Bindings
-import javafx.beans.property.DoubleProperty
 import javafx.beans.property.ReadOnlyDoubleProperty
-import javafx.beans.property.SimpleDoubleProperty
-import javafx.beans.property.SimpleIntegerProperty
 import javafx.fxml.FXML
-import javafx.scene.control.CheckBox
-import javafx.scene.control.Label
-import javafx.scene.control.ProgressBar
-import javafx.scene.control.ProgressIndicator
-import javafx.scene.control.Slider
-import javafx.scene.control.TextField
+import javafx.scene.control.*
 import javafx.scene.layout.GridPane
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
@@ -23,9 +14,6 @@ import javafx.scene.text.Text
 import javafx.scene.text.TextFlow
 import javafx.stage.Stage
 import java.text.NumberFormat
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import java.util.concurrent.FutureTask
 import kotlin.math.ln
 import kotlin.math.pow
 import kotlin.system.measureNanoTime
@@ -363,7 +351,7 @@ class Controller {
 
     private fun getClusters(): ClusterInfo {
         val connectedness = connectednessSlider.value
-        val numRuns = 10000//calculateNumRuns(graph.size(),0.995).coerceIn(1..100000)
+        val numRuns = 100//calculateNumRuns(graph.size(),0.995).coerceIn(1..100000)
         val clusters: Collection<Graph<Any>>
         val time = measureNanoTime {
             clusters = graph.getClusters(connectedness, numRuns)
@@ -381,7 +369,7 @@ class Controller {
         var clustersInfo: ClusterInfo
         clusteringThread?.interrupt()
         clusteringProgress(1)
-        Thread(null, {
+        Thread(controllerSubroutines, {
             clusteringThread?.join()
             clusteringThread = Thread.currentThread()
 
@@ -397,14 +385,14 @@ class Controller {
                 graphicComponents.colorClusters(clustersInfo.clusters)
                 clusteringProgress(-1)
             }
-        }, "Clustering Thread").start()
+        }, "Clustering Thread (Printing)").start()
     }
 
     private fun updateClusterColoringAsync(){
         if(clusterColoringToggle.isSelected){
             clusteringThread?.interrupt()
             clusteringProgress(1)
-            Thread(null, {
+            Thread(controllerSubroutines, {
                 clusteringThread?.join()
                 clusteringThread = Thread.currentThread()
 
@@ -420,7 +408,7 @@ class Controller {
                     graphicComponents.colorClusters(clusters)
                     clusteringProgress(-1)
                 }
-            }, "Clustering Thread").start()
+            }, "Clustering Thread (Coloring)").start()
         } else {
             graphicComponents.clearClusterColoring()
         }
@@ -493,7 +481,6 @@ class Controller {
             }
 
             this.graph = AMGraph.fromCollection((0 until vertexCount).toList())
-            graphicComponents.graph = this.graph
 
             when(state){
                 SwitchButton.SwitchButtonState.RIGHT -> {
@@ -503,7 +490,6 @@ class Controller {
                     generateClusteredGraph()
                 }
             }
-            graphicComponents.physicsC.startSimulation()
         }, "Graph Creator").start()
     }
 
@@ -525,9 +511,16 @@ class Controller {
 
         if(!allowDisjointSelectionBox.isSelected) this.graph.mergeDisjoint(min, max)
 
-        Platform.runLater { graphicComponents.draw()
+        tellPlatformRandomizationFinished(min,max)
+    }
+
+    private fun tellPlatformRandomizationFinished(min: Int, max: Int) {
+        Platform.runLater {
+            graphicComponents.graph = this.graph
+            graphicComponents.draw()
             if(min == 0 && max == 1)
                 graphicComponents.hideWeight()
+            graphicComponents.physicsC.startSimulation()
             updateClusterColoringAsync()
         }
     }
@@ -539,11 +532,7 @@ class Controller {
 
         if(!allowDisjointSelectionBox.isSelected) this.graph.mergeDisjoint(min, max)
 
-        Platform.runLater { graphicComponents.draw()
-            if(min == 0 && max == 1)
-                graphicComponents.hideWeight()
-            updateClusterColoringAsync()
-        }
+        tellPlatformRandomizationFinished(min, max)
     }
 
     //Return: null if error, (0, 1) if unweighted
@@ -580,27 +569,33 @@ class Controller {
     
     @FXML
     private fun probOfConnectionsEdited() {
-        if(probOfConnectionsField.text.toDoubleOrNull() != null) {
-            if(probOfConnectionsField.text.toDouble() > 1.0)
+        val p = probOfConnectionsField.text
+
+        if(p.toDoubleOrNull() != null) {
+            if(p.toDouble() > 1.0)
                 probOfConnectionsField.text = 1.0.toString()
 
-            else if(probOfConnectionsField.text.toDouble() < 0.0)
+            else if(p.toDouble() < 0.0)
                 probOfConnectionsField.text = 0.0.toString()
         }
 
-        avgConnPerVertexField.text = probOfConnectionsField.text.toDoubleOrNull()?.let {
-            ((2*it*(graph.size()-1)) + (if(!allowDisjointSelectionBox.isSelected) ((graph.size()-1)/graph.size()).toDouble() else 0.0)).toString()
+        val v = vertexCountField.text.toInt()
+        avgConnPerVertexField.text = p.toDoubleOrNull()?.let {
+            ((2*it*(v -1)) + (if(!allowDisjointSelectionBox.isSelected) ((v-1)/ v).toDouble() else 0.0)).toString()
         } ?: ""
     }
 
     @FXML
     private fun avgConnectionsPerVertexEdited() {
-        probOfConnectionsField.text = avgConnPerVertexField.text.toDoubleOrNull()?.let {
-            ((it - if(!allowDisjointSelectionBox.isSelected) ((graph.size()-1.0)/graph.size()) else 0.0) / (2*(graph.size()-1))).toString()
+        val v = vertexCountField.text.toInt()
+        val a = avgConnPerVertexField.text
+        probOfConnectionsField.text = a.toDoubleOrNull()?.let {
+            ((it - if(!allowDisjointSelectionBox.isSelected) ((v-1.0)/ v) else 0.0) / (2*(v -1))).toString()
         } ?: ""
 
-        if(probOfConnectionsField.text.toDoubleOrNull() != null) {
-            if(probOfConnectionsField.text.toDouble() > 1.0 || probOfConnectionsField.text.toDouble() < 0.0) {
+        val p = probOfConnectionsField.text
+        if(p.toDoubleOrNull() != null) {
+            if(p.toDouble() > 1.0 || p.toDouble() < 0.0) {
                 probOfConnectionsEdited() //illegal edit was made, this method does data validation
             }
         }

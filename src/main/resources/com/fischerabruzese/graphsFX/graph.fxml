@@ -183,7 +183,7 @@
                            </font>
                         </Label>
                         <Label text="Allow Disjoint Graph:" textFill="WHITE" GridPane.columnSpan="3" />
-                        <CheckBox fx:id="allowDisjointSelectionBox" mnemonicParsing="false" onMousePressed="#avgConnectionsPerVertexEdited" selected="true" translateX="25.0" GridPane.columnIndex="2" />
+                        <CheckBox fx:id="allowDisjointSelectionBox" mnemonicParsing="false" selected="true" translateX="25.0" GridPane.columnIndex="2" />
                      </children>
                   </GridPane>
                   <Button fx:id="randomizeButton" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onMouseClicked="#randomizePressed" prefWidth="200.0" text="Randomize" />
