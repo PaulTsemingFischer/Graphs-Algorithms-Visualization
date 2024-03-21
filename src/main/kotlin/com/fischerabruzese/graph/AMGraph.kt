@@ -6,6 +6,7 @@ package com.fischerabruzese.graph
 
 import java.math.BigInteger
 import java.util.*
+import kotlin.math.ln
 import kotlin.math.min
 import kotlin.math.pow
 import kotlin.random.Random
@@ -656,6 +657,32 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
         }
 
         return bestCut
+    }
+
+    fun test(){
+        fun calculateNumRuns(numVerts: Int, pDesired: Double): Int {
+            val pMinCutSuccess = 1.0 / (numVerts * numVerts / 2 - numVerts / 2)
+            val requiredIterations = ln(1 - pDesired) / ln(1 - pMinCutSuccess)
+            return requiredIterations.toInt()
+        }
+        fun confidenceAfterIterations(numVerts: Int, iterations: Int): Double {
+            val pMinCutSuccess = 1.0 / (numVerts * numVerts / 2 - numVerts / 2)
+            val confidence = 1 - (1 - pMinCutSuccess).pow(iterations.toDouble())
+            return confidence
+        }
+
+        val minCuts: Int = karger(1000000).size
+        val numRuns = calculateNumRuns(size(), 0.88)
+
+        var successes = 0
+        repeat(10000){
+            val minCutSize = karger(1).size
+            println("Min cut size: $minCutSize, Best min cut: $minCuts")
+            if(minCutSize == minCuts) successes++
+        }
+        println("Num runs: $numRuns")
+        println("Success proportion: ${successes.toDouble()/10000}")
+        println("Confidence: ${confidenceAfterIterations(size(), 1)}% of time")
     }
 
     /**
