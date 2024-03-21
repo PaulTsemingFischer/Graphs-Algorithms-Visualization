@@ -633,26 +633,41 @@ class GraphicComponents<E: Any>(
                 while(!Thread.interrupted()){
                     try {
                         pushGhostFrame(generateFrame(speed, unaffected = listOfNotNull(selectedVertex), verticesPos = ghostVertices.toList()))
-                    } catch (e: IndexOutOfBoundsException) {
-                        Platform.runLater { stopSimulation(); startSimulation() }
-                        return@Thread
+                    } catch (ex: Exception) {
+                        when(ex) {
+                            is NoSuchElementException, is IndexOutOfBoundsException -> {
+                                println("Exception Caught in ${Thread.currentThread().name}: ${ex.message}")
+                                Platform.runLater {
+                                    stopSimulation()
+                                    startSimulation()
+                                }
+                                return@Thread
+                            }
+                            else -> throw ex
+                        }
                     }
                     //Thread.sleep(1)
                 }
             }, "Ghost Frame Pusher").also{Platform.runLater{simulationThreads.add(it)}}.start()
+
 
             Thread(simulationThreadGroup, {
                 val thisThread = Thread.currentThread()
                 while (!Thread.interrupted()) {
                     val latch = CountDownLatch(1) // Initialize with a count of 1
                     Platform.runLater {
-                        try{
+                        try {
                             pushRealFrame()
-                        }
-                        catch(_: IndexOutOfBoundsException){
-                            stopSimulation()
-                            startSimulation()
-                            return@runLater //Don't count down latch and cause a InterruptedException in thread
+                        } catch (ex: Exception) {
+                            when(ex) {
+                                is NoSuchElementException, is IndexOutOfBoundsException -> {
+                                    stopSimulation()
+                                    startSimulation()
+                                    println("Exception Caught in ${Thread.currentThread().name}: ${ex.message}")
+                                    return@runLater //Don't count down latch and cause a InterruptedException in thread
+                                }
+                                else -> throw ex
+                            }
                         }
                         latch.countDown() //signal that Platform has executed our frame
                     }
