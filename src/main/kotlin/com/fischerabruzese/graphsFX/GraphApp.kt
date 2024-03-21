@@ -17,11 +17,11 @@ class GraphApp : Application() {
         stage.scene = scene
 
         /* Customize your graph */
-        val verts = (0 until 20).toList()
+        val verts = (0 until 50).toList()
 
         //val graph = createGraph(getText())
         val graph = AMGraph.fromCollection(verts)
-        graph.randomizeWithCluster(3, 1, 9, .39, 0.004)
+        graph.randomizeWithCluster(4, 1, 9, .39, 0.02)
 
 
 //        val graph = AMGraph.graphOf<Int>(

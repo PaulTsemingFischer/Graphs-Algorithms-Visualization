@@ -636,7 +636,6 @@ class GraphicComponents<E: Any>(
                     } catch (ex: Exception) {
                         when(ex) {
                             is NoSuchElementException, is IndexOutOfBoundsException -> {
-                                println("Exception Caught in ${Thread.currentThread().name}: ${ex.message}")
                                 Platform.runLater {
                                     stopSimulation()
                                     startSimulation()
@@ -663,7 +662,6 @@ class GraphicComponents<E: Any>(
                                 is NoSuchElementException, is IndexOutOfBoundsException -> {
                                     stopSimulation()
                                     startSimulation()
-                                    println("Exception Caught in ${Thread.currentThread().name}: ${ex.message}")
                                     return@runLater //Don't count down latch and cause a InterruptedException in thread
                                 }
                                 else -> throw ex
