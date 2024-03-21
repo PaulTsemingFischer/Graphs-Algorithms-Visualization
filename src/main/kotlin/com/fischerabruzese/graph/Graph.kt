@@ -19,6 +19,8 @@ abstract class Graph<E : Any> : Iterable<E> {
      * @param from The vertex to start from.
      * @param to The vertex to end at.
      * @return The weight of the edge between the two vertices, or null if no edge exists.
+     *
+     * @throws NoSuchElementException if the one or more of the elements do not exist in the graph
      */
     abstract operator fun get(from : E, to : E) : Int?
 

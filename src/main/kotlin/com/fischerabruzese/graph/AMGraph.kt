@@ -129,9 +129,9 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
     override operator fun get(from: E, to: E): Int? {
         return indexLookup[from]?.let { f ->
             indexLookup[to]?.let { t ->
-                get(f, t)
-            }
-        }
+                get(f, t) ?: return null
+            } ?: throw NoSuchElementException("To Element {$to} does not exist")
+        } ?: throw NoSuchElementException("From Element {$from} does not exist")
     }
 
     /**
