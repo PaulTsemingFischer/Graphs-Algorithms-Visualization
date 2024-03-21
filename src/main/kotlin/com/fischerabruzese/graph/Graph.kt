@@ -350,17 +350,21 @@ abstract class Graph<E : Any> : Iterable<E> {
     /*---------------- CLUSTERING ----------------*/
 
     /**
-     * Uses Highly Connected Subgraph (with Kargers for finding min-cut) algorithm to find clusters in this graph
+     * Uses Highly Connected Subgraph (with Kargers for finding min-cut) algorithm to find clusters in this graph. Implementation may or may not merge singletons
      * @param connectedness the minimum proportion of vertices that must be connected to form a cluster
      * @param kargerness the number of probabilistic attempts at finding the min-cut before the best option is taken
      * @return a collection of subgraphs that are the clusters of this graph
+     * @throws InterruptedException since clustering is an expensive algorithm it will throw an exception when the thread is interrupted during calculation instead of completing the calculation
      */
     abstract fun getClusters(connectedness: Double = 0.5, kargerness: Int = 1000): Collection<Graph<E>>
 
     /**
      * @see getClusters
      * @param confidence the desired probability of finding the min-cut during each iteration of Kargers algorithm
+     * @throws InterruptedException since clustering is an expensive algorithm it will throw an exception when the thread is interrupted during calculation instead of completing the calculation
+     * @throws IllegalArgumentException if confidence is not between 0.0 and 1.0 exclusive
      */
+    @Deprecated("Confidence calculations are severely inaccurate", ReplaceWith("getClusters(kargerness: Int)"), DeprecationLevel.WARNING)
     open fun getClusters(connectedness: Double = 0.25, confidence: Double){
         require(confidence < 1.0 && confidence > 0.0)
 

@@ -627,7 +627,62 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
 
     /*------------------ CLUSTERING ------------------*/
 
-    override fun getClusters(connectedness: Double, kargerness: Int) : Collection<AMGraph<E>>{
+    override fun getClusters(connectedness: Double, kargerness: Int): Collection<AMGraph<E>>{
+        val clusters = highlyConnectedSubgraphs(connectedness, kargerness)
+
+        return mergeSingletons(clusters)
+    }
+
+    private fun mergeSingletons(clusters: Collection<AMGraph<E>>):  Collection<AMGraph<E>>{
+        val clusters = ArrayList(clusters)
+        //for each singleton
+        for ((i, cluster) in clusters.withIndex()) {
+            if (Thread.currentThread().isInterrupted) throw InterruptedException()
+            if (cluster.size() != 1) continue //not a singleton
+
+            val singleton = cluster.getVertices().first()
+
+            //aka hcc
+            var highestConnectedCluster = cluster
+            var hccInbounds = LinkedList<E>()
+            var hccOutbounds = LinkedList<E>()
+
+            //find hcc
+            for (neighborCluster in clusters) {
+                if (neighborCluster === cluster) continue
+
+                val obConnections = LinkedList<E>()
+                val ibConnections = LinkedList<E>()
+                for (v in neighborCluster) {
+                    if (this[v, singleton] != null) ibConnections.add(v)
+                    if (this[singleton, v] != null) obConnections.add(v)
+                }
+                if ((ibConnections.size + obConnections.size) > (hccInbounds.size + hccOutbounds.size)) {
+                    hccInbounds = ibConnections
+                    hccOutbounds = obConnections
+                    highestConnectedCluster = neighborCluster
+                }
+            }
+
+            //if the singleton has no connections to another cluster and is still the default value, do nothing
+            if (highestConnectedCluster === cluster) continue
+
+            //merge singleton into hcc
+            highestConnectedCluster.add(singleton)
+            for (ib in hccInbounds) {
+                highestConnectedCluster[ib, singleton] = this[ib, singleton]!!
+            }
+            for (ob in hccOutbounds) {
+                highestConnectedCluster[singleton, ob] = this[singleton, ob]!!
+            }
+
+            //remove singleton cluster
+            clusters.removeAt(i)
+        }
+        return clusters
+    }
+
+    private fun highlyConnectedSubgraphs(connectedness: Double, kargerness: Int) : Collection<AMGraph<E>>{
         val minCut = karger(kargerness)
         //check if minCut size is acceptable or there's no cut (ie there's only 1 node in the graph)
         if(minCut.size >= connectedness * size() || minCut.size == -1) return listOf(this)
