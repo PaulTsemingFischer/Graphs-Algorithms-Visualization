@@ -650,6 +650,7 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
         var bestCut = minCut()
 
         repeat(numAttempts - 1){
+            if(Thread.currentThread().isInterrupted) throw InterruptedException()
             bestCut = minCut().takeIf{
                 it < bestCut
             } ?: bestCut
