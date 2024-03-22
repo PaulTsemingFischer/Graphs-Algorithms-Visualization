@@ -45,8 +45,10 @@ class Controller {
     @FXML
     private lateinit var connectednessSlider: Slider
     @FXML
-    private lateinit var clusterColoringToggle: CheckBox
-
+    private lateinit var clusteringToggle: CheckBox
+    @FXML
+    private lateinit var mergeSinglesToggle: CheckBox
+    @FXML
     private lateinit var switchButton: SwitchButton
     @FXML
     private lateinit var pureRandGridPane: GridPane
@@ -389,7 +391,7 @@ class Controller {
     }
 
     private fun updateClusterColoringAsync(){
-        if(clusterColoringToggle.isSelected){
+        if(clusteringToggle.isSelected){
             clusteringThread?.interrupt()
             clusteringProgress(1)
             Thread(controllerSubroutines, {
@@ -435,7 +437,12 @@ class Controller {
     }
 
     @FXML
-    private fun clusterColoringToggled(){
+    private fun clusteringToggled(){
+        updateClusterColoringAsync()
+    }
+
+    @FXML
+    private fun mergeSinglesToggled(){
         updateClusterColoringAsync()
     }
 
