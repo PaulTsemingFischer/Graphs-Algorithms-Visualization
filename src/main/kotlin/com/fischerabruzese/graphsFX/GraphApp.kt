@@ -16,16 +16,7 @@ class GraphApp : Application() {
         stage.title = "Graph"
         stage.scene = scene
 
-        /* Customize your graph */
-        val verts = (0 until 4).toList()
-
-        //val graph = createGraph(getText())
-        //val graph = AMGraph.fromConnections(listOf(0 to listOf(1, 2), 1 to listOf(2), 2 to listOf(3)))
-        val graph = AMGraph.fromCollection(verts)
-        //graph.randomizeWithCluster(3, 1, 9, .39, 0.004)
-        graph.randomize(1.0, 0, 1)
-        graph.remove(0, 1)
-        graph.test()
+        AMGraph.test()
 
 //        val graph = AMGraph.graphOf<Int>(
 //            listOf(
@@ -65,7 +56,6 @@ class GraphApp : Application() {
 
 
 //        graph.randomize(2, 9, true, Random(69))
-        controller.initializeGraph(graph, stage)
         //controller.moveClusters(graph.getClusters(0.501))
 
 

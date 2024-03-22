@@ -6,6 +6,7 @@ package com.fischerabruzese.graph
 
 import java.math.BigInteger
 import java.util.*
+import kotlin.math.exp
 import kotlin.math.ln
 import kotlin.math.min
 import kotlin.math.pow
@@ -61,6 +62,49 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
          * @param verticesList: A collection of vertices to add to the graph
          */
         fun <E:Any> fromCollection(verticesList: Collection<E>) = AMGraph(0, verticesList.map { it to emptyList() })
+
+        fun test(){
+            fun binomial(N: Int, K: Int): BigInteger {
+                var ret = BigInteger.ONE
+                for (k in 0 until K) {
+                    ret = ret.multiply((N - k).toBigInteger())
+                        .divide((k + 1).toBigInteger())
+                }
+                return ret
+            }
+            fun calculateNumRuns(numVerts: Int, pDesired: Double): Int {
+                val pFail = (1-pDesired)
+                return binomial(numVerts, 2).toInt()*ln(1/pFail).toInt()
+            }
+            fun confidenceAfterIterations(numVerts: Int, iterations: Int): Double {
+                val pFail = exp(-iterations.toDouble() / (binomial(numVerts, 2).toDouble()))
+                return 1 - pFail
+            }
+            val verts = (0 until 40).toList()
+
+            //val graph = createGraph(getText())
+            //val graph = AMGraph.fromConnections(listOf(0 to listOf(1, 2), 1 to listOf(2), 2 to listOf(3)))
+            val graph = AMGraph.fromCollection(verts)
+            //graph.randomizeWithCluster(3, 1, 9, .39, 0.004)
+            graph.randomize(1.0, 0, 1)
+            (graph as Graph<Int>).remove(from = 0, to = 1)
+
+            val minCuts: Int = graph.karger(100000).size
+
+
+            var successes = 0
+            repeat(10000){
+                val minCutSize = graph.karger(50).size
+                //println("Min cut size: $minCutSize, Best min cut: $minCuts")
+                if(minCutSize == minCuts) successes++
+            }
+
+            println("graph size: ${graph.size()}")
+            println("success proportion: ${successes.toDouble()/10000}")
+            val numRuns = calculateNumRuns(graph.size(), successes.toDouble()/10000)
+            println("Calculated num runs: $numRuns || Real num runs: 28")
+            println("Predicted confidence for 28 runs: ${confidenceAfterIterations(graph.size(), 28)}")
+        }
     }
 
     /**
@@ -659,31 +703,7 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
         return bestCut
     }
 
-    fun test(){
-        fun calculateNumRuns(numVerts: Int, pDesired: Double): Int {
-            val pMinCutSuccess = 1.0 / (numVerts * numVerts / 2 - numVerts / 2)
-            val requiredIterations = ln(1 - pDesired) / ln(1 - pMinCutSuccess)
-            return requiredIterations.toInt()
-        }
-        fun confidenceAfterIterations(numVerts: Int, iterations: Int): Double {
-            val pMinCutSuccess = 1.0 / (numVerts * numVerts / 2 - numVerts / 2)
-            val confidence = 1 - (1 - pMinCutSuccess).pow(iterations.toDouble())
-            return confidence
-        }
 
-        val minCuts: Int = karger(1000000).size
-        val numRuns = calculateNumRuns(size(), 0.88)
-
-        var successes = 0
-        repeat(10000){
-            val minCutSize = karger(1).size
-            println("Min cut size: $minCutSize, Best min cut: $minCuts")
-            if(minCutSize == minCuts) successes++
-        }
-        println("Num runs: $numRuns")
-        println("Success proportion: ${successes.toDouble()/10000}")
-        println("Confidence: ${confidenceAfterIterations(size(), 1)}% of time")
-    }
 
     /**
      * @param size the number of cuts necessary to separate the minCut
