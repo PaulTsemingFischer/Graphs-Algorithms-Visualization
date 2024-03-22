@@ -356,7 +356,8 @@ class Controller {
         val numRuns = 100//calculateNumRuns(graph.size(),0.995).coerceIn(1..100000)
         val clusters: Collection<Graph<Any>>
         val time = measureNanoTime {
-            clusters = graph.getClusters(connectedness, numRuns)
+            clusters = if(mergeSinglesToggle.isSelected) graph.getClusters(connectedness, numRuns)
+            else graph.highlyConnectedSubgraphs(connectedness, numRuns)
         }
         val info = ClusterInfo(clusters, connectedness, numRuns, confidenceAfterIterations(graph.size(), numRuns), time)
         Platform.runLater{
