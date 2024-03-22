@@ -92,18 +92,15 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
             }
         }
         fun test2() {
-            var prev = 180
-            for(j in 200..500 step 50) {
+            var prev = 0
+            for(j in 5..500 step 2) {
                 val verts = (0 until j).toList();
-                val graph = fromCollection(verts); graph.randomize(1.0, 0, 1); (graph as Graph<Int>).remove(
-                    from = 0,
-                    to = 1
-                )
-
+                val graph = fromCollection(verts); graph.randomizeWithCluster(3, 0, 1, 0.39, 0.02)
+                graph.mergeDisjoint(0, 1)
                 val minCuts: Int = graph.karger(5000).size
                 var count = 0
 
-                for (i in (prev-10).coerceIn(1..10000) until 10000 step 2) {
+                for (i in (0).coerceIn(1..10000) until 10000 step 2) {
                     if(count == 2) {
                         print("($j,$i),")
                         prev = i
@@ -116,7 +113,8 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
                         if (minCutSize == minCuts) successes++
                         if (minCutSize < minCuts) throw Exception()
                     }
-                    if (successes.toDouble() / 100 > 0.98) count++
+                   // print("($j,$i,${successes.toDouble()})")
+                    if (successes.toDouble() / 100 >= 0.98) count++
                 }
             }
         }
