@@ -74,13 +74,13 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
             }
             fun calculateNumRuns(numVerts: Int, pDesired: Double): Int {
                 val pFail = (1-pDesired)
-                return binomial(numVerts, 2).toInt()*ln(1/pFail).toInt()
+                return binomial(numVerts, 2).intValueExact()*ln(1/pFail).toInt()
             }
             fun confidenceAfterIterations(numVerts: Int, iterations: Int): Double {
                 val pFail = exp(-iterations.toDouble() / (binomial(numVerts, 2).toDouble()))
                 return 1 - pFail
             }
-            val verts = (0 until 40).toList()
+            val verts = (0 until 100).toList()
 
             //val graph = createGraph(getText())
             //val graph = AMGraph.fromConnections(listOf(0 to listOf(1, 2), 1 to listOf(2), 2 to listOf(3)))
@@ -90,11 +90,11 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
             (graph as Graph<Int>).remove(from = 0, to = 1)
 
             val minCuts: Int = graph.karger(100000).size
-
+            val realNumAttempts = 28
 
             var successes = 0
             repeat(10000){
-                val minCutSize = graph.karger(50).size
+                val minCutSize = graph.karger(realNumAttempts).size
                 //println("Min cut size: $minCutSize, Best min cut: $minCuts")
                 if(minCutSize == minCuts) successes++
             }
@@ -102,8 +102,8 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
             println("graph size: ${graph.size()}")
             println("success proportion: ${successes.toDouble()/10000}")
             val numRuns = calculateNumRuns(graph.size(), successes.toDouble()/10000)
-            println("Calculated num runs: $numRuns || Real num runs: 28")
-            println("Predicted confidence for 28 runs: ${confidenceAfterIterations(graph.size(), 28)}")
+            println("Calculated num runs: $numRuns || Real num runs: $realNumAttempts")
+            println("Predicted confidence for $realNumAttempts runs: ${confidenceAfterIterations(graph.size(), realNumAttempts)}")
         }
     }
 
