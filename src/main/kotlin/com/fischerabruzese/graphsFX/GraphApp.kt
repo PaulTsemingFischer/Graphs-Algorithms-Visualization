@@ -16,7 +16,7 @@ class GraphApp : Application() {
         stage.title = "Graph"
         stage.scene = scene
 
-        AMGraph.test()
+        AMGraph.test2()
 
 //        val graph = AMGraph.graphOf<Int>(
 //            listOf(

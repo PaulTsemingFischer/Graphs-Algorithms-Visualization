@@ -6,7 +6,6 @@ package com.fischerabruzese.graph
 
 import java.math.BigInteger
 import java.util.*
-import kotlin.math.exp
 import kotlin.math.ln
 import kotlin.math.min
 import kotlin.math.pow
@@ -63,47 +62,63 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
          */
         fun <E:Any> fromCollection(verticesList: Collection<E>) = AMGraph(0, verticesList.map { it to emptyList() })
 
-        fun test(){
-            fun binomial(N: Int, K: Int): BigInteger {
-                var ret = BigInteger.ONE
-                for (k in 0 until K) {
-                    ret = ret.multiply((N - k).toBigInteger())
-                        .divide((k + 1).toBigInteger())
+        fun test() {
+            var prev = 0
+            for(j in 56..200 step 2) {
+                val verts = (0 until j).toList();
+                val graph = fromCollection(verts); graph.randomize(1.0, 0, 1); (graph as Graph<Int>).remove(
+                    from = 0,
+                    to = 1
+                )
+
+                val minCuts: Int = graph.karger(5000).size
+                var count = 0
+
+                for (i in (prev-10).coerceIn(1..10000) until 10000 step 2) {
+                    if(count == 2) {
+                        print("($j,$i),")
+                        prev = i
+                        break
+                    }
+                    var successes = 0
+                    repeat(1000) {
+                        val minCutSize = graph.karger(i).size
+                        //println("Min cut size: $minCutSize, Best min cut: $minCuts")
+                        if (minCutSize == minCuts) successes++
+                        if (minCutSize < minCuts) throw Exception()
+                    }
+                    if (successes.toDouble() / 1000 > 0.98) count++
                 }
-                return ret
             }
-            fun calculateNumRuns(numVerts: Int, pDesired: Double): Int {
-                val pFail = (1-pDesired)
-                return binomial(numVerts, 2).intValueExact()*ln(1/pFail).toInt()
+        }
+        fun test2() {
+            var prev = 180
+            for(j in 200..500 step 50) {
+                val verts = (0 until j).toList();
+                val graph = fromCollection(verts); graph.randomize(1.0, 0, 1); (graph as Graph<Int>).remove(
+                    from = 0,
+                    to = 1
+                )
+
+                val minCuts: Int = graph.karger(5000).size
+                var count = 0
+
+                for (i in (prev-10).coerceIn(1..10000) until 10000 step 2) {
+                    if(count == 2) {
+                        print("($j,$i),")
+                        prev = i
+                        break
+                    }
+                    var successes = 0
+                    repeat(100) {
+                        val minCutSize = graph.karger(i).size
+                        //println("Min cut size: $minCutSize, Best min cut: $minCuts")
+                        if (minCutSize == minCuts) successes++
+                        if (minCutSize < minCuts) throw Exception()
+                    }
+                    if (successes.toDouble() / 100 > 0.98) count++
+                }
             }
-            fun confidenceAfterIterations(numVerts: Int, iterations: Int): Double {
-                val pFail = exp(-iterations.toDouble() / (binomial(numVerts, 2).toDouble()))
-                return 1 - pFail
-            }
-            val verts = (0 until 100).toList()
-
-            //val graph = createGraph(getText())
-            //val graph = AMGraph.fromConnections(listOf(0 to listOf(1, 2), 1 to listOf(2), 2 to listOf(3)))
-            val graph = AMGraph.fromCollection(verts)
-            //graph.randomizeWithCluster(3, 1, 9, .39, 0.004)
-            graph.randomize(1.0, 0, 1)
-            (graph as Graph<Int>).remove(from = 0, to = 1)
-
-            val minCuts: Int = graph.karger(100000).size
-            val realNumAttempts = 28
-
-            var successes = 0
-            repeat(10000){
-                val minCutSize = graph.karger(realNumAttempts).size
-                //println("Min cut size: $minCutSize, Best min cut: $minCuts")
-                if(minCutSize == minCuts) successes++
-            }
-
-            println("graph size: ${graph.size()}")
-            println("success proportion: ${successes.toDouble()/10000}")
-            val numRuns = calculateNumRuns(graph.size(), successes.toDouble()/10000)
-            println("Calculated num runs: $numRuns || Real num runs: $realNumAttempts")
-            println("Predicted confidence for $realNumAttempts runs: ${confidenceAfterIterations(graph.size(), realNumAttempts)}")
         }
     }
 
