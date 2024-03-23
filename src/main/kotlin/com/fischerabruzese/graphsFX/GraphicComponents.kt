@@ -958,7 +958,7 @@ class GraphicComponents<E: Any>(
             Color.rgb(255, 215, 0), // Gold
             Color.rgb(255, 160, 122) // Light Salmon
         ))
-        val sortedClusters = clusters.sortedByDescending { it.size() }
+        val sortedClusters = clusters.sortedWith(compareBy({ it.size() }, { cluster -> (cluster.mapVertices { e -> e.toString() }).minByOrNull { it.length.also{println(it)} } }))
         for(cluster in sortedClusters){
             val color = if(colors.isNotEmpty()) colors.removeFirst() else randomColor()
             for(vertex in cluster){
