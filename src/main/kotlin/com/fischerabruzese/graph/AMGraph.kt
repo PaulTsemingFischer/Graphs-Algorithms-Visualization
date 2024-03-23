@@ -405,11 +405,11 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : Collec
         return string.toString()
     }
 
-    override fun neighbors(vertex: E): Collection<E> {
-        val vertexId = indexLookup[vertex]!!
+    override fun neighbors(source: E): Collection<E> {
+        val vertexId = indexLookup[source]!!
         val neighbors = mutableListOf<E>()
         for (vert in vertices.indices){
-            if (get(vertexId, vert) != -1) neighbors.add(vertices[vert])
+            if (get(vertexId, vert) != null) neighbors.add(vertices[vert])
         }
         return neighbors
     }
@@ -434,8 +434,8 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : Collec
         return newGraph
     }
 
-    override fun subgraph(verts: Collection<E>): AMGraph<E> {
-        return subgraphFromIds(vertices.map { indexLookup[it]!! })
+    override fun subgraph(vertices: Collection<E>): AMGraph<E> {
+        return subgraphFromIds(this.vertices.map { indexLookup[it]!! })
     }
 
     /**
@@ -725,8 +725,8 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : Collec
         return if (path.first() == from) path else emptyList()
     }
 
-    override fun getConnected(vertex: E): List<E> {
-        return getConnected(indexLookup[vertex]!!).map{ vertices[it] }
+    override fun getConnected(source: E): List<E> {
+        return getConnected(indexLookup[source]!!).map{ vertices[it] }
     }
 
     //Returns a list of all connected vertices by ID

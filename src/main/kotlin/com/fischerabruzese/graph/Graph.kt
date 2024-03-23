@@ -145,39 +145,58 @@ abstract class Graph<E : Any> : Iterable<E> {
     abstract fun contains(vertex: E): Boolean
 
     /**
-     *
-     * @param vertex the source vertex of the neighbors
+     * Retrieves all the vertices that [source] has an outbound connection to
+     * @param source the source vertex of the neighbors
      * @return a collection of vertices that are connected to the given vertex
+     * @throws NoSuchElementException if [source] is not in this graph
      */
-    open fun neighbors(vertex: E): Collection<E> {
+    open fun neighbors(source: E): Collection<E> {
         val neighbors = mutableListOf<E>()
         val vertices = getVertices()
         for (vert in vertices){
-            if (get(vertex, vert) != -1) neighbors.add(vert)
+            if (get(source, vert) != null) neighbors.add(vert) //get will throw the error if source doesn't exist
         }
         return neighbors
     }
 
+    /**
+     * @return the amount of connection between 2 vertices. Always between 0 and 2.
+     * @throws NoSuchElementException if [v1] or [v2] doesn't exist in this graph
+     */
     abstract fun countEdgesBetween(v1: E, v2: E): Int
 
     /**
-     * @param vertex the source of the collection
-     * @return a collection of every vertex reachable from [vertex]
+     * Retrieve the vertices reachable from [source] via [path]
+     * @param source the source that the returned vertices are reachable from
+     * @return a collection of every vertex reachable from [source]
+     * @throws IllegalArgumentException if [source] doesn't exist in this graph
      */
-    abstract fun getConnected(vertex: E): Collection<E>
+    abstract fun getConnected(source: E): Collection<E>
 
     /**
-     * @return a new graph identical to this
+     * Note that this does **not** preform a deep copy and the objects themselves are **not** copied. Reference's will still point to the same object.
+     * @return a new graph identical to this one.
      */
-    abstract fun copy(): Graph<E>
+    open fun copy(): Graph<E>{
+        return subgraph(getVertices())
+    }
 
     /**
-     * Returns a graph containing only the subset of vertices specified. Maintains all connections to vertices within the specified subset.
-     * @param verts the subset of vertices the subgraph should contain
+     * Returns a graph containing only a subset of vertices. Maintains all connections to vertices within the specified subset.
+     *
+     * Note that the objects themselves are **not** copied onto the subgraph. Reference's will still reference the same object.
+     *
+     * @param vertices the subset of vertices the subgraph should contain
      * @return a new graph containing only the specified vertices
+     * @throws IllegalArgumentException if any [vertices] does not exist in this graph
      */
-    abstract fun subgraph(verts: Collection<E>):Graph<E>
+    abstract fun subgraph(vertices: Collection<E>):Graph<E>
 
+    /**
+     * Joins [other] on to this graph including edges.
+     * Any vertices in [other] that are also in this graph will not be added, but connections to those vertices will still be added.
+     * @param other the graph to add to this graph
+     */
     fun union(other: Graph<E>) {
         addAll(other.getVertices())
         for((f,t) in other.getEdges()){
@@ -193,6 +212,12 @@ abstract class Graph<E : Any> : Iterable<E> {
         return subgraph(getVertices().filter{predicate(it)})
     }
 
+    /**
+     * Produces a new graph identical to this one, but where each vertex is modified with the given transform
+     * @param transform the transform to apply to each vertex
+     * @param R the type of elements this graph's vertices will be transformed to and that will be in the new graph
+     * @return a clone of this graph with the given transform
+     */
     open fun<R : Any> mapVertices(transform: (vertex: E) -> R) : Graph<R> {
         val graph = AMGraph<R>()
         graph.addAll(this.map(transform))
