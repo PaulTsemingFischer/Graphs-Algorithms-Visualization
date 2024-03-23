@@ -19,7 +19,7 @@ import kotlin.random.Random
  *
  * This implimentation provides constant time edge and vertex search via
  * [get][AMGraph.get] and [contains][AMGraph.contains]; O(n^2) vertex addition
- * and removal via [add][AMGraph.add] and [remove][AMGraph.remove]; Constant
+ * and removal via [add][AMGraph.add] and [remove][AMGraph.removeEdge]; Constant
  * time edge addition and removal via [set][AMGraph.set] and [removeEdge];
  *
  * The efficiencies for project algorithms are as follows:
@@ -52,7 +52,7 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : Collec
      * @param vertices the vertices to include in the graph
      */
     constructor(vertices: Collection<E>) : this(0,
-        vertices.map { it to emptyList<Pair<E, Int>>() }
+        vertices.map { it to emptyList() }
     )
 
     /**
@@ -133,7 +133,6 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : Collec
             var failCount = 1
             var prevFailCount = 1
 
-            val list: LinkedList<E>
             while (i <= totalRepetitions) {
                 //Check if we need to provide an update
                 if(i%updateInterval == 0) {
@@ -243,7 +242,7 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : Collec
             if (connections == null) continue
             for (outboundEdge in connections.second) {
                 try {
-                    if (outboundEdge.second <= 0) throw IllegalArgumentException()
+                    if (outboundEdge.second <= 0) throw IllegalArgumentException("Edge weight must be > 0")
                     else edgeMatrix[indexLookup[connections.first]!!][indexLookup[outboundEdge.first]!!] =
                         outboundEdge.second
                 } catch (e: IllegalArgumentException) {
@@ -284,13 +283,15 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : Collec
     }
 
     override fun removeEdge(from: E, to: E): Int? {
-        return remove(indexLookup[from]!!, indexLookup[to]!!)
+        val f = indexLookup[from]?: throw IllegalArgumentException()
+        val t = indexLookup[to]?: throw IllegalArgumentException()
+        return removeEdge(f,t)
     }
 
     /**
      * For faster internal access to the edges, since we frequently already have the id's
      */
-    private fun remove(from: Int, to: Int): Int? {
+    private fun removeEdge(from: Int, to: Int): Int? {
         return set(from, to, -1)
     }
 
@@ -322,14 +323,15 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : Collec
 
     override fun addAll(vertices: Collection<E>): Collection<E>{
         val failed = ArrayList<E>()
+        this.vertices.ensureCapacity(this.vertices.size + vertices.size)
         for (vert in vertices) {
-            if (indexLookup[vert] != null) {
+            if (this.contains(vert)) {
                 failed += vert
                 continue
             }
             indexLookup[vert] = size()
+            this.vertices.add(vert)
         }
-        this.vertices.addAll(this.vertices)
 
         edgeMatrix = Array(size()) { i ->
             IntArray(size()) { j ->
