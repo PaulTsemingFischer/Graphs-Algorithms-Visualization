@@ -107,8 +107,9 @@ abstract class Graph<E : Any> : Iterable<E> {
     /**
      * Removes an edge from the given vertices
      * @param from the source of the edge
-     * @param to the destination of the ege
-     * @return the weight of the edge removed, null if it didn't exist
+     * @param to the destination of the edge
+     * @return the weight of the edge removed, null if edge already didn't exist
+     * @throws IllegalArgumentException if either the [source][from] or [destination][to] don't exist in this graph
      */
     abstract fun removeEdge(from: E, to: E): Int?
 
@@ -126,7 +127,7 @@ abstract class Graph<E : Any> : Iterable<E> {
     }
 
     /**
-     * Removes all the connection in the graph.
+     * Removes all edges in this graph.
      */
     open fun clearEdges() {
         for(from in this){
@@ -139,11 +140,12 @@ abstract class Graph<E : Any> : Iterable<E> {
     /**
      * Checks if the given vertex is already in the graph
      * @param vertex the vertex to check
-     * @return true if the vertex exists in the graph
+     * @return true if the graph contains this vertex false if the graph doesn't contain this vertex
      */
     abstract fun contains(vertex: E): Boolean
 
     /**
+     *
      * @param vertex the source vertex of the neighbors
      * @return a collection of vertices that are connected to the given vertex
      */
@@ -177,9 +179,7 @@ abstract class Graph<E : Any> : Iterable<E> {
     abstract fun subgraph(verts: Collection<E>):Graph<E>
 
     fun union(other: Graph<E>) {
-        for(v in other){
-            add(v)
-        }
+        addAll(other.getVertices())
         for((f,t) in other.getEdges()){
             other[f, t]?.let { this[f,t] = it }
         }
