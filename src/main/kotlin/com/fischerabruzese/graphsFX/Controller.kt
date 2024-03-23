@@ -488,7 +488,7 @@ class Controller {
                 return@Thread
             }
 
-            this.graph = AMGraph.fromCollection((0 until vertexCount).toList())
+            this.graph = AMGraph((0 until vertexCount).toList())
 
             when(state){
                 SwitchButton.SwitchButtonState.RIGHT -> {

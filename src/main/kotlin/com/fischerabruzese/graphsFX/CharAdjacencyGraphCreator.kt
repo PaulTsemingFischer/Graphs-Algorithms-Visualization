@@ -23,7 +23,7 @@ fun createGraph(text: String, numLetters: Int = 10): AMGraph<Char> {
     println(edgeStartCounter.joinToString(",", "[", "]"))
 
     //Creating graph
-    val graph = AMGraph<Char>(*(Array(numLetters){Char('a'.code + it)}))
+    val graph = AMGraph(List(numLetters){Char('a'.code + it)})
     for(i in frequencyMatrix.indices){
         for(j in frequencyMatrix[i].indices){
             val edgeWeight = frequencyMatrix[i][j]
