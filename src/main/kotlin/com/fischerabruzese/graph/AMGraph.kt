@@ -201,20 +201,24 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
         }
     }
 
-    //TODO: PAUL COMMENT THIS METHOD, JAVADOC ALREADY IN GRAPH.KT
     override fun removeAll(verts: Collection<E>) {
+        //Marking vertices to remove + removing from hashmap
         val vertexToRemove = Array(size()) { false }
         for (vertex in verts) {
             val id = indexLookup.remove(vertex) ?: continue
             vertexToRemove[id] = true
         }
+
+        //Removing vertices from vertices list
         for(i in vertexToRemove.indices.reversed()){
             if(vertexToRemove[i]) vertices.removeAt(i)
         }
 
+        //New edge matrix with vertices removed
         val newEdgeMatrix = Array(size()) { IntArray(size()) { -1 } }
         var fromOffset = 0
 
+        //Copy over edges to new edge matrix
         for (from in edgeMatrix.indices) {
             if (vertexToRemove[from])
                 fromOffset++
@@ -229,6 +233,8 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
             }
         }
         edgeMatrix = newEdgeMatrix
+
+        //Nuke dijkstra table
         dijkstraTables = null
     }
 
