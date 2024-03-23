@@ -22,8 +22,8 @@ import kotlin.system.measureNanoTime
 class Controller {
     //Constants
     companion object {
-        val PATH_START = Color.ORANGE
-        val PATH_END = Color.rgb(207, 3, 252)
+        val PATH_START: Color = Color.ORANGE
+        val PATH_END: Color = Color.rgb(207, 3, 252)
     }
 
     //Pane

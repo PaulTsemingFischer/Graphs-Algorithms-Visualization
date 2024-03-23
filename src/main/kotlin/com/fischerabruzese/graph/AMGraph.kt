@@ -30,8 +30,6 @@ import kotlin.random.Random
  * its correctness: *the fail-fast behavior of iterators
  * should be used only to detect bugs.*
  *
- * @author Paul Fischer
- * @author Skylar Abruzese
  * @see Graph
  */
 class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : Collection<Pair<E,Iterable<Pair<E,Int>>>?>) : Graph<E>() { //dummy is to avoid conflicting signatures, the constructor is private, so it never sees the light of day
@@ -96,7 +94,7 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : Collec
         )
 
         /**
-         * Made for testing purposes. Finds the success rate of running Kargers Algorithm with min-cut repeated [kargerness] times for the given [graph].
+         * Made for testing purposes. Finds the success rate of running Karger's Algorithm with min-cut repeated [kargerness] times for the given [graph].
          * This will repeat Kargers on the graph until it produces the wrong answer. It will calculate the proportion of successes from this, averaging together the results over the [totalRepetitions].
          * @param graph The graph you want to test.
          * @param kargerness The kargerness that you want to test.
@@ -105,7 +103,6 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : Collec
          * @param printing Prints the answer and [updateInterval]s to the console.
          * @return The proportion of times kargers failed given the inputs above.
          * @throws IllegalStateException Very (and I mean very) rarely or under extremely extreme circumstances will the min-cut used to verify a correct min-cut be incorrect and throw this exception.
-         * @author Skylar Abruzese
          */
         fun<E:Any> findKargerSuccessRate(
             graph: AMGraph<E>,
@@ -172,7 +169,7 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : Collec
             printing: Boolean = updateInterval < totalRepetitions
         ): Double {
             /* GRAPH CREATION */
-            val verts = (0 until graphSize).toList();
+            val verts = (0 until graphSize).toList()
             val graph = AMGraph(verts)
             graph.randomize(1.0, 0, 1)
             (graph as Graph<Int>).remove(
@@ -485,7 +482,7 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : Collec
 
     /**
      * Finds a path between two vertices using either depth or breadth.
-     * @param depth true will use depth first search false will use breadth first search
+     * @param depth true will use depth first search, false will use breadth first search
      * @param start The vertex to start from.
      * @param dest The vertex to end at.
      * @return A list of vertices representing the path between the two vertices.
