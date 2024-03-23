@@ -5,21 +5,43 @@ import kotlin.math.ln
 import kotlin.random.Random
 @Suppress("unused")
 
+/**
+ * Represents a **mutable** graph data structure. The graph may contain cycles,
+ * and is therefore not strictly a DAG. The graph permits [Any] elements as the vertex
+ * type and does **not** permit nullable types.
+ *
+ * Implementations can store vertices in an Adjacency Matrix, Adjacency List,
+ * or a different way.
+ *
+ * All implimentation of Graphs contain the following algorithms that
+ * are either defined here (and are open for optimization in subclasses) or
+ * must be defined in its entirety in the specific implementation.
+ *
+ * Graph's contain methods for clustering and pathing, including:
+ *  * Dijkstra's Algorithm
+ *  * Breadth First Search
+ *  * Depth First Search
+ *  * HCS (Highly Connected Subgraphs)
+ *
+ * @author Skylar Abruzese
+ * @author Paul Fischer
+ */
 abstract class Graph<E : Any> : Iterable<E> {
 
     /*---------------- FUNCTIONALITY ----------------*/
     /**
      * @return The number of vertices in the graph.
      */
-    open fun size() : Int{
+    open fun size() : Int {
         return getVertices().size
     }
 
     /**
-     * @param from The vertex to start from.
-     * @param to The vertex to end at.
-     * @return The weight of the edge between the two vertices, or null if no edge exists.
+     * The edge getter for graphs.
      *
+     * @param from The source of the edge.
+     * @param to The destination of the edge.
+     * @return The weight of the directed edge between the two vertices, or null if no edge exists.
      * @throws NoSuchElementException if the one or more of the elements do not exist in the graph
      */
     abstract operator fun get(from : E, to : E) : Int?
@@ -29,82 +51,87 @@ abstract class Graph<E : Any> : Iterable<E> {
      * @param to The vertex to end at.
      * @param value The weight to set on the edge between the two vertices.
      * @return The previous weight of the edge between the two vertices, or null if no edge existed.
+     * @throws NoSuchElementException if [from] or [to] aren't in this graph
      */
     abstract operator fun set(from : E, to : E, value : Int) : Int?
 
     /**
-     * @return A set of the vertices in the graph.
+     * @return a set of the vertices in the graph.
      */
-    abstract fun getVertices() : Set<E>
+    abstract fun getVertices(): Set<E>
 
     /**
-     * @return A set of the Edges in the graph.
+     * @return a set of the directed Edges (source to destination) in the graph.
      */
-    abstract fun getEdges() :  Set<Pair<E,E>>
+    abstract fun getEdges():  Set<Pair<E,E>>
 
     /**
-     * @return An iterator over the vertices in the graph. The order is not guaranteed.
+     * @return An iterator over the vertices in the graph. No order is guaranteed.
      */
     override fun iterator(): Iterator<E> {
         return getVertices().iterator()
     }
 
     /**
-     * Adds a vertex to the graph.
-     * @param verts The vertices to add to the graph.
+     * Adds a new, unconnected vertex to the graph. Will skip any vertex that is already present in the graph
+     * @param vertex The vertex to add to the graph
+     * @return true if the vertex is successfully added to the graph and false if the vertex was already present in the graph.
      */
-    fun add(vararg verts : E){
-        addAll(verts.toList())
+    fun add(vararg vertex: E): Boolean {
+        return addAll(vertex.toList()).isNotEmpty()
     }
 
     /**
-     * Adds a collection of vertices to the graph.
-     * @param verts The collection of vertices to add to the graph.
+     * Adds a collection of vertices to the graph. Will skip all vertices that are already present in the graph
+     * @param vertices The collection of vertices to add to the graph.
+     * @return a collection of all elements that already existed in this graph
      */
-    abstract fun addAll(verts : Collection<E>)
+    abstract fun addAll(vertices: Collection<E>): Collection<E>
 
     /**
-     * Removes a vertex from the graph.
-     * @param verts The vertices to remove from the graph.
+     * Removes a vertex from the graph and removes all edges it was a part of.
+     * @param vertex The vertices to remove from the graph.
+     * @return true if the vertex is successfully removed from the graph and false if the vertex is not present in the graph.
      */
-    fun remove(vararg verts : E){
-        removeAll(verts.toList())
+    fun remove(vararg vertex : E): Boolean {
+        return removeAll(vertex.toList()).isNotEmpty()
     }
 
     /**
-     * Removes a collection of vertices from the graph.
-     * @param verts The collection of vertices to remove from the graph.
+     * Removes all vertices in a collection from the graph and removes all edges they were a part of. Ignores any vertices that already don't exist.
+     * @param vertices The collection of vertices to remove from the graph.
+     * @return a collection of the vertices that were already not present in the graph
      */
-    abstract fun removeAll(verts : Collection<E>)
+    abstract fun removeAll(vertices : Collection<E>): Collection<E>
 
     /**
-     * Removes the edge from the given vertices
+     * Removes an edge from the given vertices
      * @param from the source of the edge
      * @param to the destination of the ege
      * @return the weight of the edge removed, null if it didn't exist
      */
-    abstract fun remove(from: E, to: E): Int?
+    abstract fun removeEdge(from: E, to: E): Int?
 
     /**
-     * Removes any edges between the given vertices
+     * Removes all edges between the given vertices
      * @param v1 one end of the edges
      * @param v2 the other end of the edges
      * @return the number of edges removed
      */
     fun disconnect(v1: E, v2: E) : Int {
         var numDisconnected = 0
-        if(remove(v1,v2) != null) numDisconnected++
-        if(remove(v2,v1) != null) numDisconnected++
+        if(removeEdge(v1,v2) != null) numDisconnected++
+        if(removeEdge(v2,v1) != null) numDisconnected++
         return numDisconnected
     }
 
     /**
      * Removes all the connection in the graph.
      */
-    open fun clearConnections() {
+    open fun clearEdges() {
         for(from in this){
             for(to in this){
-                remove(from, to)
+                removeEdge(from, to)
             }
         }
     }
@@ -129,7 +156,7 @@ abstract class Graph<E : Any> : Iterable<E> {
         return neighbors
     }
 
-    abstract fun bidirectionalConnections(v1: E, v2: E): Int
+    abstract fun countEdgesBetween(v1: E, v2: E): Int
 
     /**
      * @param vertex the source of the collection
@@ -246,12 +273,12 @@ abstract class Graph<E : Any> : Iterable<E> {
                 vertsPerCluster + (size()/10) + 1
             ).coerceIn(1 until remainingVertices.size - (numClusters-1 - cluster)) //ensure we have enough for numClusters
 
-            clusters += AMGraph.fromCollection(remainingVertices.take(size)).apply {
+            clusters += AMGraph(remainingVertices.take(size)).apply {
                 randomize(intraClusterConnectedness, minEdgeWeight, maxEdgeWeight, true, random)
             }
             remainingVertices = LinkedList(remainingVertices.subList(size, remainingVertices.size))
         }
-        clusters += AMGraph.fromCollection(remainingVertices).apply {
+        clusters += AMGraph(remainingVertices).apply {
             randomize(intraClusterConnectedness, minEdgeWeight, maxEdgeWeight, true, random)
         }
 
@@ -278,7 +305,7 @@ abstract class Graph<E : Any> : Iterable<E> {
 
     //TODO: javadoc
     fun becomeCloneOf(graph: Graph<E>){
-        clearConnections()
+        clearEdges()
         removeAll(getVertices())
         union(graph)
     }
@@ -314,6 +341,7 @@ abstract class Graph<E : Any> : Iterable<E> {
     }
 
     /**
+     * Used for clustering
      * @return A copy of this graph with every connection being bidirectional with a weight of 1
      */
     protected fun getBidirectionalUnweighted() : Graph<E>{

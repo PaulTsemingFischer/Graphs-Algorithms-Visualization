@@ -807,7 +807,7 @@ class GraphicComponents<E: Any>(
                 val (effectorVerts, effectorPos) = verticesPos.filterNot{ (uneffectors.contains(it.first) || affectedVertex === it.first) }.unzip()
                 effectorVerts
                     .mapIndexedTo(effectors) { i, vertexEffector ->
-                        when(graph.bidirectionalConnections(vertexEffector.v, affectedVertex.v)){
+                        when(graph.countEdgesBetween(vertexEffector.v, affectedVertex.v)){
                                 1 -> Pair(effectorPos[i], singleConnectedVertexField)
                                 2 -> Pair(effectorPos[i], doubleConnectedVertexField)
                                 else -> Pair(effectorPos[i], unconnectedVertexField)
