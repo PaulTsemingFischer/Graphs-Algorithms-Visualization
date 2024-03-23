@@ -10,62 +10,178 @@ import kotlin.math.min
 import kotlin.math.pow
 import kotlin.random.Random
 
-class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<Pair<E,Iterable<Pair<E,Int>>>?>) : Graph<E>() { //dummy is to avoid conflicting signatures, the constructor is private, so it never sees the light of day
+
+/**
+ * Adjacency Matrix implimentation of [Graph]. Improves on efficiency of
+ * [Graph]'s operation where improvements can be made from direct access to
+ * adjacency matrix. Permits [Any] elements as the vertex type, does **not**
+ * permit nullable types.
+ *
+ * **Note that this implementation is not synchronized.** If multiple threads
+ * access a [AMGraph] concurrently and at least one of the threads modifies the
+ * graph structurally, it *must* be synchronized externally.
+ *
+ * The iterators returned by this class's [iterator] and methods are
+ * *fail-fast*: if the graph is structurally modified in any way  at any time
+ * after the iterator is created, the iterator will throw a
+ * [ConcurrentModificationException]. However, these exceptions are based on
+ * the structure of [ArrayList]'s fail-fast implementation. Therefore, it would
+ * be wrong to write a program that depended on this exception for
+ * its correctness: *the fail-fast behavior of iterators
+ * should be used only to detect bugs.*
+ *
+ * @author Paul Fischer
+ * @author Skylar Abruzese
+ * @see Graph
+ */
+class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : Collection<Pair<E,Iterable<Pair<E,Int>>>?>) : Graph<E>() { //dummy is to avoid conflicting signatures, the constructor is private, so it never sees the light of day
     /**
      * Represents a directed graph with non-negative edge weights.
      * @param E The type of the vertices in the graph.
-     * @param vertex the vertices to include in the graph
+     * @param vertices the vertices to include in the graph
      */
-    constructor(vararg vertex: E) : this(0,
-        vertex.map { it to emptyList<Pair<E, Int>>() }
+    constructor(vertices: Collection<E>) : this(0,
+        vertices.map { it to emptyList<Pair<E, Int>>() }
     )
-
-    /**
-     * Alternate constructors for creating graphs
-     */
-    companion object {
-        /**
-         * Creates a graph from vertices with outbound connections
-         * @param outboundConnections: pairs containing the vertex paired with an array of all vertices it has an outbound connection to paired with that connections weight
-         */
-        @JvmName("graphOfOutboundConnectionsVararg")
-        fun <E:Any> graphOf(vararg outboundConnections: Pair<E, Iterable<Pair<E, Int>>>) = graphOf(outboundConnections.toList())
-
-        /**
-         * Creates a graph from a list of vertices with outbound connections
-         * @param outboundConnectionsList: A list of pairs containing the vertex paired with an array of all vertices it has an outbound connection to paired with that connections weight
-         */
-        @JvmName("graphOfOutboundConnectionsList")
-        fun <E:Any> graphOf(outboundConnectionsList: List<Pair<E, Iterable<Pair<E, Int>>>?>) = AMGraph(0,outboundConnectionsList)
-
-        /**
-         * Creates a graph from vertices with outbound connections with no weights
-         * @param connections: pairs containing the vertex paired with an array of all vertices it has an outbound connection to
-         */
-        @JvmName("graphOfConnectionsVararg")
-        fun <E:Any> graphOf(vararg connections: Pair<E, Iterable<E>?>) = fromConnections(connections.toList())
-
-        /**
-         * Creates a graph from vertices with outbound connections with no weights
-         * @param connectionsList: A list of pairs containing the vertex paired with an array of all vertices it has an outbound connection to
-         */
-        @JvmName("graphOfConnectionsList")
-        fun <E:Any> fromConnections(connectionsList: List<Pair<E, Iterable<E>?>>) = AMGraph(0,
-            connectionsList.map {
-                it.first to (it.second?.map { it2 -> it2 to 1 } ?: emptyList())
-            }
-        )
-
-        /**
-         * @param verticesList: A collection of vertices to add to the graph
-         */
-        fun <E:Any> fromCollection(verticesList: Collection<E>) = AMGraph(0, verticesList.map { it to emptyList() })
-    }
 
     /**
      * Constructs an empty graph with no vertices
      */
     constructor() : this(0, emptyList())
+
+    /**
+     * Alternate constructors and calculation/testing methods
+     */
+    companion object {
+        /**
+         * Constructs a new [AMGraph] containing all vertices mentioned in [weightedConnections] with their corresponding edges.
+         *
+         * --
+         *
+         * *note that you may have to specify the parameter name (example attached) to avoid being confused with graphOf-unweightedConnections where the [type][E] is [Pair]*
+         *
+         * - **[AMGraph].graphOf( [weightedConnections] = Collection...)**
+         *
+         * @param weightedConnections A collection containing all the edges to be added to the new graph.
+         * Collection Format:
+         *
+         * - **[Source][E] paired to a [Collection] of its [Destination][E]&[Weight][Int] 's**
+         *
+         * @param E The type of the vertices in this graph.
+         */
+        @JvmName("graphOfOutboundConnectionsList")
+        fun <E:Any> graphOf(weightedConnections: Collection<Pair<E, Iterable<Pair<E, Int>>>?>) = AMGraph(0, weightedConnections)
+
+        /**
+         * Constructs a new [AMGraph] containing all vertices mentioned in [connections] with edges of weight 1 between the specified vertices.
+         *
+         * --
+         *
+         * *note that you may have to specify the parameter name (example attached) to avoid being confused with graphOf-weightedConnections where the [type][E] is [Pair]*
+         *
+         * - **[AMGraph].graphOf( [connections] = Collection...)**
+         *
+         * @param connections A collection containing all the edges to be added to the new graph.
+         * Collection Format:
+         *
+         * - **[Source][E] paired to a [Collection] of its [Destination][E]'s**
+         *
+         * @param E The type of the vertices in this graph.
+         */
+        @JvmName("graphOfConnectionsList")
+        fun <E:Any> graphOf(connections: Collection<Pair<E, Iterable<E>?>>) = AMGraph(0,
+            connections.map {
+                it.first to (it.second?.map { it2 -> it2 to 1 } ?: emptyList())
+            }
+        )
+
+        /**
+         * Made for testing purposes. Finds the success rate of running Kargers Algorithm with min-cut repeated [kargerness] times for the given [graph].
+         * This will repeat Kargers on the graph until it produces the wrong answer. It will calculate the proportion of successes from this, averaging together the results over the [totalRepetitions].
+         * @param graph The graph you want to test.
+         * @param kargerness The kargerness that you want to test.
+         * @param totalRepetitions The total amount of wrong kargers found before calculating the success rate. The higher the value, the slower, but higher confidence answer.
+         * @param updateInterval Prints the current values at the specified interval. Can be useful for long calculations. Setting this below totalRepetitions will automatically turn [printing] on unless otherwise specified.
+         * @param printing Prints the answer and [updateInterval]s to the console.
+         * @return The proportion of times kargers failed given the inputs above.
+         * @throws IllegalStateException Very (and I mean very) rarely or under extremely extreme circumstances will the min-cut used to verify a correct min-cut be incorrect and throw this exception.
+         * @author Skylar Abruzese
+         */
+        fun<E:Any> findKargerSuccessRate(
+            graph: AMGraph<E>,
+            kargerness: Int,
+            totalRepetitions: Int,
+            updateInterval: Int = totalRepetitions+1,
+            printing: Boolean = updateInterval < totalRepetitions
+        ): Double {
+            //Find real min-cut
+            val realMinCut: Int = graph.karger(5000).size
+
+            //Loop Variables
+            var i = 1
+            var failCount = 1
+            var prevFailCount = 1
+
+            val list: LinkedList<E>
+            while (i <= totalRepetitions) {
+                //Check if we need to provide an update
+                if(i%updateInterval == 0) {
+                    val deltaFails = failCount-prevFailCount
+                    val intervalAvgFail = deltaFails/updateInterval.toDouble()
+                    val totalAvgFail = failCount/i.toDouble()
+                    if(printing) println("${i-updateInterval}-$i:".padEnd((totalRepetitions.toString().length)*2 + 2) + "${((intervalAvgFail-1) / intervalAvgFail).toString().padEnd(25)}|| Current Average: ${(totalAvgFail-1)/totalAvgFail}")
+                    prevFailCount = failCount
+                }
+                var minCutAttempts = 1
+                while(true) {
+                    val minCutAttempt = graph.karger(kargerness).size
+                    if (minCutAttempt < realMinCut) throw IllegalStateException("Finding real min-cut (against all odds) failed")
+                    if (minCutAttempt > realMinCut) { //Failed min cut
+                        failCount += minCutAttempts
+                        break
+                    }
+                    minCutAttempts++
+                }
+                i++
+            }
+
+            val avgFailCount = failCount/totalRepetitions.toDouble()
+            val pSuccess = (avgFailCount-1) / avgFailCount
+
+            if(printing) print("|V| = ${graph.size()}, kargerness = $kargerness, p-success = $pSuccess")
+            return pSuccess
+        }
+
+        /**
+         * Made for testing purposes. Finds the worst case success rate of running Kargers Algorithm with min-cut repeated [kargerness] times for a graph of size [graphSize].
+         * This will repeat Kargers on a graph with the specified size and only 1 correct min-cut until it produces the wrong answer. It will calculate the proportion of successes from this, averaging together the results over the [totalRepetitions].
+         * @param graphSize This size of the graph you want to test.
+         * @param kargerness The kargerness that you want to test.
+         * @param totalRepetitions The total amount of wrong kargers found before calculating the success rate. The higher the value, the slower, but higher confidence answer.
+         * @param updateInterval Prints the current values at the specified interval. Can be useful for long calculations. Setting this below totalRepetitions will automatically turn [printing] on unless otherwise specified.
+         * @param printing Prints the answer and [updateInterval]s to the console.
+         * @return The proportion of times kargers failed given the inputs above.
+         * @throws IllegalStateException Very (and I mean very) rarely or under extremely extreme circumstances will the min-cut used to verify a correct min-cut be incorrect and throw this exception.
+         * @see findKargerSuccessRate
+         */
+        fun findKargerSuccessRate(
+            graphSize: Int,
+            kargerness: Int,
+            totalRepetitions: Int,
+            updateInterval: Int = totalRepetitions+1,
+            printing: Boolean = updateInterval < totalRepetitions
+        ): Double {
+            /* GRAPH CREATION */
+            val verts = (0 until graphSize).toList();
+            val graph = AMGraph(verts)
+            graph.randomize(1.0, 0, 1)
+            (graph as Graph<Int>).remove(
+                from = 0,
+                to = 1
+            )
+            return findKargerSuccessRate(graph, kargerness, totalRepetitions, updateInterval, printing)
+        }
+    }
 
 
     /**
@@ -289,7 +405,7 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : List<P
      * For faster internal access to the edges, since we frequently already have the id's
      */
     private fun subgraphFromIds(verts : Collection<Int>):AMGraph<E>{ //This method could be so much clearer, but I just love inline function 💕
-        return graphOf(verts.map { from ->
+        return graphOf(weightedConnections = verts.map { from ->
             vertices[from] to ArrayList<Pair<E,Int>>().apply{verts.forEach{ t ->
                 get(from,t)?.let{ add(vertices[t] to it) }
             }}
