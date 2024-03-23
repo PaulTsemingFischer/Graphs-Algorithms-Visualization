@@ -20,7 +20,7 @@ class GraphApp : Application() {
         val verts = (0 until 50).toList()
 
         //val graph = createGraph(getText())
-        val graph = AMGraph.fromCollection(verts)
+        val graph = AMGraph(verts)
         graph.randomizeWithCluster(4, 1, 9, .39, 0.015)
 
 

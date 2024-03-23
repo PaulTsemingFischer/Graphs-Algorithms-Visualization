@@ -1,11 +1,11 @@
 //TODO: Graph presets
-//TODO: Figure out the issue with OG dijkstra with disjoint graphs
-//TODO: make kargerness a confidence %
+//TODO: Kargerness %
 
 package com.fischerabruzese.graph
 
 import java.math.BigInteger
 import java.util.*
+import kotlin.NoSuchElementException
 import kotlin.math.min
 import kotlin.math.pow
 import kotlin.random.Random
@@ -14,8 +14,19 @@ import kotlin.random.Random
 /**
  * Adjacency Matrix implimentation of [Graph]. Improves on efficiency of
  * [Graph]'s operation where improvements can be made from direct access to
- * adjacency matrix. Permits [Any] elements as the vertex type, does **not**
+ * adjacency matrix. Permits [Any] elements as the vertex type and does **not**
  * permit nullable types.
+ *
+ * This implimentation provides constant time edge and vertex search via
+ * [get][AMGraph.get] and [contains][AMGraph.contains]; O(n^2) vertex addition
+ * and removal via [add][AMGraph.add] and [remove][AMGraph.remove]; Constant
+ * time edge addition and removal via [set][AMGraph.set] and [removeEdge];
+ *
+ * The efficiencies for project algorithms are as follows:
+ *  * Dijkstra's Algorithm ->  O(V^2*log(V))
+ *  * Breadth First Search -> O(V^2)
+ *  * Depth First Search -> O(V^2)
+ *  * HCS (Highly Connected Subgraphs) -> TODO
  *
  * **Note that this implementation is not synchronized.** If multiple threads
  * access a [AMGraph] concurrently and at least one of the threads modifies the
@@ -175,7 +186,7 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : Collec
             val verts = (0 until graphSize).toList();
             val graph = AMGraph(verts)
             graph.randomize(1.0, 0, 1)
-            (graph as Graph<Int>).remove(
+            (graph as Graph<Int>).removeEdge(
                 from = 0,
                 to = 1
             )
@@ -259,7 +270,9 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : Collec
     }
 
     override operator fun set(from: E, to: E, value: Int): Int? {
-        return set(indexLookup[from]!!, indexLookup[to]!!, value)
+        val f = indexLookup[from] ?: throw NoSuchElementException()
+        val t = indexLookup[to] ?: throw NoSuchElementException()
+        return set(f,t,value)
     }
 
     /**
@@ -270,7 +283,7 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : Collec
         return get(from, to).also { edgeMatrix[from][to] = value }
     }
 
-    override fun remove(from: E, to: E): Int? {
+    override fun removeEdge(from: E, to: E): Int? {
         return remove(indexLookup[from]!!, indexLookup[to]!!)
     }
 
@@ -301,33 +314,47 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : Collec
         return edges
     }
 
-    override fun clearConnections() {
+    override fun clearEdges() {
         edgeMatrix = Array(size()) { IntArray(size()) { -1 } }
         dijkstraTables = null
     }
 
-    override fun addAll(verts: Collection<E>) {
-        for (vert in verts) indexLookup[vert] = size()
-        vertices.addAll(verts)
+
+    override fun addAll(vertices: Collection<E>): Collection<E>{
+        val failed = ArrayList<E>()
+        for (vert in vertices) {
+            if (indexLookup[vert] != null) {
+                failed += vert
+                continue
+            }
+            indexLookup[vert] = size()
+        }
+        this.vertices.addAll(this.vertices)
 
         edgeMatrix = Array(size()) { i ->
             IntArray(size()) { j ->
                 edgeMatrix.getOrNull(i)?.getOrNull(j) ?: -1
             }
         }
+        return failed
     }
 
-    override fun removeAll(verts: Collection<E>) {
+    override fun removeAll(vertices: Collection<E>): Collection<E> {
+        val failed = LinkedList<E>()
         //Marking vertices to remove + removing from hashmap
         val vertexToRemove = Array(size()) { false }
-        for (vertex in verts) {
-            val id = indexLookup.remove(vertex) ?: continue
+        for (vertex in vertices) {
+            val id = indexLookup.remove(vertex)
+            if(id == null) {
+                failed.add(vertex)
+                continue
+            }
             vertexToRemove[id] = true
         }
 
         //Removing vertices from vertices list
         for(i in vertexToRemove.indices.reversed()){
-            if(vertexToRemove[i]) vertices.removeAt(i)
+            if(vertexToRemove[i]) this.vertices.removeAt(i)
         }
 
         //New edge matrix with vertices removed
@@ -352,6 +379,8 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : Collec
 
         //Nuke dijkstra table
         dijkstraTables = null
+
+        return failed
     }
 
     override fun<R : Any> mapVertices(transform: (vertex: E) -> R) : Graph<R> {
@@ -383,11 +412,11 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : Collec
         return neighbors
     }
 
-    override fun bidirectionalConnections(v1: E, v2: E): Int{
-        var connections = 0
-        get(v1,v2)?.let{connections++}
-        get(v2,v1)?.let{connections++}
-        return connections
+    override fun countEdgesBetween(v1: E, v2: E): Int {
+        var edges = 0
+        get(v1,v2)?.let{edges++}
+        get(v2,v1)?.let{edges++}
+        return edges
     }
 
     override fun copy(): AMGraph<E> {
