@@ -8,9 +8,10 @@ import kotlin.random.Random
 @Suppress("unused")
 
 /**
- * Represents a **mutable** graph data structure. The graph may contain cycles,
- * and is therefore not strictly a DAG. The graph permits [Any] elements as the
- * vertex type and does **not** permit nullable types.
+ * Represents a **mutable** graph data structure. A graph is directed and does
+ * not permit negative edge weights.The graph may contain cycles, and is
+ * therefore not strictly a DAG. The graph permits [Any] elements as the vertex
+ * type and does **not** permit nullable types.
  *
  * Implementations can store vertices in an Adjacency Matrix, Adjacency List,
  * or a different way.
@@ -32,7 +33,7 @@ abstract class Graph<E : Any> : Iterable<E> {
 
     /*---------------- FUNCTIONALITY ----------------*/
     /**
-     * @return The number of vertices in the graph.
+     * @return The number of vertices/elements in the graph.
      */
     open fun size() : Int {
         return getVertices().size
