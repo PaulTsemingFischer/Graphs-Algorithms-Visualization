@@ -5,7 +5,6 @@ package com.fischerabruzese.graph
 
 import java.math.BigInteger
 import java.util.*
-import kotlin.NoSuchElementException
 import kotlin.math.min
 import kotlin.math.pow
 import kotlin.random.Random
@@ -116,7 +115,6 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : Collec
          * @param printing Prints the answer and [updateInterval]s to the console.
          * @return The proportion of times kargers failed given the inputs above.
          * @throws IllegalStateException Very (and I mean very) rarely or under extremely extreme circumstances will the min-cut used to verify a correct min-cut be incorrect and throw this exception.
-         * @author Skylar Abruzese
          */
         fun<E:Any> findKargerSuccessRate(
             graph: AMGraph<E>,
