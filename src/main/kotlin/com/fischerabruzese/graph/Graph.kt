@@ -498,6 +498,70 @@ abstract class Graph<E : Any> : Iterable<E> {
     abstract fun path(from : E, to : E) : List<E>
 
     /**
+     * Finds a path between two vertices using Depth First Search.
+     *
+     * @param source The vertex to start from.
+     * @param destination The vertex to find/end at.
+     *
+     * @return A list of vertices representing the discovered path between the
+     *         two vertices. If no path exists, an empty array otherwise the
+     *         list will start the source and end with the destination
+     */
+    open fun depthFirstSearch(source: E, destination: E): List<E> {
+        return search(true, source, destination)
+    }
+
+    /**
+     * Finds a path between two vertices using Breadth First Search.
+     * This will return the shortest path in terms of number of vertices
+     * visited.
+     *
+     * @param source The vertex to start from.
+     * @param destination The vertex to find/end at.
+     *
+     * @return A list of vertices representing the BFS path between the
+     *         two vertices. If no path exists, an empty array otherwise the
+     *         list will start the source and end with the destination
+     */
+    open fun breadthFirstSearch(source: E, destination: E): List<E> {
+        return search(false, source, destination)
+    }
+
+    protected open fun search(depth: Boolean, source: E, destination: E): List<E> {
+        val q = LinkedList<E>()
+        val prev = HashMap<E,E>(size())
+
+        q.addFirst(source)
+        prev[source] = source
+
+        while (!q.isEmpty()) {
+            val curPath = q.pop()
+
+            for (outboundVertex in getConnected(curPath)) {
+
+                if (!prev.contains(outboundVertex) && outboundVertex != curPath) {
+                    if (depth)
+                        q.addFirst(outboundVertex)
+                    else //breadth
+                        q.addLast(outboundVertex)
+                    prev[outboundVertex] = curPath
+                    if (outboundVertex == destination) break
+                }
+            }
+        }
+        return LinkedList<E>().apply {
+            if (!prev.contains(destination)) return@apply
+
+            var next = prev[destination]!!
+            while (next != source) {
+                addFirst(next)
+                next = prev[next] ?: throw IllegalStateException("Destination found but no path exists")
+            }
+            addFirst(source)
+        }
+    }
+
+    /**
      * Finds the shortest distance between two vertices using dijkstra's
      * algorithm.
      *
