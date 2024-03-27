@@ -60,7 +60,7 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
      * The `[i]` `[j]` element is the weight of the edge **from** vertex id
      * `[i]` **to** vertex id `[j]`
      */
-    private lateinit var edgeMatrix: Array<IntArray> // [Vert index][Vert index] --> edge weight
+    private var edgeMatrix: Array<IntArray> // [Vert index][Vert index] --> edge weight
 
     /**
      * Converts a vertex to its index in [vertices] to enable quick access to
@@ -85,6 +85,7 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
 
     init {
         if(edgeMatrix != null) this.edgeMatrix = edgeMatrix
+        else this.edgeMatrix = Array(size()) {IntArray(size()) {-1} }
         //otherwise assume that they're (the other constructors body) going to initialize the edge matrix
     }
 
