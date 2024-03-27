@@ -721,7 +721,7 @@ abstract class Graph<E : Any> : Iterable<E> {
 
                 val highestConnectedness = hccInbounds.size + hccOutbounds.size
                 val newConnectedness = ibConnections.size + obConnections.size
-                if (newConnectedness > highestConnectedness || (newConnectedness == highestConnectedness && neighborCluster.size() > highestConnectedCluster.size())) {
+                if (newConnectedness > highestConnectedness || (newConnectedness == highestConnectedness && neighborCluster.size() > highestConnectedCluster.size() )) {
                     hccInbounds = ibConnections
                     hccOutbounds = obConnections
                     highestConnectedCluster = neighborCluster
@@ -746,5 +746,21 @@ abstract class Graph<E : Any> : Iterable<E> {
         clusters.removeAll(removeQueue)
 
         return clusters
+    }
+
+    fun compressed(): String {
+        val builder = StringBuilder()
+        for(v in getVertices()){
+            builder.append(v.toString().replace(";","").replace(",","")).append(",")
+        }
+        builder.deleteAt(builder.length-1)
+        builder.append(";")
+        for(e in getEdges()){
+            builder.append(e.first.toString().replace(";","").replace(",","")).append(",")
+            builder.append(e.second.toString().replace(";","").replace(",","")).append(",")
+            builder.append(this[e.first,e.second]).append(",")
+        }
+        builder.deleteAt(builder.length-1)
+        return builder.toString()
     }
 }

@@ -35,6 +35,12 @@ class Controller {
     //User inputs
         //Randomization
     @FXML
+    private lateinit var pastedGraph: PasswordField
+    @FXML
+    private lateinit var pastedGraphHBox: HBox
+    @FXML
+    private lateinit var pastedGraphLabel: Label
+    @FXML
     private lateinit var vertexCountField: TextField
     @FXML
     private lateinit var clusterRandomizationSwitchHBox: HBox
@@ -109,6 +115,7 @@ class Controller {
         graphicComponents.draw() //Draw the graphic components
 
         //Controls
+        pasteGraphEdited()
         initializeClusterRandomizationSwitch()
         initializeWeightDisplaySwitch()
         initializePhysicsSlider()
@@ -131,7 +138,7 @@ class Controller {
                          clusterInfo: ClusterInfo? = null
                          ) {
         val title = StringBuilder("Vertices: $numVerts | Edges: $numEdges")
-        if(clusterInfo != null) title.append(" | Clusters: ${clusterInfo.clusters.size} | Kargerness: ${clusterInfo.kargerness} (${String.format("%.1f",clusterInfo.confidence*100)}%)")
+        if(clusterInfo != null) title.append(" | Clusters: ${clusterInfo.clusters.size} | Kargerness: ${clusterInfo.kargerness} (${String.format("%.3f",clusterInfo.confidence*100)}%)")
         stage.title = title.toString()
     }
 
@@ -436,7 +443,7 @@ class Controller {
 
     private fun getClusters(): ClusterInfo {
         val connectedness = connectednessSlider.value
-        val numRuns = graph.estimateRequiredKargerness(0.995)
+        val numRuns = 1000//graph.estimateRequiredKargerness(0.9999).coerceIn(0..10000)
         val clusters: Collection<Graph<Any>>
         val time = measureNanoTime {
             clusters = if(mergeSinglesToggle.isSelected) graph.getClusters(connectedness, numRuns)
@@ -716,6 +723,34 @@ class Controller {
             if(p.toDouble() > 1.0 || p.toDouble() < 0.0) {
                 probOfConnectionsEdited() //illegal edit was made, this method does data validation
             }
+        }
+    }
+
+    private var currentPastedGraph: AMGraph<String>? = null
+
+    @FXML
+    private fun pasteGraphEdited() {
+        if(pastedGraph.text.isNotEmpty()) {
+            try {
+                if (!pastedGraph.text.contains(",")){
+                    throw IllegalStateException()
+                }
+                currentPastedGraph = AMGraph.graphOf(pastedGraph.text)
+                pastedGraphLabel.text =
+                    "Vertices: ${currentPastedGraph!!.size()}" + "    " + "Edges: ${currentPastedGraph!!.getEdges().size}"
+                pastedGraphHBox.isVisible = true
+                pastedGraphHBox.prefHeight = pastedGraphLabel.prefHeight
+            } catch (e: IllegalStateException) {
+                e.printStackTrace()
+                pastedGraphLabel.text =
+                    "Invalid Format"
+                pastedGraphHBox.isVisible = true
+                pastedGraphHBox.prefHeight = pastedGraphLabel.prefHeight
+            }
+        }
+        else {
+            pastedGraphHBox.isVisible = false
+            pastedGraphHBox.prefHeight = 0.0
         }
     }
 }

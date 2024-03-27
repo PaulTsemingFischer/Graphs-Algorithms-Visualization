@@ -43,8 +43,8 @@ import kotlin.random.Random
  */
 class AMGraph<E : Any> private constructor(
     vertices: ArrayList<E>?,
-    indexLookup: HashMap<E, Int>? = null,
-    edgeMatrix: Array<IntArray>? = null
+    indexLookup: HashMap<E, Int>?,
+    edgeMatrix: Array<IntArray>?
 ) : Graph<E>() {
 
     /**
@@ -107,7 +107,8 @@ class AMGraph<E : Any> private constructor(
      */
     private constructor(dummy: Any, outboundConnections: Collection<Pair<E, Iterable<Pair<E, Int>>>>) : this(
         vertices = ArrayList(outboundConnections.size * 2), //guess about how big our array is going to be
-        indexLookup = null //we can let them create the empty one for us
+        indexLookup = null, //we can let them create the empty one for us
+        edgeMatrix = null
     ) {
         //Add vertices to vertices and indexLookup
         for (connections in outboundConnections) {
@@ -157,6 +158,50 @@ class AMGraph<E : Any> private constructor(
      * Alternate constructors and calculation/testing methods
      */
     companion object {
+        @JvmName("graphOfCompressed")
+        fun graphOf(compressedString: String) : AMGraph<String> {
+            try {
+                val vertices = ArrayList<String>()
+                val reader = compressedString.toCharArray()
+                var begOfEdges = Int.MAX_VALUE
+                var current = StringBuilder()
+
+                for((i,c) in reader.withIndex()){
+                    if(c == ';'){
+                        vertices += current.toString()
+                        begOfEdges = i+1
+                        break
+                    }
+
+                    if(c == ',') {
+                        vertices += current.toString()
+                        current = StringBuilder()
+                        continue
+                    }
+
+                    current.append(c)
+                }
+
+                val graph = AMGraph(vertices)
+
+                var edge = Array(3) { StringBuilder() }
+                var pos = 0
+                for (i in begOfEdges until reader.size){
+                    val c = reader[i]
+                    if(c == ',') {
+                        if(pos == 2) {
+                            pos = 0
+                            graph[edge[0].toString(), edge[1].toString()] = edge[2].toString().toInt()
+                            edge = Array(3) { StringBuilder() }
+                        } else
+                            pos++
+                        continue
+                    }
+                    edge[pos].append(c)
+                }
+                return graph
+            } catch (e: Exception) {throw IllegalStateException("Unable to read compressed graph")}
+        }
         /**
          * Constructs a new [AMGraph] containing all vertices mentioned in
          * [weightedConnections] with their corresponding edges.
