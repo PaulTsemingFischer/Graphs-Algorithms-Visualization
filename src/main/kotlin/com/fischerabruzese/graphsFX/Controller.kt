@@ -138,35 +138,14 @@ class Controller {
     //Graph presets
     private fun presetPressed(graph: Graph<Any>, preset: String) {
         this.graph = graph
-        graphicComponents.graph = graph
-        graphicComponents.draw()
-        graphicComponents.hideWeight()
-        updateClusterColoringAsync()
+        tellPlatformRandomizationFinished(false)
         printPreset(preset)
     }
 
     //Tree preset
     @FXML
     private fun preset1Pressed() {
-        val random = Random(17)
 
-        val vertices = ('A'..'Z').toMutableList()
-        val presetGraph = AMGraph<Any>(vertices)
-
-        for (i in 1 until vertices.size) {
-            val parentIndex = (i - 1) / 2
-            val vertex = vertices[i]
-            val parentVertex = vertices[parentIndex]
-
-            // Randomly decide whether the current vertex is a left child or a right child
-            val isLeftChild = random.nextBoolean()
-            if (isLeftChild) {
-                presetGraph[parentVertex, vertex] = 0
-            } else {
-                presetGraph[parentVertex, vertex] = 0
-            }
-        }
-        presetPressed(presetGraph, "Treeset")
     }
 
     @FXML
@@ -191,10 +170,37 @@ class Controller {
 
     @FXML
     private fun preset7Pressed() {
+        val random = Random(77)
+
+        val vertices = ('A'..'S').toMutableList()
+        val presetGraph = AMGraph<Any>(vertices)
+
+        for (i in 1 until vertices.size) {
+            val parentIndex = (i - 1) / 2
+            val vertex = vertices[i]
+            val parentVertex = vertices[parentIndex]
+
+            presetGraph[parentVertex, vertex] = random.nextInt(0, 10)
+        }
+        presetPressed(presetGraph, "Tree")
     }
 
     @FXML
     private fun preset8Pressed() {
+        val random = Random(88)
+
+        val vertices = ('A'..'Z').toList()
+        val presetGraph = AMGraph<Any>(vertices)
+
+        for (i in 0 until vertices.size - 1) {
+            val currentVertex = vertices[i]
+            val nextVertex = vertices[i + 1]
+
+            presetGraph[currentVertex, nextVertex] = random.nextInt(0, 10)
+            presetGraph[nextVertex, currentVertex] = random.nextInt(0, 10)
+        }
+
+        presetPressed(presetGraph, "Double Linked List")
     }
 
 
@@ -235,7 +241,7 @@ class Controller {
 
         //Preset printing
     private fun printPreset(presetName: String) {
-        queuePrintEntry(Color.rgb(217, 67, 17), title = "Preset $presetName applied")
+        queuePrintEntry(Color.rgb(217, 67, 17), title = "Preset '$presetName' loaded")
     }
 
         //Randomization printing
@@ -249,7 +255,7 @@ class Controller {
             if(pureRandomizeInfo.min == 0 && pureRandomizeInfo.max == 1) {
                 append("Unweighted")
             } else {
-                append("Edge weights: [${pureRandomizeInfo.min} - ${pureRandomizeInfo.max}]\n")
+                append("Edge weights: [${pureRandomizeInfo.min} - ${pureRandomizeInfo.max}]")
             }
         }
         queuePrintEntry(Color.LIGHTBLUE, text, title)
@@ -601,12 +607,12 @@ class Controller {
     private data class ClusterRandomizeInfo(val vertexCount: Int, val clusterCount: Int, val intraConn: Double, val interConn: Double, val disjointGraph: Boolean, val min: Int, val max: Int)
     private data class PureRandomizeInfo(val vertexCount: Int, val avgConnections: Double, val probConnection: Double, val disjointGraph: Boolean, val min: Int,  val max: Int)
 
-    private fun tellPlatformRandomizationFinished(min: Int, max: Int) {
+    private fun tellPlatformRandomizationFinished(hideWeight: Boolean) {
         Platform.runLater {
             graphicComponents.graph = this.graph
             graphicComponents.draw()
-            if(min == 0 && max == 1)
-                graphicComponents.hideWeight()
+            if(hideWeight)
+                weightSwitchButton.manuallySwitch(newState = SwitchButton.SwitchButtonState.LEFT)
             graphicComponents.physicsC.startSimulation()
             updateClusterColoringAsync()
         }
@@ -631,7 +637,7 @@ class Controller {
 
         if(!allowDisjointSelectionBox.isSelected) this.graph.mergeDisjoint(min, max)
 
-        tellPlatformRandomizationFinished(min,max)
+        tellPlatformRandomizationFinished(min == 0 && max == 1)
         return ClusterRandomizeInfo(graph.size(), clusterCount, intraConn, interConn, allowDisjointSelectionBox.isSelected, min, max)
     }
 
@@ -643,7 +649,7 @@ class Controller {
 
         if(!allowDisjointSelectionBox.isSelected) this.graph.mergeDisjoint(min, max)
 
-        tellPlatformRandomizationFinished(min, max)
+        tellPlatformRandomizationFinished(min ==0 && max == 1)
         return PureRandomizeInfo(graph.size(), probConn, probConn,  allowDisjointSelectionBox.isSelected, min, max)
     }
 
