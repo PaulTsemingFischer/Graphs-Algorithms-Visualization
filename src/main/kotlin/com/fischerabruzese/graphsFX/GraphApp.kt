@@ -21,7 +21,8 @@ class GraphApp : Application() {
 
         //val graph = createGraph(getText())
         val graph = AMGraph(verts)
-        graph.randomizeWithCluster(4, 1, 9, .39, 0.015)
+        graph.randomize(0.3, 1, 9, false)
+        //graph.randomizeWithCluster(4, 1, 9, .39, 0.015)
 
 
 //        val graph = AMGraph.graphOf<Int>(

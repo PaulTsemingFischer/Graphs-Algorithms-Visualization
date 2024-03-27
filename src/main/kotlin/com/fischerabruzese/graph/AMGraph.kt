@@ -948,6 +948,7 @@ class AMGraph<E : Any> private constructor(
         if (minCut.size >= connectedness * size() || minCut.size == -1) return listOf(this)
 
         val clusters = ArrayList<AMGraph<E>>()
+        println(this.getVertices())
         val subgraph1 = subgraphFromIds(minCut.cluster1)
         val subgraph2 = subgraphFromIds(minCut.cluster2)
 
