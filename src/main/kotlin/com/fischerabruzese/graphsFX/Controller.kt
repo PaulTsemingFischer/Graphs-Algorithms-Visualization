@@ -71,7 +71,7 @@ class Controller {
     @FXML
     private lateinit var physicsSlider: Slider
     @FXML
-    private lateinit var hideShowWeightGrid: GridPane
+    private lateinit var weightVisibilityHBox: HBox
     @FXML
     private lateinit var weightSwitchButton: SwitchButton
     @FXML
@@ -110,15 +110,14 @@ class Controller {
 
         //Controls
         initializeClusterRandomizationSwitch()
+        initializeWeightDisplaySwitch()
         initializePhysicsSlider()
         initializeVertexSelection()
         initializeClusterConnectednessSlider()
         randSwitchButton.switchedEvents.addLast { randSwitched(it) }
-        randSwitched(SwitchButton.SwitchButtonState.LEFT) //initialize properties in specific graphic
+        randSwitchButton.manuallySwitch(newState = SwitchButton.SwitchButtonState.LEFT) //initialize properties in specific graphic
         weightSwitchButton.switchedEvents.addLast { weightSwitched(it) }
-        weightSwitchButton.onMouseClicked()
-        weightSwitched(SwitchButton.SwitchButtonState.RIGHT)
-        initializeShowHideWeightSwitch()
+        weightSwitchButton.manuallySwitch(newState = SwitchButton.SwitchButtonState.RIGHT)
 
         //Misc
         updateClusterColoringAsync()
@@ -189,6 +188,15 @@ class Controller {
     @FXML
     private fun preset6Pressed() {
     }
+
+    @FXML
+    private fun preset7Pressed() {
+    }
+
+    @FXML
+    private fun preset8Pressed() {
+    }
+
 
     //Console
         //General console printing
@@ -525,6 +533,15 @@ class Controller {
         )
     }
 
+    private fun initializeWeightDisplaySwitch() {
+        weightVisibilityHBox.children.addAll(
+            Label("Hide Weights ").apply { textFill = Color.WHITE },
+            SwitchButton().also { weightSwitchButton = it },
+            Label(" Show Weights").apply { textFill = Color.WHITE }
+        )
+    }
+
+
     private fun randSwitched(state: SwitchButton.SwitchButtonState) {
         when(state){
             SwitchButton.SwitchButtonState.LEFT -> {
@@ -548,6 +565,7 @@ class Controller {
                 graphicComponents.hideWeight()
             }
             SwitchButton.SwitchButtonState.RIGHT -> {
+                graphicComponents.showWeight()
             }
         }
     }
@@ -693,10 +711,5 @@ class Controller {
                 probOfConnectionsEdited() //illegal edit was made, this method does data validation
             }
         }
-    }
-
-    //Show-hide weight switch
-    initializeShowHideWeightSwitch(){
-
     }
 }

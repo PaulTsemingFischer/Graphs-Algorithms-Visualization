@@ -613,6 +613,11 @@ class GraphicComponents<E: Any>(
             edge.hideLabels()
         }
     }
+    fun showWeight(){
+        for(edge in edges){
+            edge.showLabels()
+        }
+    }
 
     /* PHYSICS */
     /**

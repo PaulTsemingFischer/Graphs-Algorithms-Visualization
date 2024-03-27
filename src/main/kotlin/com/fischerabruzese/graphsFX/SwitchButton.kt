@@ -8,7 +8,7 @@ import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.shape.Circle
 import javafx.scene.shape.Rectangle
-import java.util.LinkedList
+import java.util.*
 
 class SwitchButton : StackPane() {
     private val color1 = Color.PINK
@@ -48,22 +48,35 @@ class SwitchButton : StackPane() {
     init {
         init()
         val click = EventHandler<MouseEvent> { _ ->
-            if (state == SwitchButtonState.RIGHT) {
-                button.style = buttonStyleLeft
-                back.fill = color1
-                setAlignment(button, Pos.CENTER_LEFT)
-                state = SwitchButtonState.LEFT
-            } else {
-                button.style = buttonStyleRight
-                back.fill = color2
-                setAlignment(button, Pos.CENTER_RIGHT)
-                state = SwitchButtonState.RIGHT
-            }
-            for(s in switchedEvents) s(state)
+            manuallySwitch()
         }
 
         button.isFocusTraversable = false
         onMouseClicked = click
         button.onMouseClicked = click
+    }
+
+    fun manuallySwitch(newState: SwitchButtonState? = null) = run {
+        var newState = newState
+        if(newState != null){
+            state =
+                if(newState == SwitchButtonState.LEFT)
+                    SwitchButtonState.RIGHT
+                else
+                    SwitchButtonState.LEFT
+        }
+
+        if (state == SwitchButtonState.RIGHT) {
+            button.style = buttonStyleLeft
+            back.fill = color1
+            setAlignment(button, Pos.CENTER_LEFT)
+            state = SwitchButtonState.LEFT
+        } else {
+            button.style = buttonStyleRight
+            back.fill = color2
+            setAlignment(button, Pos.CENTER_RIGHT)
+            state = SwitchButtonState.RIGHT
+        }
+        for(s in switchedEvents) s(state)
     }
 }
