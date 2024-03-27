@@ -5,22 +5,21 @@ package com.fischerabruzese.graph
 
 import java.math.BigInteger
 import java.util.*
-import kotlin.NoSuchElementException
 import kotlin.math.min
 import kotlin.math.pow
 import kotlin.random.Random
 
 
 /**
- * Adjacency Matrix implimentation of [Graph]. Improves on efficiency of
+ * Adjacency Matrix implementation of [Graph]. Improves on efficiency of
  * [Graph]'s operation where improvements can be made from direct access to
  * adjacency matrix. Permits [Any] elements as the vertex type and does **not**
  * permit nullable types.
  *
  * This implimentation provides constant time edge and vertex search via
- * [get][AMGraph.get] and [contains][AMGraph.contains]; O(n^2) vertex addition
- * and removal via [add][AMGraph.add] and [remove][AMGraph.removeEdge]; Constant
- * time edge addition and removal via [set][AMGraph.set] and [removeEdge];
+ * [get][AMGraph.getWithIndex] and [contains][AMGraph.contains]; O(n^2) vertex addition
+ * and removal via [add][AMGraph.add] and [remove][AMGraph.removeEdgeWithIndex]; Constant
+ * time edge addition and removal via [set][AMGraph.setWithIndex] and [removeEdgeWithIndex];
  *
  * The efficiencies for project algorithms are as follows:
  *  * Dijkstra's Algorithm ->  O(V^2*log(V))
@@ -43,40 +42,126 @@ import kotlin.random.Random
  *
  * @author Paul Fischer
  * @author Skylar Abruzese
+ *
  * @see Graph
  */
-class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : Collection<Pair<E,Iterable<Pair<E,Int>>>?>) : Graph<E>() { //dummy is to avoid conflicting signatures, the constructor is private, so it never sees the light of day
+class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: HashMap<E,Int>? = null, edgeMatrix: Array<IntArray>? = null) : Graph<E>() {
+
     /**
-     * Represents a directed graph with non-negative edge weights.
-     * @param E The type of the vertices in the graph.
+     * An ordered collection of all the vertices in this graph.
+     *
+     * The location of a vertex in this array is referred to as the vertex 'id'
+     */
+    private val vertices: ArrayList<E> = vertices ?: ArrayList<E>() // Vert index --> E
+
+    /**
+     * An ordered matrix of the edges in the graph.
+     *
+     * The `[i]` `[j]` element is the weight of the edge **from** vertex id
+     * `[i]` **to** vertex id `[j]`
+     */
+    private lateinit var edgeMatrix: Array<IntArray> // [Vert index][Vert index] --> edge weight
+
+    /**
+     * Converts a vertex to its index in [vertices] to enable quick access to
+     * [edgeMatrix]
+     */
+    private val indexLookup: HashMap<E, Int> =
+        indexLookup ?: HashMap<E,Int>().apply {putAll(vertices?.mapIndexed{ id, element -> element to id} ?: emptyList())} // E --> Vert index
+
+    /**
+     * A cached table of the shortest paths from every vertex to every other
+     * vertex.
+     *
+     *
+     * - dijkstraTables`[source]` `[destination]` =
+     * Pair(previous vertex id, distance from source)
+     *
+     * This will be null when all paths are invalid, one vertex will be null if
+     * it hasn't been calculated. If the vertex is not in the table then it has
+     * no path.
+     */
+    private var dijkstraTables: Array<Array<Pair<Int, Int>>?>? = null
+
+    init {
+        if(edgeMatrix != null) this.edgeMatrix = edgeMatrix
+        //otherwise assume that they're (the other constructors body) going to initialize the edge matrix
+    }
+
+    /**
+     * The super constructor most of the alternate constructors.
+     */
+    private constructor(dummy:Int, outboundConnections : Collection<Pair<E,Iterable<Pair<E,Int>>>?>) : this (
+        vertices = ArrayList(outboundConnections.size*2), //guess about how big our array is going to be
+        indexLookup = null //we can let them create the empty one for us
+    ) {
+        //Add vertices to vertices and indexLookup
+        for (connections in outboundConnections) {
+            if (connections == null) continue
+
+            val source = connections.first
+            if (indexLookup.putIfAbsent(source, vertices.size) == null) {
+                vertices.add(source)
+            }
+            for (outboundEdge in connections.second) {
+                val destination = outboundEdge.first
+                if (indexLookup.putIfAbsent(destination, vertices.size) == null) {
+                    vertices.add(destination)
+                }
+            }
+        }
+        edgeMatrix = Array(vertices.size) { IntArray(vertices.size) { -1 } }
+
+        //Add edges
+        for (connections in outboundConnections) {
+            if (connections == null) continue
+            for (outboundEdge in connections.second) {
+
+                if (outboundEdge.second <= 0) edgeMatrix[indexLookup[connections.first]!!][indexLookup[outboundEdge.first]!!] = 1
+
+                else edgeMatrix[indexLookup[connections.first]!!][indexLookup[outboundEdge.first]!!] = outboundEdge.second
+            }
+        }
+    }
+
+    /**
+     * Constructs a new graph containing [vertices] with no edges.
+     *
+     * @param E The type of the vertices in the graph
      * @param vertices the vertices to include in the graph
      */
-    constructor(vertices: Collection<E>) : this(0,
-        vertices.map { it to emptyList() }
+    constructor(vertices: Collection<E>) : this(
+        vertices = ArrayList(vertices),
+        indexLookup = null,
+        edgeMatrix = null
     )
 
     /**
-     * Constructs an empty graph with no vertices
+     * Constructs an empty graph
      */
-    constructor() : this(0, emptyList())
+    constructor() : this(null, null, null)
 
     /**
      * Alternate constructors and calculation/testing methods
      */
     companion object {
         /**
-         * Constructs a new [AMGraph] containing all vertices mentioned in [weightedConnections] with their corresponding edges.
+         * Constructs a new [AMGraph] containing all vertices mentioned in
+         * [weightedConnections] with their corresponding edges.
          *
          * --
          *
-         * *note that you may have to specify the parameter name (example attached) to avoid being confused with graphOf-unweightedConnections where the [type][E] is [Pair]*
+         * *Note that you may have to specify the parameter name (example
+         * attached) to avoid being confused with graphOf-unweightedConnections
+         * where the [type][E] is [Pair]*
          *
          * - **[AMGraph].graphOf( [weightedConnections] = Collection...)**
          *
-         * @param weightedConnections A collection containing all the edges to be added to the new graph.
-         * Collection Format:
+         * @param weightedConnections A collection containing all the edges to
+         *        be added to the new graph.
          *
-         * - **[Source][E] paired to a [Collection] of its [Destination][E]&[Weight][Int] 's**
+         *        Collection Format:
+         *        [Source] paired to a [Collection] of its [Destination]s & [Weight]s
          *
          * @param E The type of the vertices in this graph.
          */
@@ -84,19 +169,22 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : Collec
         fun <E:Any> graphOf(weightedConnections: Collection<Pair<E, Iterable<Pair<E, Int>>>?>) = AMGraph(0, weightedConnections)
 
         /**
-         * Constructs a new [AMGraph] containing all vertices mentioned in [connections] with edges of weight 1 between the specified vertices.
+         * Constructs a new [AMGraph] containing all vertices mentioned in
+         * [connections] with edges of weight 1 between the specified vertices.
          *
          * --
          *
-         * *note that you may have to specify the parameter name (example attached) to avoid being confused with graphOf-weightedConnections where the [type][E] is [Pair]*
+         * *Note that you may have to specify the parameter name (example
+         * attached) to avoid being confused with graphOf-weightedConnections
+         * where the [type][E] is [Pair]*
          *
          * - **[AMGraph].graphOf( [connections] = Collection...)**
          *
-         * @param connections A collection containing all the edges to be added to the new graph.
-         * Collection Format:
+         * @param connections A collection containing all the edges to be added
+         *        to the new graph.
          *
-         * - **[Source][E] paired to a [Collection] of its [Destination][E]'s**
-         *
+         *        Collection Format:
+         *        [Source] paired to a [Collection] of its [Destination]s
          * @param E The type of the vertices in this graph.
          */
         @JvmName("graphOfConnectionsList")
@@ -107,16 +195,32 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : Collec
         )
 
         /**
-         * Made for testing purposes. Finds the success rate of running Kargers Algorithm with min-cut repeated [kargerness] times for the given [graph].
-         * This will repeat Kargers on the graph until it produces the wrong answer. It will calculate the proportion of successes from this, averaging together the results over the [totalRepetitions].
+         * Made for testing purposes. Finds the success rate of running Kargers
+         * Algorithm with min-cut repeated [kargerness] times for the given
+         * [graph].
+         * This will repeat Kargers on the graph until it produces the wrong
+         * answer. It will calculate the proportion of successes from this,
+         * averaging together the results over the [totalRepetitions].
+         *
          * @param graph The graph you want to test.
          * @param kargerness The kargerness that you want to test.
-         * @param totalRepetitions The total amount of wrong kargers found before calculating the success rate. The higher the value, the slower, but higher confidence answer.
-         * @param updateInterval Prints the current values at the specified interval. Can be useful for long calculations. Setting this below totalRepetitions will automatically turn [printing] on unless otherwise specified.
-         * @param printing Prints the answer and [updateInterval]s to the console.
-         * @return The proportion of times kargers failed given the inputs above.
-         * @throws IllegalStateException Very (and I mean very) rarely or under extremely extreme circumstances will the min-cut used to verify a correct min-cut be incorrect and throw this exception.
-         * @author Skylar Abruzese
+         * @param totalRepetitions The total amount of wrong kargers found
+         *        before calculating the success rate. The higher the value,
+         *        the slower, but higher confidence answer.
+         * @param updateInterval Prints the current values at the specified
+         *        interval. Can be useful for long calculations. Setting this
+         *        below totalRepetitions will automatically turn [printing] on
+         *        unless otherwise specified.
+         * @param printing Prints the answer and [updateInterval]s to the
+         *        console.
+         *
+         * @return The proportion of times kargers failed given the inputs
+         *         above.
+         *
+         * @throws IllegalStateException Very (and I mean very) rarely or under
+         *         extremely extreme circumstances will the min-cut used to
+         *         verify a correct min-cut be incorrect and throw this
+         *         exception.
          */
         fun<E:Any> findKargerSuccessRate(
             graph: AMGraph<E>,
@@ -163,15 +267,34 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : Collec
         }
 
         /**
-         * Made for testing purposes. Finds the worst case success rate of running Kargers Algorithm with min-cut repeated [kargerness] times for a graph of size [graphSize].
-         * This will repeat Kargers on a graph with the specified size and only 1 correct min-cut until it produces the wrong answer. It will calculate the proportion of successes from this, averaging together the results over the [totalRepetitions].
+         * Made for testing purposes. Finds the worst case success rate of
+         * running Kargers Algorithm with min-cut repeated [kargerness] times
+         * for a graph of size [graphSize].
+         * This will repeat Kargers on a graph with the specified size and only
+         * 1 correct min-cut until it produces the wrong answer. It will
+         * calculate the proportion of successes from this, averaging together
+         * the results over the [totalRepetitions].
+         *
          * @param graphSize This size of the graph you want to test.
          * @param kargerness The kargerness that you want to test.
-         * @param totalRepetitions The total amount of wrong kargers found before calculating the success rate. The higher the value, the slower, but higher confidence answer.
-         * @param updateInterval Prints the current values at the specified interval. Can be useful for long calculations. Setting this below totalRepetitions will automatically turn [printing] on unless otherwise specified.
-         * @param printing Prints the answer and [updateInterval]s to the console.
-         * @return The proportion of times kargers failed given the inputs above.
-         * @throws IllegalStateException Very (and I mean very) rarely or under extremely extreme circumstances will the min-cut used to verify a correct min-cut be incorrect and throw this exception.
+         * @param totalRepetitions The total amount of wrong kargers found
+         *        before calculating the success rate. The higher the value,
+         *        the slower, but higher confidence answer.
+         * @param updateInterval Prints the current values at the specified
+         *        interval. Can be useful for long calculations. Setting this
+         *        below totalRepetitions will automatically turn [printing] on
+         *        unless otherwise specified.
+         * @param printing Prints the answer and [updateInterval]s to the
+         *        console.
+         *
+         * @return The proportion of times kargers failed given the inputs
+         *         above.
+         *
+         * @throws IllegalStateException Very (and I mean very) rarely or under
+         *         extremely extreme circumstances will the min-cut used to
+         *         verify a correct min-cut be incorrect and throw this
+         *         exception.
+         *
          * @see findKargerSuccessRate
          */
         fun findKargerSuccessRate(
@@ -193,69 +316,14 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : Collec
         }
     }
 
-
-    /**
-     * An ordered collection of all the vertices in this graph. It's location in this array is referred to as the vertex 'id'
-     */
-    private var vertices: ArrayList<E> = ArrayList()// Vert index --> E
-
-    /**
-     * An ordered matrix of the edges in the graph. The `[i]` `[j]` element is the weight of the edge from vertex id `[i]` to vertex id `[j]`
-     */
-    private var edgeMatrix: Array<IntArray> // [Vert index][Vert index] --> edge weight
-
-    /**
-     * Converts a vertex to its index in [vertices] to avoid slow searching for id
-     */
-    private val indexLookup = HashMap<E, Int>() // E --> Vert index
-
-    /**
-     * A cached table of the shortest paths from every vertex to every other vertex.
-     * dijkstraTables`[source]` `[destination]` = Pair(previous vertex id, distance from source)
-     * This will be null when all paths are invalid, one vertex will be null if it hasn't been calculated. If the vertex is not in the table then it has no path.
-     */
-    private var dijkstraTables: Array<Array<Pair<Int, Int>>?>?
-
     /*------------------ FUNCTIONALITY ------------------*/
 
     override fun size() = vertices.size
 
-    init {
-        //Add vertices to vertices and indexLookup
-        for (connections in outboundConnections) {
-            if (connections == null) continue
-            if (indexLookup.putIfAbsent(connections.first, vertices.size) == null) {
-                vertices.add(connections.first)
-            }
-            for (outboundEdge in connections.second) {
-                if (indexLookup.putIfAbsent(outboundEdge.first, vertices.size) == null) {
-                    vertices.add(outboundEdge.first)
-                }
-            }
-        }
-
-        dijkstraTables = null
-        edgeMatrix = Array(size()) { IntArray(size()) { -1 } }
-
-        //Add edges
-        for (connections in outboundConnections) {
-            if (connections == null) continue
-            for (outboundEdge in connections.second) {
-                try {
-                    if (outboundEdge.second <= 0) throw IllegalArgumentException("Edge weight must be > 0")
-                    else edgeMatrix[indexLookup[connections.first]!!][indexLookup[outboundEdge.first]!!] =
-                        outboundEdge.second
-                } catch (e: IllegalArgumentException) {
-                    edgeMatrix[indexLookup[connections.first]!!][indexLookup[outboundEdge.first]!!] = 1
-                }
-            }
-        }
-    }
-
     override operator fun get(from: E, to: E): Int? {
         return indexLookup[from]?.let { f ->
             indexLookup[to]?.let { t ->
-                get(f, t) ?: return null
+                getWithIndex(f, t) ?: return null
             } ?: throw NoSuchElementException("To Element {$to} does not exist")
         } ?: throw NoSuchElementException("From Element {$from} does not exist")
     }
@@ -263,7 +331,7 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : Collec
     /**
      * For faster internal access to the edges, since we frequently already have the id's
      */
-    private fun get(from: Int, to: Int): Int? {
+    private fun getWithIndex(from: Int, to: Int): Int? {
         return if (edgeMatrix[from][to] == -1) null
         else edgeMatrix[from][to]
     }
@@ -271,28 +339,28 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : Collec
     override operator fun set(from: E, to: E, value: Int): Int? {
         val f = indexLookup[from] ?: throw NoSuchElementException()
         val t = indexLookup[to] ?: throw NoSuchElementException()
-        return set(f,t,value)
+        return setWithIndex(f,t,value)
     }
 
     /**
      * For faster internal access to the edges, since we frequently already have the id's
      */
-    private fun set(from: Int, to: Int, value: Int): Int? {
+    private fun setWithIndex(from: Int, to: Int, value: Int): Int? {
         dijkstraTables = null
-        return get(from, to).also { edgeMatrix[from][to] = value }
+        return getWithIndex(from, to).also { edgeMatrix[from][to] = value }
     }
 
     override fun removeEdge(from: E, to: E): Int? {
         val f = indexLookup[from]?: throw IllegalArgumentException()
         val t = indexLookup[to]?: throw IllegalArgumentException()
-        return removeEdge(f,t)
+        return removeEdgeWithIndex(f,t)
     }
 
     /**
      * For faster internal access to the edges, since we frequently already have the id's
      */
-    private fun removeEdge(from: Int, to: Int): Int? {
-        return set(from, to, -1)
+    private fun removeEdgeWithIndex(from: Int, to: Int): Int? {
+        return setWithIndex(from, to, -1)
     }
 
     override fun contains(vertex: E): Boolean {
@@ -344,7 +412,7 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : Collec
     override fun removeAll(vertices: Collection<E>): Collection<E> {
         val failed = LinkedList<E>()
         //Marking vertices to remove + removing from hashmap
-        val vertexToRemove = Array(size()) { false }
+        val vertexToRemove = BooleanArray(size())
         for (vertex in vertices) {
             val id = indexLookup.remove(vertex)
             if(id == null) {
@@ -386,9 +454,12 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : Collec
     }
 
     override fun<R : Any> mapVertices(transform: (vertex: E) -> R) : Graph<R> {
-        val newGraph = AMGraph<R>()
-        newGraph.edgeMatrix = edgeMatrix.map { it.clone() }.toTypedArray()
-        newGraph.vertices = ArrayList(vertices.mapIndexed{index, e -> transform(e).also{ r -> newGraph.indexLookup[r] = index}})
+        val newLookupTable = HashMap<R,Int>()
+        val newGraph = AMGraph<R>(
+            vertices = ArrayList(vertices.mapIndexed{index, e -> transform(e).also{ r -> newLookupTable[r] = index}}),
+            indexLookup = newLookupTable,
+            edgeMatrix = edgeMatrix.map { it.clone() }.toTypedArray()
+        )
         return newGraph
     }
 
@@ -409,7 +480,7 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : Collec
         val vertexId = indexLookup[source]!!
         val neighbors = mutableListOf<E>()
         for (vert in vertices.indices){
-            if (get(vertexId, vert) != null) neighbors.add(vertices[vert])
+            if (getWithIndex(vertexId, vert) != null) neighbors.add(vertices[vert])
         }
         return neighbors
     }
@@ -422,16 +493,11 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : Collec
     }
 
     override fun copy(): AMGraph<E> {
-        val newGraph = AMGraph<E>()
-        for(v in vertices) newGraph.add(v)
-        for(src in edgeMatrix.indices){
-            for(dest in edgeMatrix[src].indices){
-                if(get(src, dest) != null){
-                    newGraph.set(src, dest, get(src, dest)!!)
-                }
-            }
-        }
-        return newGraph
+        return AMGraph(
+            vertices.clone() as ArrayList<E>,
+            indexLookup.clone() as HashMap<E,Int>,
+            edgeMatrix.map { it.clone() }.toTypedArray()
+        )
     }
 
     override fun subgraph(vertices: Collection<E>): AMGraph<E> {
@@ -441,12 +507,43 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : Collec
     /**
      * For faster internal access to the edges, since we frequently already have the id's
      */
-    private fun subgraphFromIds(verts : Collection<Int>):AMGraph<E>{ //This method could be so much clearer, but I just love inline function 💕
-        return graphOf(weightedConnections = verts.map { from ->
-            vertices[from] to ArrayList<Pair<E,Int>>().apply{verts.forEach{ t ->
-                get(from,t)?.let{ add(vertices[t] to it) }
-            }}
-        })
+    private fun subgraphFromIds(verticesIds : Collection<Int>):AMGraph<E>{ //This method could be so much clearer, but I just love inline function 💕
+        val newVertices = ArrayList<E>(verticesIds.size)
+        val newIndexLookup = HashMap<E,Int>()
+        val isCopied = BooleanArray(vertices.size) {false}
+
+        for ((newId, oldId) in verticesIds.withIndex()) {
+            val vertex = vertices[oldId]
+            newIndexLookup[vertex] = newId
+            newVertices[newId] = vertex
+            isCopied[oldId] = true
+        }
+
+        //New edge matrix with vertices removed
+        val newEdgeMatrix = Array(size()) { IntArray(size()) { -1 } }
+        var fromOffset = 0
+
+        //Copy over edges to new edge matrix
+        for (from in edgeMatrix.indices) {
+            if (!isCopied[from]){
+                fromOffset++
+                continue
+            }
+
+            var toOffset = 0
+            for (to in edgeMatrix.indices) {
+                if (!isCopied[to])
+                    toOffset++
+                else
+                    newEdgeMatrix[from - fromOffset][to - toOffset] = edgeMatrix[from][to]
+            }
+        }
+        return AMGraph(
+            vertices = newVertices,
+            indexLookup = newIndexLookup,
+            edgeMatrix = newEdgeMatrix
+        )
+
     }
 
 
@@ -456,9 +553,9 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : Collec
         for (i in edgeMatrix.indices) {
             for (j in edgeMatrix.indices) {
                 if (random.nextDouble() < probability) {
-                    set(i, j, random.nextInt(minWeight,maxWeight))
+                    setWithIndex(i, j, random.nextInt(minWeight,maxWeight))
                 } else {
-                    set(i, j, -1)
+                    setWithIndex(i, j, -1)
                 }
             }
         }
@@ -485,8 +582,8 @@ class AMGraph<E:Any> private constructor(dummy:Int, outboundConnections : Collec
                 to = vertex
             }
             edgeMatrix[from][to] = weight
-            bidirectional.set(from, to, 1)
-            bidirectional.set(to, from, 1)
+            bidirectional.setWithIndex(from, to, 1)
+            bidirectional.setWithIndex(to, from, 1)
 
             vertex = random.nextInt(size())
             unreachables = emptyList()
