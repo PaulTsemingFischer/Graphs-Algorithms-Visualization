@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>GraphicComponents</title>
+    <link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">
+    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async="async"></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer="defer"></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer="defer"></script>
+</head>
+<body>
+    <div class="root">
+<nav class="navigation" id="navigation-wrapper">
+    <div class="navigation--inner">
+        <div class="navigation-title">
+            <button class="menu-toggle" id="menu-toggle" type="button">toggle menu</button>
+            <div class="library-name">
+                    <a class="library-name--link" href="../../../index.html">
+                            Graphs
+                    </a>
+            </div>
+            <div class="library-version">
+            </div>
+        </div>
+        <div class="filter-section" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter="Graphs/JVM">JVM</button>
+        </div>
+    </div>
+    <div class="navigation-controls">
+        <button class="navigation-controls--btn navigation-controls--theme" id="theme-toggle-button" type="button">switch theme</button>
+        <div class="navigation-controls--btn navigation-controls--search" id="searchBar" role="button">search in API</div>
+    </div>
+</nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="sidebar--inner" id="sideMenu"></div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageIds="Graphs::com.fischerabruzese.graphsFX/GraphicComponents///PointingToDeclaration//743090039">
+  <div class="breadcrumbs"><a href="../../../index.html">Graphs</a><span class="delimiter">/</span><a href="../index.html">com.fischerabruzese.graphsFX</a><span class="delimiter">/</span><span class="current">GraphicComponents</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Graphic</span><wbr></wbr><span><span>Components</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable="Graphs/JVM"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">GraphicComponents</a><span class="token operator">&lt;</span><a href="index.html">E</a><span class="token operator"> : </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-any/index.html">Any</a><span class="token operator">&gt;</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">var </span>graph<span class="token operator">: </span><a href="../../com.fischerabruzese.graph/-graph/index.html">Graph</a><span class="token operator">&lt;</span><a href="index.html">E</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>pane<span class="token operator">: </span><span data-unresolved-link="javafx.scene.layout/Pane///PointingToDeclaration/">Pane</span></span></span><span class="token punctuation">)</span></div><p class="paragraph">Represents all the components of a graph in the graphics pane</p><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current="Graphs/JVM" data-filterable-set="Graphs/JVM"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>graph</span></span></u></div></span></div><div><div class="title"><p class="paragraph">graph contained in <a href="pane.html">pane</a></p></div></div></div></div><div class="table-row" data-filterable-current="Graphs/JVM" data-filterable-set="Graphs/JVM"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>pane</span></span></u></div></span></div><div><div class="title"><p class="paragraph">the pane to contain the graph</p></div></div></div></div></div></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="">Constructors</h2>
+        <div class="table"><a data-name="-1092714302%2FConstructors%2F743090039" anchor-label="GraphicComponents" id="-1092714302%2FConstructors%2F743090039" data-filterable-set="Graphs/JVM"></a>
+          <div class="table-row" data-togglable="CONSTRUCTOR" data-filterable-current="Graphs/JVM" data-filterable-set="Graphs/JVM">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-graphic-components.html"><span>Graphic</span><wbr></wbr><span><span>Components</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1092714302%2FConstructors%2F743090039"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable="Graphs/JVM"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">graph<span class="token operator">: </span><a href="../../com.fischerabruzese.graph/-graph/index.html">Graph</a><span class="token operator">&lt;</span><a href="index.html">E</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">pane<span class="token operator">: </span><span data-unresolved-link="javafx.scene.layout/Pane///PointingToDeclaration/">Pane</span></span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="TYPE">
+        <h2 class="">Types</h2>
+        <div class="table"><a data-name="-1427176284%2FClasslikes%2F743090039" anchor-label="ColorType" id="-1427176284%2FClasslikes%2F743090039" data-filterable-set="Graphs/JVM"></a>
+          <div class="table-row" data-filterable-current="Graphs/JVM" data-filterable-set="Graphs/JVM">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-color-type/index.html"><span>Color</span><wbr></wbr><span><span>Type</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1427176284%2FClasslikes%2F743090039"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable="Graphs/JVM"><div class="symbol monospace"><span class="token keyword">enum </span><a href="-color-type/index.html">ColorType</a> : <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-enum/index.html">Enum</a><span class="token operator">&lt;</span><a href="-color-type/index.html">GraphicComponents.ColorType</a><span class="token operator">&gt; </span></div><div class="brief "><p class="paragraph">Different properties you can use to color a vertex</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="955269557%2FClasslikes%2F743090039" anchor-label="Companion" id="955269557%2FClasslikes%2F743090039" data-filterable-set="Graphs/JVM"></a>
+          <div class="table-row" data-filterable-current="Graphs/JVM" data-filterable-set="Graphs/JVM">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-companion/index.html"><span><span>Companion</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="955269557%2FClasslikes%2F743090039"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable="Graphs/JVM"><div class="symbol monospace"><span class="token keyword">object </span><a href="-companion/index.html">Companion</a></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2069492740%2FClasslikes%2F743090039" anchor-label="Edge" id="2069492740%2FClasslikes%2F743090039" data-filterable-set="Graphs/JVM"></a>
+          <div class="table-row" data-filterable-current="Graphs/JVM" data-filterable-set="Graphs/JVM">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-edge/index.html"><span><span>Edge</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2069492740%2FClasslikes%2F743090039"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable="Graphs/JVM"><div class="symbol monospace"><span class="token keyword">inner </span><span class="token keyword">class </span><a href="-edge/index.html">Edge</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>v1<span class="token operator">: </span><a href="-vertex/index.html">GraphicComponents.Vertex</a><span class="token operator">&lt;</span><a href="index.html">E</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter "><span class="token keyword">val </span>v2<span class="token operator">: </span><a href="-vertex/index.html">GraphicComponents.Vertex</a><span class="token operator">&lt;</span><a href="index.html">E</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">v1tov2<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a><span class="token punctuation">, </span></span><span class="parameter ">v2tov1<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html">Int</a></span></span><span class="token punctuation">)</span> : <span data-unresolved-link="javafx.scene.layout/StackPane///PointingToDeclaration/">StackPane</span></div><div class="brief "><p class="paragraph">Represents a graphical edge in the window. Each edge represents the possible connections between two vertices. If a connection only exists in one direction, the weight is -1 for the non-existent connection.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1187498714%2FClasslikes%2F743090039" anchor-label="Physics" id="1187498714%2FClasslikes%2F743090039" data-filterable-set="Graphs/JVM"></a>
+          <div class="table-row" data-filterable-current="Graphs/JVM" data-filterable-set="Graphs/JVM">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-physics/index.html"><span><span>Physics</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1187498714%2FClasslikes%2F743090039"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable="Graphs/JVM"><div class="symbol monospace"><span class="token keyword">abstract </span><span class="token keyword">inner </span><span class="token keyword">class </span><a href="-physics/index.html">Physics</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">var </span>speed<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-double/index.html">Double</a><span class="token operator"> = </span><span class="token constant">0.0</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">An object that represent a physics model for a some objects at some positions</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1617652227%2FClasslikes%2F743090039" anchor-label="Vertex" id="-1617652227%2FClasslikes%2F743090039" data-filterable-set="Graphs/JVM"></a>
+          <div class="table-row" data-filterable-current="Graphs/JVM" data-filterable-set="Graphs/JVM">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-vertex/index.html"><span><span>Vertex</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1617652227%2FClasslikes%2F743090039"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable="Graphs/JVM"><div class="symbol monospace"><span class="token keyword">inner </span><span class="token keyword">class </span><a href="-vertex/index.html">Vertex</a><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">val </span>v<span class="token operator">: </span><a href="index.html">E</a><span class="token punctuation">, </span></span><span class="parameter ">xInit<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-double/index.html">Double</a><span class="token punctuation">, </span></span><span class="parameter ">yInit<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-double/index.html">Double</a></span></span><span class="token punctuation">)</span> : <span data-unresolved-link="javafx.scene.layout/StackPane///PointingToDeclaration/">StackPane</span></div><div class="brief "><p class="paragraph">Represents a graphical vertex in the window.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="">Properties</h2>
+        <div class="table"><a data-name="1181819744%2FProperties%2F743090039" anchor-label="graph" id="1181819744%2FProperties%2F743090039" data-filterable-set="Graphs/JVM"></a>
+          <div class="table-row" data-filterable-current="Graphs/JVM" data-filterable-set="Graphs/JVM">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="graph.html"><span><span>graph</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1181819744%2FProperties%2F743090039"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable="Graphs/JVM"><div class="symbol monospace"><span class="token keyword">var </span><a href="graph.html">graph</a><span class="token operator">: </span><a href="../../com.fischerabruzese.graph/-graph/index.html">Graph</a><span class="token operator">&lt;</span><a href="index.html">E</a><span class="token operator">&gt;</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1529064964%2FProperties%2F743090039" anchor-label="pane" id="1529064964%2FProperties%2F743090039" data-filterable-set="Graphs/JVM"></a>
+          <div class="table-row" data-filterable-current="Graphs/JVM" data-filterable-set="Graphs/JVM">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="pane.html"><span><span>pane</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1529064964%2FProperties%2F743090039"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable="Graphs/JVM"><div class="symbol monospace"><span class="token keyword">val </span><a href="pane.html">pane</a><span class="token operator">: </span><span data-unresolved-link="javafx.scene.layout/Pane///PointingToDeclaration/">Pane</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1554041232%2FProperties%2F743090039" anchor-label="physicsC" id="1554041232%2FProperties%2F743090039" data-filterable-set="Graphs/JVM"></a>
+          <div class="table-row" data-filterable-current="Graphs/JVM" data-filterable-set="Graphs/JVM">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="physics-c.html"><span>physics</span><wbr></wbr><span><span>C</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1554041232%2FProperties%2F743090039"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable="Graphs/JVM"><div class="symbol monospace"><span class="token keyword">val </span><a href="physics-c.html">physicsC</a><span class="token operator">: </span><a href="-physics/index.html">GraphicComponents.Physics</a><span class="token operator">&lt;</span><a href="index.html">E</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">The custom physics object used for this graphic</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1641905178%2FProperties%2F743090039" anchor-label="stringToVMap" id="1641905178%2FProperties%2F743090039" data-filterable-set="Graphs/JVM"></a>
+          <div class="table-row" data-filterable-current="Graphs/JVM" data-filterable-set="Graphs/JVM">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="string-to-v-map.html"><span>string</span><wbr></wbr><span>To</span><wbr></wbr><span><span>VMap</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1641905178%2FProperties%2F743090039"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable="Graphs/JVM"><div class="symbol monospace"><span class="token keyword">val </span><a href="string-to-v-map.html">stringToVMap</a><span class="token operator">: </span><a href="https://docs.oracle.com/javase/8/docs/api/java/util/HashMap.html">HashMap</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a><span class="token punctuation">, </span><a href="-vertex/index.html">GraphicComponents.Vertex</a><span class="token operator">&lt;</span><a href="index.html">E</a><span class="token operator">&gt;</span><span class="token operator">&gt;</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="">Functions</h2>
+        <div class="table"><a data-name="1108935744%2FFunctions%2F743090039" anchor-label="clearClusterColoring" id="1108935744%2FFunctions%2F743090039" data-filterable-set="Graphs/JVM"></a>
+          <div class="table-row" data-filterable-current="Graphs/JVM" data-filterable-set="Graphs/JVM">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="clear-cluster-coloring.html"><span>clear</span><wbr></wbr><span>Cluster</span><wbr></wbr><span><span>Coloring</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1108935744%2FFunctions%2F743090039"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable="Graphs/JVM"><div class="symbol monospace"><span class="token keyword">fun </span><a href="clear-cluster-coloring.html"><span class="token function">clearClusterColoring</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="918554007%2FFunctions%2F743090039" anchor-label="colorClusters" id="918554007%2FFunctions%2F743090039" data-filterable-set="Graphs/JVM"></a>
+          <div class="table-row" data-filterable-current="Graphs/JVM" data-filterable-set="Graphs/JVM">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="color-clusters.html"><span>color</span><wbr></wbr><span><span>Clusters</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="918554007%2FFunctions%2F743090039"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable="Graphs/JVM"><div class="symbol monospace"><span class="token keyword">fun </span><a href="color-clusters.html"><span class="token function">colorClusters</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">clusters<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-collection/index.html">Collection</a><span class="token operator">&lt;</span><a href="../../com.fischerabruzese.graph/-graph/index.html">Graph</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-any/index.html">Any</a><span class="token operator">&gt;</span><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Given <a href="color-clusters.html">clusters</a> colors the graph so that each cluster is a distinct color</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2019859061%2FFunctions%2F743090039" anchor-label="colorPath" id="2019859061%2FFunctions%2F743090039" data-filterable-set="Graphs/JVM"></a>
+          <div class="table-row" data-filterable-current="Graphs/JVM" data-filterable-set="Graphs/JVM">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="color-path.html"><span>color</span><wbr></wbr><span><span>Path</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2019859061%2FFunctions%2F743090039"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable="Graphs/JVM"><div class="symbol monospace"><span class="token keyword">fun </span><a href="color-path.html"><span class="token function">colorPath</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">path<span class="token operator">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html">List</a><span class="token operator">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-any/index.html">Any</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Given <a href="color-path.html">path</a> grey stuff no in path and make the path fancy. And add path to <span data-unresolved-link="com.fischerabruzese.graphsFX/GraphicComponents/currentPathVertices/#/PointingToDeclaration/">currentPathVertices</span> and <span data-unresolved-link="com.fischerabruzese.graphsFX/GraphicComponents/currentPathConnections/#/PointingToDeclaration/">currentPathConnections</span></p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1586465880%2FFunctions%2F743090039" anchor-label="draw" id="-1586465880%2FFunctions%2F743090039" data-filterable-set="Graphs/JVM"></a>
+          <div class="table-row" data-filterable-current="Graphs/JVM" data-filterable-set="Graphs/JVM">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="draw.html"><span><span>draw</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1586465880%2FFunctions%2F743090039"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable="Graphs/JVM"><div class="symbol monospace"><span class="token keyword">fun </span><a href="draw.html"><span class="token function">draw</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Clear the graphic components and remake them from the graph</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1432534213%2FFunctions%2F743090039" anchor-label="greyDetached" id="1432534213%2FFunctions%2F743090039" data-filterable-set="Graphs/JVM"></a>
+          <div class="table-row" data-filterable-current="Graphs/JVM" data-filterable-set="Graphs/JVM">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="grey-detached.html"><span>grey</span><wbr></wbr><span><span>Detached</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1432534213%2FFunctions%2F743090039"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable="Graphs/JVM"><div class="symbol monospace"><span class="token keyword">fun </span><a href="grey-detached.html"><span class="token function">greyDetached</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">src<span class="token operator">: </span><a href="-vertex/index.html">GraphicComponents.Vertex</a><span class="token operator">&lt;</span><a href="index.html">E</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Grey's out non-attached vertices and edges in the graph</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="2121206522%2FFunctions%2F743090039" anchor-label="greyEverything" id="2121206522%2FFunctions%2F743090039" data-filterable-set="Graphs/JVM"></a>
+          <div class="table-row" data-filterable-current="Graphs/JVM" data-filterable-set="Graphs/JVM">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="grey-everything.html"><span>grey</span><wbr></wbr><span><span>Everything</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="2121206522%2FFunctions%2F743090039"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable="Graphs/JVM"><div class="symbol monospace"><span class="token keyword">fun </span><a href="grey-everything.html"><span class="token function">greyEverything</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-123972590%2FFunctions%2F743090039" anchor-label="hideWeight" id="-123972590%2FFunctions%2F743090039" data-filterable-set="Graphs/JVM"></a>
+          <div class="table-row" data-filterable-current="Graphs/JVM" data-filterable-set="Graphs/JVM">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="hide-weight.html"><span>hide</span><wbr></wbr><span><span>Weight</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-123972590%2FFunctions%2F743090039"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable="Graphs/JVM"><div class="symbol monospace"><span class="token keyword">fun </span><a href="hide-weight.html"><span class="token function">hideWeight</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Make all weights on the graph invisible (unweighted graph)</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-1391889791%2FFunctions%2F743090039" anchor-label="ungreyEverything" id="-1391889791%2FFunctions%2F743090039" data-filterable-set="Graphs/JVM"></a>
+          <div class="table-row" data-filterable-current="Graphs/JVM" data-filterable-set="Graphs/JVM">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="ungrey-everything.html"><span>ungrey</span><wbr></wbr><span><span>Everything</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1391889791%2FFunctions%2F743090039"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable="Graphs/JVM"><div class="symbol monospace"><span class="token keyword">fun </span><a href="ungrey-everything.html"><span class="token function">ungreyEverything</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Ungrey everything by setting line and label colors for edges and color for vertices.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      <div class="footer">
+        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2024 Copyright</span><span
+                class="pull-right"><span>Generated by </span><a
+                href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
+      </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

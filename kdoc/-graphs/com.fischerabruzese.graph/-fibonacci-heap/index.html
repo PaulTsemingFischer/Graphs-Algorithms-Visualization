@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html class="no-js">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" charset="UTF-8">
+    <title>FibonacciHeap</title>
+    <link href="../../../images/logo-icon.svg" rel="icon" type="image/svg">
+    <script>var pathToRoot = "../../../";</script>
+    <script>document.documentElement.classList.replace("no-js","js");</script>
+    <script>const storage = localStorage.getItem("dokka-dark-mode")
+    if (storage == null) {
+        const osDarkSchemePreferred = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+        if (osDarkSchemePreferred === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    } else {
+        const savedDarkMode = JSON.parse(storage)
+        if(savedDarkMode === true) {
+            document.getElementsByTagName("html")[0].classList.add("theme-dark")
+        }
+    }
+    </script>
+<script type="text/javascript" src="https://unpkg.com/kotlin-playground@1/dist/playground.min.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/sourceset_dependencies.js" async="async"></script>
+<link href="../../../styles/style.css" rel="Stylesheet">
+<link href="../../../styles/main.css" rel="Stylesheet">
+<link href="../../../styles/prism.css" rel="Stylesheet">
+<link href="../../../styles/logo-styles.css" rel="Stylesheet">
+<link href="../../../styles/font-jb-sans-auto.css" rel="Stylesheet">
+<script type="text/javascript" src="../../../scripts/clipboard.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/navigation-loader.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/platform-content-handler.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/main.js" defer="defer"></script>
+<script type="text/javascript" src="../../../scripts/prism.js" async="async"></script>
+<script type="text/javascript" src="../../../scripts/symbol-parameters-wrapper_deferred.js" defer="defer"></script>
+</head>
+<body>
+    <div class="root">
+<nav class="navigation" id="navigation-wrapper">
+    <div class="navigation--inner">
+        <div class="navigation-title">
+            <button class="menu-toggle" id="menu-toggle" type="button">toggle menu</button>
+            <div class="library-name">
+                    <a class="library-name--link" href="../../../index.html">
+                            Graphs
+                    </a>
+            </div>
+            <div class="library-version">
+            </div>
+        </div>
+        <div class="filter-section" id="filter-section">
+                <button class="platform-tag platform-selector jvm-like" data-active="" data-filter="Graphs/JVM">JVM</button>
+        </div>
+    </div>
+    <div class="navigation-controls">
+        <button class="navigation-controls--btn navigation-controls--theme" id="theme-toggle-button" type="button">switch theme</button>
+        <div class="navigation-controls--btn navigation-controls--search" id="searchBar" role="button">search in API</div>
+    </div>
+</nav>
+        <div id="container">
+            <div class="sidebar" id="leftColumn">
+                <div class="sidebar--inner" id="sideMenu"></div>
+            </div>
+            <div id="main">
+<div class="main-content" data-page-type="classlike" id="content" pageIds="Graphs::com.fischerabruzese.graph/FibonacciHeap///PointingToDeclaration//743090039">
+  <div class="breadcrumbs"><a href="../../../index.html">Graphs</a><span class="delimiter">/</span><a href="../index.html">com.fischerabruzese.graph</a><span class="delimiter">/</span><span class="current">FibonacciHeap</span></div>
+  <div class="cover ">
+    <h1 class="cover"><span>Fibonacci</span><wbr></wbr><span><span>Heap</span></span></h1>
+    <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable="Graphs/JVM"><div class="symbol monospace"><span class="token keyword">class </span><a href="index.html">FibonacciHeap</a><span class="token operator">&lt;</span><a href="index.html">P</a><span class="token operator"> : </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-comparable/index.html">Comparable</a><span class="token operator">&lt;</span><a href="index.html">P</a><span class="token operator">&gt;</span><span class="token punctuation">, </span><a href="index.html">V</a><span class="token operator">&gt;</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter "><span class="token keyword">var </span>minNode<span class="token operator">: </span><a href="../-node/index.html">Node</a><span class="token operator">&lt;</span><a href="index.html">P</a><span class="token punctuation">, </span><a href="index.html">V</a><span class="token operator">&gt;</span><span class="token operator">?</span><span class="token operator"> = </span>null</span></span><span class="token punctuation">)</span></div><p class="paragraph">Represents a Fibonacci Heap data structure.</p><h4 class="">Parameters</h4><div class="table"><div class="table-row" data-filterable-current="Graphs/JVM" data-filterable-set="Graphs/JVM"><div class="main-subrow keyValue "><div class=""><span class="inline-flex"><div><u><span><span>V</span></span></u></div></span></div><div><div class="title"><p class="paragraph">The type of values stored in the heap, must implement Comparable.</p></div></div></div></div></div></div></div>
+  </div>
+  <div class="tabbedcontent">
+    <div class="tabs-section" tabs-section="tabs-section"><button class="section-tab" data-active="" data-togglable="CONSTRUCTOR,TYPE,PROPERTY,FUNCTION">Members</button></div>
+    <div class="tabs-section-body">
+      <div data-togglable="CONSTRUCTOR">
+        <h2 class="">Constructors</h2>
+        <div class="table"><a data-name="-1324778049%2FConstructors%2F743090039" anchor-label="FibonacciHeap" id="-1324778049%2FConstructors%2F743090039" data-filterable-set="Graphs/JVM"></a>
+          <div class="table-row" data-togglable="CONSTRUCTOR" data-filterable-current="Graphs/JVM" data-filterable-set="Graphs/JVM">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="-fibonacci-heap.html"><span>Fibonacci</span><wbr></wbr><span><span>Heap</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-1324778049%2FConstructors%2F743090039"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable="Graphs/JVM"><div class="symbol monospace"><span class="token keyword">constructor</span><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">minNode<span class="token operator">: </span><a href="../-node/index.html">Node</a><span class="token operator">&lt;</span><a href="index.html">P</a><span class="token punctuation">, </span><a href="index.html">V</a><span class="token operator">&gt;</span><span class="token operator">?</span><span class="token operator"> = </span>null</span></span><span class="token punctuation">)</span></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="PROPERTY">
+        <h2 class="">Properties</h2>
+        <div class="table"><a data-name="135823007%2FProperties%2F743090039" anchor-label="minNode" id="135823007%2FProperties%2F743090039" data-filterable-set="Graphs/JVM"></a>
+          <div class="table-row" data-filterable-current="Graphs/JVM" data-filterable-set="Graphs/JVM">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="min-node.html"><span>min</span><wbr></wbr><span><span>Node</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="135823007%2FProperties%2F743090039"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable="Graphs/JVM"><div class="symbol monospace"><span class="token keyword">var </span><a href="min-node.html">minNode</a><span class="token operator">: </span><a href="../-node/index.html">Node</a><span class="token operator">&lt;</span><a href="index.html">P</a><span class="token punctuation">, </span><a href="index.html">V</a><span class="token operator">&gt;</span><span class="token operator">?</span></div><div class="brief "><p class="paragraph">The root node of the heap.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div data-togglable="FUNCTION">
+        <h2 class="">Functions</h2>
+        <div class="table"><a data-name="138370051%2FFunctions%2F743090039" anchor-label="decreaseKey" id="138370051%2FFunctions%2F743090039" data-filterable-set="Graphs/JVM"></a>
+          <div class="table-row" data-filterable-current="Graphs/JVM" data-filterable-set="Graphs/JVM">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="decrease-key.html"><span>decrease</span><wbr></wbr><span><span>Key</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="138370051%2FFunctions%2F743090039"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable="Graphs/JVM"><div class="symbol monospace"><span class="token keyword">fun </span><a href="decrease-key.html"><span class="token function">decreaseKey</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">n<span class="token operator">: </span><a href="../-node/index.html">Node</a><span class="token operator">&lt;</span><a href="index.html">P</a><span class="token punctuation">, </span><a href="index.html">V</a><span class="token operator">&gt;</span><span class="token punctuation">, </span></span><span class="parameter ">newPriority<span class="token operator">: </span><a href="index.html">P</a></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Decreases the key of a node to a new value.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-279672001%2FFunctions%2F743090039" anchor-label="delete" id="-279672001%2FFunctions%2F743090039" data-filterable-set="Graphs/JVM"></a>
+          <div class="table-row" data-filterable-current="Graphs/JVM" data-filterable-set="Graphs/JVM">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="delete.html"><span><span>delete</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-279672001%2FFunctions%2F743090039"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable="Graphs/JVM"><div class="symbol monospace"><span class="token keyword">fun </span><a href="delete.html"><span class="token function">delete</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">n<span class="token operator">: </span><a href="../-node/index.html">Node</a><span class="token operator">&lt;</span><a href="index.html">P</a><span class="token punctuation">, </span><a href="index.html">V</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Deletes a node from the heap.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-238240970%2FFunctions%2F743090039" anchor-label="extractMin" id="-238240970%2FFunctions%2F743090039" data-filterable-set="Graphs/JVM"></a>
+          <div class="table-row" data-filterable-current="Graphs/JVM" data-filterable-set="Graphs/JVM">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="extract-min.html"><span>extract</span><wbr></wbr><span><span>Min</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-238240970%2FFunctions%2F743090039"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable="Graphs/JVM"><div class="symbol monospace"><span class="token keyword">fun </span><a href="extract-min.html"><span class="token function">extractMin</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">V</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Extracts and returns the minimum value from the heap.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-665417402%2FFunctions%2F743090039" anchor-label="insert" id="-665417402%2FFunctions%2F743090039" data-filterable-set="Graphs/JVM"></a>
+          <div class="table-row" data-filterable-current="Graphs/JVM" data-filterable-set="Graphs/JVM">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="insert.html"><span><span>insert</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-665417402%2FFunctions%2F743090039"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable="Graphs/JVM"><div class="symbol monospace"><span class="token keyword">fun </span><a href="insert.html"><span class="token function">insert</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">priority<span class="token operator">: </span><a href="index.html">P</a><span class="token punctuation">, </span></span><span class="parameter ">value<span class="token operator">: </span><a href="index.html">V</a></span></span><span class="token punctuation">)</span><span class="token operator">: </span><a href="../-node/index.html">Node</a><span class="token operator">&lt;</span><a href="index.html">P</a><span class="token punctuation">, </span><a href="index.html">V</a><span class="token operator">&gt;</span></div><div class="brief "><p class="paragraph">Inserts a new value into the heap and returns the corresponding node.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="1594900293%2FFunctions%2F743090039" anchor-label="minimum" id="1594900293%2FFunctions%2F743090039" data-filterable-set="Graphs/JVM"></a>
+          <div class="table-row" data-filterable-current="Graphs/JVM" data-filterable-set="Graphs/JVM">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="minimum.html"><span><span>minimum</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="1594900293%2FFunctions%2F743090039"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable="Graphs/JVM"><div class="symbol monospace"><span class="token keyword">fun </span><a href="minimum.html"><span class="token function">minimum</span></a><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token operator">: </span><a href="index.html">V</a><span class="token operator">?</span></div><div class="brief "><p class="paragraph">Retrieves the minimum value in the heap without removing it.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+<a data-name="-969545919%2FFunctions%2F743090039" anchor-label="union" id="-969545919%2FFunctions%2F743090039" data-filterable-set="Graphs/JVM"></a>
+          <div class="table-row" data-filterable-current="Graphs/JVM" data-filterable-set="Graphs/JVM">
+            <div class="main-subrow keyValue ">
+              <div class=""><span class="inline-flex">
+                  <div><a href="union.html"><span><span>union</span></span></a></div>
+<span class="anchor-wrapper"><span class="anchor-icon" pointing-to="-969545919%2FFunctions%2F743090039"></span>
+                    <div class="copy-popup-wrapper "><span class="copy-popup-icon"></span><span>Link copied to clipboard</span></div>
+                  </span></span></div>
+              <div>
+                <div class="title">
+                  <div class="platform-hinted " data-platform-hinted="data-platform-hinted"><div class="content sourceset-dependent-content" data-active="" data-togglable="Graphs/JVM"><div class="symbol monospace"><span class="token keyword">fun </span><a href="union.html"><span class="token function">union</span></a><span class="token punctuation">(</span><span class="parameters "><span class="parameter ">other<span class="token operator">: </span><a href="index.html">FibonacciHeap</a><span class="token operator">&lt;</span><a href="index.html">P</a><span class="token punctuation">, </span><a href="index.html">V</a><span class="token operator">&gt;</span></span></span><span class="token punctuation">)</span></div><div class="brief "><p class="paragraph">Unions the current heap with another Fibonacci heap.</p></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      <div class="footer">
+        <span class="go-to-top-icon"><a href="#content" id="go-to-top-link"></a></span><span>© 2024 Copyright</span><span
+                class="pull-right"><span>Generated by </span><a
+                href="https://github.com/Kotlin/dokka"><span>dokka</span><span class="padded-icon"></span></a></span>
+      </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
