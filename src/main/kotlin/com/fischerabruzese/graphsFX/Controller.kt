@@ -14,8 +14,6 @@ import javafx.scene.text.Text
 import javafx.scene.text.TextFlow
 import javafx.stage.Stage
 import java.text.NumberFormat
-import kotlin.math.ln
-import kotlin.math.pow
 import kotlin.random.Random
 import kotlin.system.measureNanoTime
 
@@ -399,17 +397,8 @@ class Controller {
         return Triple((from to to), path, time)
     }
 
-    //Clustering
-    private fun calculateNumRuns(numVerts: Int, pDesired: Double): Int {
-        val pMinCutSuccess = 1.0 / (numVerts * numVerts / 2 - numVerts / 2)
-        val requiredIterations = ln(1 - pDesired) / ln(1 - pMinCutSuccess)
-        return requiredIterations.toInt()
-    }
-    private fun confidenceAfterIterations(numVerts: Int, iterations: Int): Double {
-        val pMinCutSuccess = 1.0 / (numVerts * numVerts / 2 - numVerts / 2)
-        val confidence = 1 - (1 - pMinCutSuccess).pow(iterations.toDouble())
-        return confidence
-    }
+    //Clusterin
+
 
     private data class ClusterInfo(
         val clusters: Collection<Graph<Any>>,
@@ -421,13 +410,13 @@ class Controller {
 
     private fun getClusters(): ClusterInfo {
         val connectedness = connectednessSlider.value
-        val numRuns = 100//calculateNumRuns(graph.size(),0.995).coerceIn(1..100000)
+        val numRuns = graph.estimateRequiredKargerness(0.995)
         val clusters: Collection<Graph<Any>>
         val time = measureNanoTime {
             clusters = if(mergeSinglesToggle.isSelected) graph.getClusters(connectedness, numRuns)
             else graph.highlyConnectedSubgraphs(connectedness, numRuns)
         }
-        val info = ClusterInfo(clusters, connectedness, numRuns, confidenceAfterIterations(graph.size(), numRuns), time)
+        val info = ClusterInfo(clusters, connectedness, numRuns, graph.estimateClusteringConfidence(numRuns), time)
         Platform.runLater{
             setTitle(clusterInfo = info)
         }
