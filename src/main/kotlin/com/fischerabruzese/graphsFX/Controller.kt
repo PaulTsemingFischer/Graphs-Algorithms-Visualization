@@ -152,11 +152,20 @@ class Controller {
     //Tree preset
     @FXML
     private fun preset1Pressed() {
-
+        val random = Random(11)
+        val vertices = ('A'..'K').toList()
+        val presetGraph = AMGraph<Any>(vertices)
+        presetGraph.randomizeWithCluster(2, 0, 10, 0.4, 0.02, random)
+        presetPressed(presetGraph, "Small 2 Cluster")
     }
 
     @FXML
     private fun preset2Pressed() {
+        val random = Random(22)
+        val vertices = ('A'..'Z').toList()
+        val presetGraph = AMGraph<Any>(vertices)
+        presetGraph.randomizeWithCluster(4, 0, 10, 0.4, 0.01, random)
+        presetPressed(presetGraph, "Medium 4 Cluster")
     }
 
     @FXML
@@ -169,17 +178,31 @@ class Controller {
 
     @FXML
     private fun preset5Pressed() {
+        val random = Random(54)
+        val vertices = ('A'..'K').toList()
+        val presetGraph = AMGraph<Any>(vertices)
+        presetGraph.randomize(0.15, 0, 10, true, random)
+        presetPressed(presetGraph, "Small Pure Random")
     }
 
     @FXML
     private fun preset6Pressed() {
+        val random = Random(66)
+        val vertices: List<String> = (('A'..'Z')
+                + ('A'..'Z').map { "A$it" }
+                + ('A'..'Z').map { "B$it" }
+                + ('A'..'Z').map { "C$it" }
+                ).toList().map{it.toString()}
+        val presetGraph = AMGraph<Any>(vertices)
+        presetGraph.randomize(0.05, 0, 10, true, random)
+        presetPressed(presetGraph, "Large Pure Random")
     }
 
     @FXML
     private fun preset7Pressed() {
         val random = Random(77)
 
-        val vertices = ('A'..'S').toMutableList()
+        val vertices = ('A'..'S').toList()
         val presetGraph = AMGraph<Any>(vertices)
 
         for (i in 1 until vertices.size) {

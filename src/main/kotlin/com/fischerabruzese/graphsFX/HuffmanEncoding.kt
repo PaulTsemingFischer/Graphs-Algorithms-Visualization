@@ -99,7 +99,7 @@ fun encode(str: String): BigInteger {
 }
 
 fun main() {
-    println(encode("testing"))
+    //println(encode("testing"))
 }
 
 private fun booleanArrayToString(arr: BooleanArray): String {
