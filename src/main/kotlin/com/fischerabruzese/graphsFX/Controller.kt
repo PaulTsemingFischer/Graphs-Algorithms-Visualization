@@ -16,14 +16,15 @@ import javafx.stage.Stage
 import java.text.NumberFormat
 import kotlin.math.ln
 import kotlin.math.pow
+import kotlin.random.Random
 import kotlin.system.measureNanoTime
 
 
 class Controller {
     //Constants
     companion object {
-        val PATH_START = Color.ORANGE
-        val PATH_END = Color.rgb(207, 3, 252)
+        val PATH_START: Color = Color.ORANGE
+        val PATH_END: Color = Color.rgb(207, 3, 252)
     }
 
     //Pane
@@ -128,8 +129,35 @@ class Controller {
     }
 
     //Graph presets
+    private fun presetPressed(graph: Graph<Any>) {
+        this.graph = graph
+        graphicComponents.graph = graph
+        graphicComponents.draw()
+        updateClusterColoringAsync()
+    }
+
+    //Tree preset
     @FXML
     private fun preset1Pressed() {
+        val random = Random(17)
+
+        val vertices = ('A'..'Z').toMutableList()
+        val presetGraph = AMGraph<Any>(vertices)
+
+        for (i in 1 until vertices.size) {
+            val parentIndex = (i - 1) / 2
+            val vertex = vertices[i]
+            val parentVertex = vertices[parentIndex]
+
+            // Randomly decide whether the current vertex is a left child or a right child
+            val isLeftChild = random.nextBoolean()
+            if (isLeftChild) {
+                presetGraph[parentVertex, vertex] = 1
+            } else {
+                presetGraph[parentVertex, vertex] = 1
+            }
+        }
+        presetPressed(presetGraph)
     }
 
     @FXML
@@ -154,7 +182,7 @@ class Controller {
 
     //Console
         //General console printing
-    private fun queuePrintEntry(color: Color = Color.BLACK, text: String?, title: String? = null, titleSeparator: String = "\n"){
+    private fun queuePrintEntry(color: Color = Color.BLACK, text: String? = null, title: String? = null, titleSeparator: String = "\n"){
         Platform.runLater {
             val coloredTitle =
                 title?.let { Text(it + titleSeparator).apply { fill = color; style = "-fx-font-weight: bold" } }
@@ -185,6 +213,46 @@ class Controller {
             ErrorType.TO_VERTEX -> null
         }
         queuePrintEntry(Color.RED, errorDescription, errorName)
+    }
+
+        //Preset printing
+    private fun printPreset(presetNumber: Int) {
+        queuePrintEntry(Color.rgb(217, 67, 17), title = "Preset $presetNumber applied")
+    }
+
+        //Randomization printing
+    private fun printPureRandomization(pureRandomizeInfo: PureRandomizeInfo) {
+        val title = "Pure randomization"
+        val text = buildString {
+            append("Vertex count: ${pureRandomizeInfo.vertexCount}\n")
+            append("Average connections per vertex: ${pureRandomizeInfo.avgConnections}\n")
+            append("Probability of connection: ${pureRandomizeInfo.probConnection}\n")
+            append("Disjoint graph: ${pureRandomizeInfo.disjointGraph}\n")
+            if(pureRandomizeInfo.min == 0 && pureRandomizeInfo.max == 1) {
+                append("Unweighted")
+            } else {
+                append("Edge weights: [${pureRandomizeInfo.min} - ${pureRandomizeInfo.max}]\n")
+            }
+        }
+        queuePrintEntry(Color.LIGHTBLUE, text, title)
+    }
+
+    private fun printClusterRandomization(clusterRandomizeInfo: ClusterRandomizeInfo) {
+        val title = "Cluster randomization"
+        val text = buildString {
+            append("Vertices: ${clusterRandomizeInfo.vertexCount} | ")
+            append("Clusters: ${clusterRandomizeInfo.clusterCount}\n")
+            append("Intra-connectedness: ${clusterRandomizeInfo.intraConn}\n")
+            append("Inter-connectedness: ${clusterRandomizeInfo.interConn}\n")
+            append("Disjoint graph: ${clusterRandomizeInfo.disjointGraph}\n")
+            if(clusterRandomizeInfo.min == 0 && clusterRandomizeInfo.max == 1) {
+                append("Unweighted")
+            } else {
+                append("Edge weights: [${clusterRandomizeInfo.min} - ${clusterRandomizeInfo.max}]\n")
+            }
+
+        }
+        queuePrintEntry(Color.DEEPPINK, text, title)
     }
 
         //Cluster console printing
@@ -492,35 +560,17 @@ class Controller {
 
             when(state){
                 SwitchButton.SwitchButtonState.RIGHT -> {
-                    generateRandomGraph()
+                    generateRandomGraph()?.let{printPureRandomization(it)}
                 }
                 SwitchButton.SwitchButtonState.LEFT -> {
-                    generateClusteredGraph()
+                    generateClusteredGraph()?.let{printClusterRandomization(it)}
                 }
             }
         }, "Graph Creator").start()
     }
 
-    private fun generateClusteredGraph() {
-        //Validate cluster count
-        val clusterCount = try{
-            clusterCountTextBox.text.toInt().also {
-                if(it < 0 || it > graph.size()) throw IllegalArgumentException()
-            }
-        } catch(e: Exception){
-            printError(ErrorType.CLUSTER_COUNT)
-            return
-        }
-        val interConn = interConnectednessSlider.value
-        val intraConn = intraConnectednessSlider.value
-
-        val (min, max) = getEdgeWeights() ?: return
-        this.graph.randomizeWithCluster(clusterCount, min, max, intraConn, interConn)
-
-        if(!allowDisjointSelectionBox.isSelected) this.graph.mergeDisjoint(min, max)
-
-        tellPlatformRandomizationFinished(min,max)
-    }
+    private data class ClusterRandomizeInfo(val vertexCount: Int, val clusterCount: Int, val intraConn: Double, val interConn: Double, val disjointGraph: Boolean, val min: Int, val max: Int)
+    private data class PureRandomizeInfo(val vertexCount: Int, val avgConnections: Double, val probConnection: Double, val disjointGraph: Boolean, val min: Int,  val max: Int)
 
     private fun tellPlatformRandomizationFinished(min: Int, max: Int) {
         Platform.runLater {
@@ -533,14 +583,39 @@ class Controller {
         }
     }
 
-    private fun generateRandomGraph() {
-        val (min, max) = getEdgeWeights() ?: return
+    //Null represents a failed randomization
+    private fun generateClusteredGraph(): ClusterRandomizeInfo? {
+        //Validate cluster count
+        val clusterCount = try{
+            clusterCountTextBox.text.toInt().also {
+                if(it < 0 || it > graph.size()) throw IllegalArgumentException()
+            }
+        } catch(e: Exception){
+            printError(ErrorType.CLUSTER_COUNT)
+            return null
+        }
+        val interConn = interConnectednessSlider.value
+        val intraConn = intraConnectednessSlider.value
+
+        val (min, max) = getEdgeWeights() ?: return null
+        this.graph.randomizeWithCluster(clusterCount, min, max, intraConn, interConn)
+
+        if(!allowDisjointSelectionBox.isSelected) this.graph.mergeDisjoint(min, max)
+
+        tellPlatformRandomizationFinished(min,max)
+        return ClusterRandomizeInfo(graph.size(), clusterCount, intraConn, interConn, allowDisjointSelectionBox.isSelected, min, max)
+    }
+
+    //Null represents a failed randomization
+    private fun generateRandomGraph(): PureRandomizeInfo? {
+        val (min, max) = getEdgeWeights() ?: return null
         val probConn = probOfConnectionsField.text.toDouble()
         this.graph.randomize(probConn, min, max)
 
         if(!allowDisjointSelectionBox.isSelected) this.graph.mergeDisjoint(min, max)
 
         tellPlatformRandomizationFinished(min, max)
+        return PureRandomizeInfo(graph.size(), probConn, probConn,  allowDisjointSelectionBox.isSelected, min, max)
     }
 
     //Return: null if error, (0, 1) if unweighted
