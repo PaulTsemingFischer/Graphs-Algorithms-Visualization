@@ -33,7 +33,7 @@ abstract class Graph<E : Any> : Iterable<E> {
     /**
      * @return The number of vertices/elements in the graph.
      */
-    open fun size() : Int {
+    open fun size(): Int {
         return getVertices().size
     }
 
@@ -49,7 +49,7 @@ abstract class Graph<E : Any> : Iterable<E> {
      * @throws NoSuchElementException if the one or more of the elements do not
      *         exist in the graph
      */
-    abstract operator fun get(from : E, to : E) : Int?
+    abstract operator fun get(from: E, to: E): Int?
 
     /**
      * Sets the weight of the given edge.
@@ -63,7 +63,7 @@ abstract class Graph<E : Any> : Iterable<E> {
      *
      * @throws NoSuchElementException if [from] or [to] aren't in this graph
      */
-    abstract operator fun set(from : E, to : E, value : Int) : Int?
+    abstract operator fun set(from: E, to: E, value: Int): Int?
 
     /**
      * @return a set of the vertices in the graph.
@@ -74,7 +74,7 @@ abstract class Graph<E : Any> : Iterable<E> {
      * @return a set of the directed Edges (source to destination) in the
      *         graph.
      */
-    abstract fun getEdges():  Set<Pair<E,E>>
+    abstract fun getEdges(): Set<Pair<E, E>>
 
     /**
      * @return An iterator over the vertices in the graph. No order is
@@ -115,7 +115,7 @@ abstract class Graph<E : Any> : Iterable<E> {
      * @return true if the vertex is successfully removed from the graph and
      *         false if the vertex is not present in the graph
      */
-    fun remove(vararg vertex : E): Boolean {
+    fun remove(vararg vertex: E): Boolean {
         return removeAll(vertex.toList()).isNotEmpty()
     }
 
@@ -129,7 +129,7 @@ abstract class Graph<E : Any> : Iterable<E> {
      * @return a collection of the vertices that were already not present in
      *         the graph
      */
-    abstract fun removeAll(vertices : Collection<E>): Collection<E>
+    abstract fun removeAll(vertices: Collection<E>): Collection<E>
 
     /**
      * Removes an edge from the given vertices.
@@ -153,10 +153,10 @@ abstract class Graph<E : Any> : Iterable<E> {
      *
      * @return the number of edges removed
      */
-    fun disconnect(v1: E, v2: E) : Int {
+    fun disconnect(v1: E, v2: E): Int {
         var numDisconnected = 0
-        if(removeEdge(v1,v2) != null) numDisconnected++
-        if(removeEdge(v2,v1) != null) numDisconnected++
+        if (removeEdge(v1, v2) != null) numDisconnected++
+        if (removeEdge(v2, v1) != null) numDisconnected++
         return numDisconnected
     }
 
@@ -164,8 +164,8 @@ abstract class Graph<E : Any> : Iterable<E> {
      * Removes all edges in this graph.
      */
     open fun clearEdges() {
-        for(from in this){
-            for(to in this){
+        for (from in this) {
+            for (to in this) {
                 removeEdge(from, to)
             }
         }
@@ -193,7 +193,7 @@ abstract class Graph<E : Any> : Iterable<E> {
     open fun neighbors(source: E): Collection<E> {
         val neighbors = mutableListOf<E>()
         val vertices = getVertices()
-        for (vert in vertices){
+        for (vert in vertices) {
             if (get(source, vert) != null) neighbors.add(vert) //get will throw the error if source doesn't exist
         }
         return neighbors
@@ -226,7 +226,7 @@ abstract class Graph<E : Any> : Iterable<E> {
      *
      * @return a new graph identical to this one.
      */
-    open fun copy(): Graph<E>{
+    open fun copy(): Graph<E> {
         return subgraph(getVertices())
     }
 
@@ -244,7 +244,7 @@ abstract class Graph<E : Any> : Iterable<E> {
      * @throws IllegalArgumentException if any [vertices] does not exist in
      *         this graph
      */
-    abstract fun subgraph(vertices: Collection<E>):Graph<E>
+    abstract fun subgraph(vertices: Collection<E>): Graph<E>
 
     /**
      * Joins [other] on to this graph including edges. Any vertices in [other]
@@ -255,8 +255,8 @@ abstract class Graph<E : Any> : Iterable<E> {
      */
     fun union(other: Graph<E>) {
         addAll(other.getVertices())
-        for((f,t) in other.getEdges()){
-            other[f, t]?.let { this[f,t] = it }
+        for ((f, t) in other.getEdges()) {
+            other[f, t]?.let { this[f, t] = it }
         }
     }
 
@@ -269,8 +269,8 @@ abstract class Graph<E : Any> : Iterable<E> {
      * @return a new graph containing only vertices matching the given
      *         predicate.
      */
-    inline fun filter(predicate: (vertex: E) -> Boolean) : Graph<E>{
-        return subgraph(getVertices().filter{predicate(it)})
+    inline fun filter(predicate: (vertex: E) -> Boolean): Graph<E> {
+        return subgraph(getVertices().filter { predicate(it) })
     }
 
     /**
@@ -283,13 +283,13 @@ abstract class Graph<E : Any> : Iterable<E> {
      *
      * @return a clone of this graph with the given transform
      */
-    open fun<R : Any> mapVertices(transform: (vertex: E) -> R) : Graph<R> {
+    open fun <R : Any> mapVertices(transform: (vertex: E) -> R): Graph<R> {
         val graph = AMGraph<R>()
         graph.addAll(this.map(transform))
-        for(f in this){
-            for(t in this){
-                if(this[f,t] != null){
-                    graph[transform(f),transform(t)] = this[f,t]!!
+        for (f in this) {
+            for (t in this) {
+                if (this[f, t] != null) {
+                    graph[transform(f), transform(t)] = this[f, t]!!
                 }
             }
         }
@@ -312,7 +312,7 @@ abstract class Graph<E : Any> : Iterable<E> {
         return true
     }
 
-    override fun toString(): String{
+    override fun toString(): String {
         return getEdges().toString()
     }
     /*---------------- RANDOMIZATION ----------------*/
@@ -329,17 +329,23 @@ abstract class Graph<E : Any> : Iterable<E> {
      *        connection per vertex
      * @param random A random object that determines what graph is constructed
      */
-    open fun randomize(probability: Double, minWeight: Int, maxWeight: Int, allowDisjoint: Boolean = true, random: Random = Random){
+    open fun randomize(
+        probability: Double,
+        minWeight: Int,
+        maxWeight: Int,
+        allowDisjoint: Boolean = true,
+        random: Random = Random
+    ) {
         for (from in this) {
             for (to in this) {
                 if (random.nextDouble() < probability) {
-                    set(from, to, random.nextInt(1,maxWeight))
+                    set(from, to, random.nextInt(1, maxWeight))
                 } else {
                     set(from, to, -1)
                 }
             }
         }
-        if(!allowDisjoint) mergeDisjoint(minWeight, maxWeight, random)
+        if (!allowDisjoint) mergeDisjoint(minWeight, maxWeight, random)
     }
 
     /**
@@ -347,7 +353,8 @@ abstract class Graph<E : Any> : Iterable<E> {
      *
      * @see randomize
      */
-    fun randomize(probability: Double, maxWeight: Int, allowDisjoint: Boolean = true, random: Random = Random) = randomize(probability, 1, maxWeight, allowDisjoint, random)
+    fun randomize(probability: Double, maxWeight: Int, allowDisjoint: Boolean = true, random: Random = Random) =
+        randomize(probability, 1, maxWeight, allowDisjoint, random)
 
     /**
      * [Randomizes][randomize] multiple graphs with
@@ -365,22 +372,25 @@ abstract class Graph<E : Any> : Iterable<E> {
      *        made between clusters. Must be between 0 and 1.
      * @param random A random object that determines what graph is constructed
      */
-    fun randomizeWithCluster(numClusters: Int,
-                             minEdgeWeight: Int,
-                             maxEdgeWeight: Int,
-                             intraClusterConnectedness: Double,
-                             interClusterConnectedness: Double,
-                             random: Random = Random) {
+    fun randomizeWithCluster(
+        numClusters: Int,
+        minEdgeWeight: Int,
+        maxEdgeWeight: Int,
+        intraClusterConnectedness: Double,
+        interClusterConnectedness: Double,
+        random: Random = Random
+    ) {
         var remainingVertices = LinkedList(getVertices())
         val clusters = LinkedList<Graph<E>>()
 
-        val vertsPerCluster = size()/numClusters
+        val vertsPerCluster = size() / numClusters
 
-        for(cluster in 0 until numClusters-1){
-           val size = random.nextInt(
-                vertsPerCluster - (size()/10),
-                vertsPerCluster + (size()/10) + 1
-            ).coerceIn(1 until remainingVertices.size - (numClusters-1 - cluster)) //ensure we have enough for numClusters
+        for (cluster in 0 until numClusters - 1) {
+            val size = random.nextInt(
+                vertsPerCluster - (size() / 10),
+                vertsPerCluster + (size() / 10) + 1
+            )
+                .coerceIn(1 until remainingVertices.size - (numClusters - 1 - cluster)) //ensure we have enough for numClusters
 
             clusters += AMGraph(remainingVertices.take(size)).apply {
                 randomize(intraClusterConnectedness, minEdgeWeight, maxEdgeWeight, true, random)
@@ -392,16 +402,16 @@ abstract class Graph<E : Any> : Iterable<E> {
         }
 
         val mergedGraph = AMGraph<E>()
-        for(g in clusters){
+        for (g in clusters) {
             mergedGraph.union(g)
         }
 
-        for(fromCluster in clusters){
-            for(fromVertex in fromCluster){
-                for(toCluster in clusters) {
-                    if(toCluster == fromCluster) continue //don't do an innerConnection
+        for (fromCluster in clusters) {
+            for (fromVertex in fromCluster) {
+                for (toCluster in clusters) {
+                    if (toCluster == fromCluster) continue //don't do an innerConnection
                     for (toVertex in toCluster) {
-                        if (random.nextDouble() < interClusterConnectedness){
+                        if (random.nextDouble() < interClusterConnectedness) {
                             mergedGraph[fromVertex, toVertex] = random.nextInt(minEdgeWeight, maxEdgeWeight)
                         }
                     }
@@ -418,7 +428,7 @@ abstract class Graph<E : Any> : Iterable<E> {
      *
      * @param graph the graph to become the clone of
      */
-    fun becomeCloneOf(graph: Graph<E>){
+    fun becomeCloneOf(graph: Graph<E>) {
         clearEdges()
         removeAll(getVertices())
         union(graph)
@@ -436,15 +446,16 @@ abstract class Graph<E : Any> : Iterable<E> {
      *  @param random the random object that determines which edges get added
      *         and the weights
      */
-    open fun mergeDisjoint(minWeight: Int, maxWeight: Int, random: Random = Random){
+    open fun mergeDisjoint(minWeight: Int, maxWeight: Int, random: Random = Random) {
         val vertices = getVertices()
         val bidirectional = getBidirectionalUnweighted()
         var src = vertices.random()
-        var unreachables : List<E>
+        var unreachables: List<E>
 
         //Runs while there are any unreachable vertices from `vertex` (store all the unreachable ones in `unreachables`)
         //Vertices --> Unreachable non-self vertices --> Unreachable non-self id's
-        while(vertices.filter { dest -> dest != src && bidirectional.path(src, dest).isEmpty() }.also{ unreachables = it }.isNotEmpty()){
+        while (vertices.filter { dest -> dest != src && bidirectional.path(src, dest).isEmpty() }
+                .also { unreachables = it }.isNotEmpty()) {
             val weight = random.nextInt(minWeight, maxWeight)
 
             val (from, to) =
@@ -452,7 +463,7 @@ abstract class Graph<E : Any> : Iterable<E> {
                     src to unreachables.random(random)
                 else unreachables.random(random) to src
 
-            set(from,to,weight)
+            set(from, to, weight)
             bidirectional[from, to] = 1
             bidirectional[to, from] = 1
 
@@ -468,12 +479,12 @@ abstract class Graph<E : Any> : Iterable<E> {
      * @return A copy of this graph with every connection being bidirectional
      *         with a weight of 1
      */
-    protected fun getBidirectionalUnweighted() : Graph<E>{
+    protected fun getBidirectionalUnweighted(): Graph<E> {
         val newGraph = AMGraph<E>()
-        for(v in this) newGraph.add(v)
-        for(src in this){
-            for(dest in this){
-                if(get(src, dest) != null){
+        for (v in this) newGraph.add(v)
+        for (src in this) {
+            for (dest in this) {
+                if (get(src, dest) != null) {
                     newGraph[src, dest] = 1
                     newGraph[dest, src] = 1
                 }
@@ -493,7 +504,7 @@ abstract class Graph<E : Any> : Iterable<E> {
      *         two vertices. If no path exists, an empty array otherwise the
      *         list will start the source and end with the destination
      */
-    abstract fun path(from : E, to : E) : List<E>
+    abstract fun path(from: E, to: E): List<E>
 
     /**
      * Finds a path between two vertices using Depth First Search.
@@ -527,7 +538,7 @@ abstract class Graph<E : Any> : Iterable<E> {
 
     protected open fun search(depth: Boolean, source: E, destination: E): List<E> {
         val q = LinkedList<E>()
-        val prev = HashMap<E,E>(size())
+        val prev = HashMap<E, E>(size())
 
         q.addFirst(source)
         prev[source] = source
@@ -569,7 +580,7 @@ abstract class Graph<E : Any> : Iterable<E> {
      * @return The distance between the two vertices. [Int.MAX_VALUE] if no
      *         path exists.
      */
-    abstract fun distance(from : E, to : E) : Int
+    abstract fun distance(from: E, to: E): Int
 
     /*---------------- CLUSTERING ----------------*/
 
@@ -590,7 +601,7 @@ abstract class Graph<E : Any> : Iterable<E> {
      *         it will throw an exception when the thread is interrupted during
      *         calculation instead of completing the calculation
      */
-    open fun getClusters(connectedness: Double = 0.5, kargerness: Int = 1000): Collection<Graph<E>>{
+    open fun getClusters(connectedness: Double = 0.5, kargerness: Int = 1000): Collection<Graph<E>> {
         return mergeSingletons(highlyConnectedSubgraphs(connectedness, kargerness))
     }
 
@@ -612,7 +623,7 @@ abstract class Graph<E : Any> : Iterable<E> {
      * @throws IllegalArgumentException if confidence is not between 0.0 and
      *         1.0 exclusive
      */
-    fun getClusters(connectedness: Double = 0.5, confidence: Double): Collection<Graph<E>>{
+    fun getClusters(connectedness: Double = 0.5, confidence: Double): Collection<Graph<E>> {
         return getClusters(connectedness, kargerness = estimateRequiredKargerness(size(), confidence))
     }
 
@@ -680,7 +691,7 @@ abstract class Graph<E : Any> : Iterable<E> {
      * @return the clusters with singletons merged into the cluster that
      *         they're most connected to
      */
-    private fun mergeSingletons(clusters: Collection<Graph<E>>):  Collection<Graph<E>>{
+    private fun mergeSingletons(clusters: Collection<Graph<E>>): Collection<Graph<E>> {
         val clusters = ArrayList(clusters)
 
         //singletons to remove

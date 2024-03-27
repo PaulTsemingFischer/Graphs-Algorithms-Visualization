@@ -8,11 +8,11 @@ package com.fischerabruzese.graph
  * @param priority the priority of the node
  * @param value the value you want to store at that priority
  */
-class Node<P : Comparable<P>, V>(var priority : P, var value: V) {
+class Node<P : Comparable<P>, V>(var priority: P, var value: V) {
     var parent: Node<P, V>? = null
-    var child:  Node<P, V>? = null
-    var prev:   Node<P, V>? = null
-    var next:   Node<P, V>? = null
+    var child: Node<P, V>? = null
+    var prev: Node<P, V>? = null
+    var next: Node<P, V>? = null
     var rank = 0
     var mark = false
 
@@ -42,7 +42,7 @@ class Node<P : Comparable<P>, V>(var priority : P, var value: V) {
     }
 }
 
- /**
+/**
  * Represents a Fibonacci Heap data structure.
  *
  * @param V The type of values stored in the heap, must implement Comparable.
@@ -57,14 +57,13 @@ class FibonacciHeap<P : Comparable<P>, V>(var minNode: Node<P, V>? = null) {
      * @param value The value to store at that priority
      * @return The node containing the inserted value.
      */
-    fun insert(priority : P, value: V): Node<P, V> {
+    fun insert(priority: P, value: V): Node<P, V> {
         val x = Node(priority, value)
         if (this.minNode == null) {
             x.next = x
             x.prev = x
             this.minNode = x
-        }
-        else {
+        } else {
             this.minNode!!.meld1(x)
             if (x.priority < this.minNode!!.priority) this.minNode = x
         }
@@ -79,8 +78,7 @@ class FibonacciHeap<P : Comparable<P>, V>(var minNode: Node<P, V>? = null) {
     fun union(other: FibonacciHeap<P, V>) {
         if (this.minNode == null) {
             this.minNode = other.minNode
-        }
-        else if (other.minNode != null) {
+        } else if (other.minNode != null) {
             this.minNode!!.meld2(other.minNode!!)
             if (other.minNode!!.priority < this.minNode!!.priority) this.minNode = other.minNode
         }
@@ -95,7 +93,6 @@ class FibonacciHeap<P : Comparable<P>, V>(var minNode: Node<P, V>? = null) {
     fun minimum(): V? = this.minNode?.value
 
 
-
     /**
      * Extracts and returns the minimum value from the heap.
      *
@@ -104,9 +101,9 @@ class FibonacciHeap<P : Comparable<P>, V>(var minNode: Node<P, V>? = null) {
     fun extractMin(): V? {
         if (this.minNode == null) return null
         val min = minimum()
-        val roots = mutableMapOf<Int, Node<P,V>>()
+        val roots = mutableMapOf<Int, Node<P, V>>()
 
-        fun add(r: Node<P,V>) {
+        fun add(r: Node<P, V>) {
             r.prev = r
             r.next = r
             var rr = r
@@ -124,8 +121,7 @@ class FibonacciHeap<P : Comparable<P>, V>(var minNode: Node<P, V>? = null) {
                     x.next = x
                     x.prev = x
                     rr.child = x
-                }
-                else {
+                } else {
                     rr.child!!.meld1(x)
                 }
                 rr.rank++
@@ -179,7 +175,7 @@ class FibonacciHeap<P : Comparable<P>, V>(var minNode: Node<P, V>? = null) {
      * @throws IllegalArgumentException if the new value is greater than the existing value.
      */
     fun decreaseKey(n: Node<P, V>, newPriority: P) {
-        require (n.priority >= newPriority) {
+        require(n.priority >= newPriority) {
             "In 'decreaseKey' new value greater than existing value"
         }
         n.priority = newPriority
@@ -192,13 +188,12 @@ class FibonacciHeap<P : Comparable<P>, V>(var minNode: Node<P, V>? = null) {
         cutAndMeld(n)
     }
 
-    private fun cut(x: Node<P,V>) {
+    private fun cut(x: Node<P, V>) {
         val p = x.parent ?: return
         p.rank--
         if (p.rank == 0) {
             p.child = null
-        }
-        else {
+        } else {
             p.child = x.next
             x.prev?.next = x.next
             x.next?.prev = x.prev
@@ -211,7 +206,7 @@ class FibonacciHeap<P : Comparable<P>, V>(var minNode: Node<P, V>? = null) {
         cutAndMeld(p)
     }
 
-    private fun cutAndMeld(x: Node<P,V>) {
+    private fun cutAndMeld(x: Node<P, V>) {
         cut(x)
         x.parent = null
         this.minNode?.meld1(x)
@@ -222,7 +217,7 @@ class FibonacciHeap<P : Comparable<P>, V>(var minNode: Node<P, V>? = null) {
      *
      * @param n The node to delete.
      */
-    fun delete(n: Node<P,V>) {
+    fun delete(n: Node<P, V>) {
         val p = n.parent
         if (p == null) {
             if (n == this.minNode) {
@@ -231,11 +226,10 @@ class FibonacciHeap<P : Comparable<P>, V>(var minNode: Node<P, V>? = null) {
             }
             n.prev?.next = n.next
             n.next?.prev = n.prev
-        }
-        else {
+        } else {
             cut(n)
         }
-        var c: Node<P,V>? = n.child ?: return
+        var c: Node<P, V>? = n.child ?: return
         while (true) {
             c!!.parent = null
             c = c.next!!

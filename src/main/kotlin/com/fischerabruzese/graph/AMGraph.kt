@@ -41,7 +41,11 @@ import kotlin.random.Random
  *
  * @see Graph
  */
-class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: HashMap<E,Int>? = null, edgeMatrix: Array<IntArray>? = null) : Graph<E>() {
+class AMGraph<E : Any> private constructor(
+    vertices: ArrayList<E>?,
+    indexLookup: HashMap<E, Int>? = null,
+    edgeMatrix: Array<IntArray>? = null
+) : Graph<E>() {
 
     /**
      * An ordered collection of all the vertices in this graph.
@@ -63,7 +67,9 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
      * [edgeMatrix]
      */
     private val indexLookup: HashMap<E, Int> =
-        indexLookup ?: HashMap<E,Int>().apply {putAll(vertices?.mapIndexed{ id, element -> element to id} ?: emptyList())} // E --> Vert index
+        indexLookup ?: HashMap<E, Int>().apply {
+            putAll(vertices?.mapIndexed { id, element -> element to id } ?: emptyList())
+        } // E --> Vert index
 
     /**
      * A cached table of the shortest paths from every vertex to every other
@@ -80,8 +86,8 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
     private var dijkstraTables: Array<Array<Pair<Int, Int>>?>? = null
 
     init {
-        if(edgeMatrix != null) this.edgeMatrix = edgeMatrix
-        else this.edgeMatrix = Array(size()) {IntArray(size()) {-1} }
+        if (edgeMatrix != null) this.edgeMatrix = edgeMatrix
+        else this.edgeMatrix = Array(size()) { IntArray(size()) { -1 } }
         //otherwise assume that they're (the other constructors body) going to initialize the edge matrix
     }
 
@@ -99,8 +105,8 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
      *        Format:
      *        [Source] paired to a [Collection] of its [Destination]s & [Weight]s
      */
-    private constructor(dummy:Any, outboundConnections : Collection<Pair<E,Iterable<Pair<E,Int>>>>) : this (
-        vertices = ArrayList(outboundConnections.size*2), //guess about how big our array is going to be
+    private constructor(dummy: Any, outboundConnections: Collection<Pair<E, Iterable<Pair<E, Int>>>>) : this(
+        vertices = ArrayList(outboundConnections.size * 2), //guess about how big our array is going to be
         indexLookup = null //we can let them create the empty one for us
     ) {
         //Add vertices to vertices and indexLookup
@@ -122,9 +128,10 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
         for (connections in outboundConnections) {
             for (outboundEdge in connections.second) {
 
-                if (outboundEdge.second <= 0) edgeMatrix[indexLookup[connections.first]!!][indexLookup[outboundEdge.first]!!] = 1
-
-                else edgeMatrix[indexLookup[connections.first]!!][indexLookup[outboundEdge.first]!!] = outboundEdge.second
+                if (outboundEdge.second <= 0) edgeMatrix[indexLookup[connections.first]!!][indexLookup[outboundEdge.first]!!] =
+                    1
+                else edgeMatrix[indexLookup[connections.first]!!][indexLookup[outboundEdge.first]!!] =
+                    outboundEdge.second
             }
         }
     }
@@ -171,7 +178,8 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
          * @param E The type of the vertices in this graph.
          */
         @JvmName("graphOfOutboundConnectionsList")
-        fun <E:Any> graphOf(weightedConnections: Collection<Pair<E, Iterable<Pair<E, Int>>>>) = AMGraph(0, weightedConnections)
+        fun <E : Any> graphOf(weightedConnections: Collection<Pair<E, Iterable<Pair<E, Int>>>>) =
+            AMGraph(0, weightedConnections)
 
         /**
          * Constructs a new [AMGraph] containing all vertices mentioned in
@@ -193,7 +201,7 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
          * @param E The type of the vertices in this graph.
          */
         @JvmName("graphOfConnectionsList")
-        fun <E:Any> graphOf(connections: Collection<Pair<E, Iterable<E>?>>) = AMGraph(0,
+        fun <E : Any> graphOf(connections: Collection<Pair<E, Iterable<E>?>>) = AMGraph(0,
             connections.map {
                 it.first to (it.second?.map { it2 -> it2 to 1 } ?: emptyList())
             }
@@ -227,11 +235,11 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
          *         verify a correct min-cut be incorrect and throw this
          *         exception.
          */
-        fun<E:Any> findKargerSuccessRate(
+        fun <E : Any> findKargerSuccessRate(
             graph: AMGraph<E>,
             kargerness: Int,
             totalRepetitions: Int,
-            updateInterval: Int = totalRepetitions+1,
+            updateInterval: Int = totalRepetitions + 1,
             printing: Boolean = updateInterval < totalRepetitions
         ): Double {
             //Find real min-cut
@@ -244,15 +252,19 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
 
             while (i <= totalRepetitions) {
                 //Check if we need to provide an update
-                if(i%updateInterval == 0) {
-                    val deltaFails = failCount-prevFailCount
-                    val intervalAvgFail = deltaFails/updateInterval.toDouble()
-                    val totalAvgFail = failCount/i.toDouble()
-                    if(printing) println("${i-updateInterval}-$i:".padEnd((totalRepetitions.toString().length)*2 + 2) + "${((intervalAvgFail-1) / intervalAvgFail).toString().padEnd(25)}|| Current Average: ${(totalAvgFail-1)/totalAvgFail}")
+                if (i % updateInterval == 0) {
+                    val deltaFails = failCount - prevFailCount
+                    val intervalAvgFail = deltaFails / updateInterval.toDouble()
+                    val totalAvgFail = failCount / i.toDouble()
+                    if (printing) println(
+                        "${i - updateInterval}-$i:".padEnd((totalRepetitions.toString().length) * 2 + 2) + "${
+                            ((intervalAvgFail - 1) / intervalAvgFail).toString().padEnd(25)
+                        }|| Current Average: ${(totalAvgFail - 1) / totalAvgFail}"
+                    )
                     prevFailCount = failCount
                 }
                 var minCutAttempts = 1
-                while(true) {
+                while (true) {
                     val minCutAttempt = graph.karger(kargerness).size
                     if (minCutAttempt < realMinCut) throw IllegalStateException("Finding real min-cut (against all odds) failed")
                     if (minCutAttempt > realMinCut) { //Failed min cut
@@ -264,10 +276,10 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
                 i++
             }
 
-            val avgFailCount = failCount/totalRepetitions.toDouble()
-            val pSuccess = (avgFailCount-1) / avgFailCount
+            val avgFailCount = failCount / totalRepetitions.toDouble()
+            val pSuccess = (avgFailCount - 1) / avgFailCount
 
-            if(printing) print("|V| = ${graph.size()}, kargerness = $kargerness, p-success = $pSuccess")
+            if (printing) print("|V| = ${graph.size()}, kargerness = $kargerness, p-success = $pSuccess")
             return pSuccess
         }
 
@@ -306,11 +318,11 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
             graphSize: Int,
             kargerness: Int,
             totalRepetitions: Int,
-            updateInterval: Int = totalRepetitions+1,
+            updateInterval: Int = totalRepetitions + 1,
             printing: Boolean = updateInterval < totalRepetitions
         ): Double {
             /* GRAPH CREATION */
-            val verts = (0 until graphSize).toList();
+            val verts = (0 until graphSize).toList()
             val graph = AMGraph(verts)
             graph.randomize(1.0, 0, 1)
             (graph as Graph<Int>).removeEdge(
@@ -346,7 +358,7 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
     override operator fun set(from: E, to: E, value: Int): Int? {
         val f = indexLookup[from] ?: throw NoSuchElementException()
         val t = indexLookup[to] ?: throw NoSuchElementException()
-        return setWithIndex(f,t,value)
+        return setWithIndex(f, t, value)
     }
 
     /**
@@ -360,9 +372,9 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
     }
 
     override fun removeEdge(from: E, to: E): Int? {
-        val f = indexLookup[from]?: throw IllegalArgumentException()
-        val t = indexLookup[to]?: throw IllegalArgumentException()
-        return removeEdgeWithIndex(f,t)
+        val f = indexLookup[from] ?: throw IllegalArgumentException()
+        val t = indexLookup[to] ?: throw IllegalArgumentException()
+        return removeEdgeWithIndex(f, t)
     }
 
     /**
@@ -385,10 +397,10 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
     }
 
     override fun getEdges(): Set<Pair<E, E>> {
-        val edges = mutableSetOf<Pair<E,E>>()
-        for(from in edgeMatrix.indices){
-            for(to in edgeMatrix[from].indices){
-                if(edgeMatrix[from][to] >= 0) edges.add(vertices[from] to vertices[to])
+        val edges = mutableSetOf<Pair<E, E>>()
+        for (from in edgeMatrix.indices) {
+            for (to in edgeMatrix[from].indices) {
+                if (edgeMatrix[from][to] >= 0) edges.add(vertices[from] to vertices[to])
             }
         }
         return edges
@@ -400,7 +412,7 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
     }
 
 
-    override fun addAll(vertices: Collection<E>): Collection<E>{
+    override fun addAll(vertices: Collection<E>): Collection<E> {
         val failed = ArrayList<E>()
         this.vertices.ensureCapacity(this.vertices.size + vertices.size)
         for (vert in vertices) {
@@ -426,7 +438,7 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
         val vertexToRemove = BooleanArray(size())
         for (vertex in vertices) {
             val id = indexLookup.remove(vertex)
-            if(id == null) {
+            if (id == null) {
                 failed.add(vertex)
                 continue
             }
@@ -434,8 +446,8 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
         }
 
         //Removing vertices from vertices list
-        for(i in vertexToRemove.indices.reversed()){
-            if(vertexToRemove[i]) this.vertices.removeAt(i)
+        for (i in vertexToRemove.indices.reversed()) {
+            if (vertexToRemove[i]) this.vertices.removeAt(i)
         }
 
         //New edge matrix with vertices removed
@@ -464,10 +476,14 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
         return failed
     }
 
-    override fun<R : Any> mapVertices(transform: (vertex: E) -> R) : Graph<R> {
-        val newLookupTable = HashMap<R,Int>()
+    override fun <R : Any> mapVertices(transform: (vertex: E) -> R): Graph<R> {
+        val newLookupTable = HashMap<R, Int>()
         val newGraph = AMGraph<R>(
-            vertices = ArrayList(vertices.mapIndexed{index, e -> transform(e).also{ r -> newLookupTable[r] = index}}),
+            vertices = ArrayList(vertices.mapIndexed { index, e ->
+                transform(e).also { r ->
+                    newLookupTable[r] = index
+                }
+            }),
             indexLookup = newLookupTable,
             edgeMatrix = edgeMatrix.map { it.clone() }.toTypedArray()
         )
@@ -496,7 +512,7 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
     override fun neighbors(source: E): Collection<E> {
         val vertexId = indexLookup[source]!!
         val neighbors = mutableListOf<E>()
-        for (vert in vertices.indices){
+        for (vert in vertices.indices) {
             if (getWithIndex(vertexId, vert) != null) neighbors.add(vertices[vert])
         }
         return neighbors
@@ -504,15 +520,15 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
 
     override fun countEdgesBetween(v1: E, v2: E): Int {
         var edges = 0
-        get(v1,v2)?.let{edges++}
-        get(v2,v1)?.let{edges++}
+        get(v1, v2)?.let { edges++ }
+        get(v2, v1)?.let { edges++ }
         return edges
     }
 
     override fun copy(): AMGraph<E> {
         return AMGraph(
             vertices.clone() as ArrayList<E>,
-            indexLookup.clone() as HashMap<E,Int>,
+            indexLookup.clone() as HashMap<E, Int>,
             edgeMatrix.map { it.clone() }.toTypedArray()
         )
     }
@@ -526,10 +542,10 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
      *
      * @see AMGraph.subgraph
      */
-    private fun subgraphFromIds(verticesIds : Collection<Int>):AMGraph<E>{
+    private fun subgraphFromIds(verticesIds: Collection<Int>): AMGraph<E> {
         val newVertices = ArrayList<E>(verticesIds.size)
-        val newIndexLookup = HashMap<E,Int>()
-        val isCopied = BooleanArray(vertices.size) {false}
+        val newIndexLookup = HashMap<E, Int>()
+        val isCopied = BooleanArray(vertices.size) { false }
 
         for ((newId, oldId) in verticesIds.withIndex()) {
             val vertex = vertices[oldId]
@@ -544,7 +560,7 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
 
         //Copy over edges to new edge matrix
         for (from in edgeMatrix.indices) {
-            if (!isCopied[from]){
+            if (!isCopied[from]) {
                 fromOffset++
                 continue
             }
@@ -568,35 +584,41 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
 
     /*------------------ RANDOMIZATION ------------------*/
 
-    override fun randomize(probability: Double, minWeight: Int, maxWeight: Int, allowDisjoint: Boolean, random: Random) { //when removed add default values
+    override fun randomize(
+        probability: Double,
+        minWeight: Int,
+        maxWeight: Int,
+        allowDisjoint: Boolean,
+        random: Random
+    ) { //when removed add default values
         for (i in edgeMatrix.indices) {
             for (j in edgeMatrix.indices) {
                 if (random.nextDouble() < probability) {
-                    setWithIndex(i, j, random.nextInt(minWeight,maxWeight))
+                    setWithIndex(i, j, random.nextInt(minWeight, maxWeight))
                 } else {
                     setWithIndex(i, j, -1)
                 }
             }
         }
-        if(!allowDisjoint) mergeDisjoint(minWeight, maxWeight, random)
+        if (!allowDisjoint) mergeDisjoint(minWeight, maxWeight, random)
     }
 
-    override fun mergeDisjoint(minWeight: Int, maxWeight: Int, random: Random){
+    override fun mergeDisjoint(minWeight: Int, maxWeight: Int, random: Random) {
         val bidirectional = this.getBidirectionalUnweighted() as AMGraph<E>
         var vertex = random.nextInt(size())
-        var unreachables : List<Int>
+        var unreachables: List<Int>
 
         //Runs while there are any unreachable vertices from `vertex` (store all the unreachable ones in `unreachables`)
         //Vertices --> Unreachable non-self vertices --> Unreachable non-self id's
-        while(vertices.filterIndexed { id, _ -> id != vertex && bidirectional.path(vertex, id).isEmpty() }.map{indexLookup[it]!!}.also{ unreachables = it }.isNotEmpty()){
-            val from : Int
-            val to : Int
+        while (vertices.filterIndexed { id, _ -> id != vertex && bidirectional.path(vertex, id).isEmpty() }
+                .map { indexLookup[it]!! }.also { unreachables = it }.isNotEmpty()) {
+            val from: Int
+            val to: Int
             val weight = random.nextInt(minWeight, maxWeight)
-            if(random.nextBoolean()) {
+            if (random.nextBoolean()) {
                 from = vertex
                 to = unreachables.random(random)
-            }
-            else {
+            } else {
                 from = unreachables.random(random)
                 to = vertex
             }
@@ -613,7 +635,11 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
     /*BFS and DFS */
 
     override fun depthFirstSearch(source: E, destination: E): List<E> {
-        return dfsRecursive(indexLookup[source]!!, indexLookup[destination]!!, BooleanArray(size())).map { vertices[it] }
+        return dfsRecursive(
+            indexLookup[source]!!,
+            indexLookup[destination]!!,
+            BooleanArray(size())
+        ).map { vertices[it] }
     }
 
     override fun search(depth: Boolean, source: E, destination: E): List<E> {
@@ -671,7 +697,7 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
 
     /* DIJKSTRA'S */
     override fun path(from: E, to: E): List<E> {
-        return path(indexLookup[from]!!,indexLookup[to]!!).map { vertices[it] }
+        return path(indexLookup[from]!!, indexLookup[to]!!).map { vertices[it] }
     }
 
     /**
@@ -679,9 +705,12 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
      * fib heap which preforms slightly better, but is currently non-functional
      * on disjoint graphs.
      */
-    @Deprecated("Simple Algorithm has a unresolved logic flaw. Use path(from: E, to: E) instead", ReplaceWith("path(from, to)"))
+    @Deprecated(
+        "Simple Algorithm has a unresolved logic flaw. Use path(from: E, to: E) instead",
+        ReplaceWith("path(from, to)")
+    )
     fun path(from: E, to: E, useSimpleAlgorithm: Boolean): List<E> {
-        return path(indexLookup[from]!!,indexLookup[to]!!).map { vertices[it] }
+        return path(indexLookup[from]!!, indexLookup[to]!!).map { vertices[it] }
     }
 
     @Suppress("DEPRECATION_ERROR")
@@ -694,7 +723,7 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
      *
      * @see AMGraph.path
      */
-    private fun path(from: Int, to: Int, useSimpleAlgorithm: Boolean = false): List<Int>{
+    private fun path(from: Int, to: Int, useSimpleAlgorithm: Boolean = false): List<Int> {
         return try {
             tracePath(
                 from,
@@ -762,7 +791,11 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
         return prev.zip(dist).toTypedArray()
     }
 
-    @Deprecated("This algorithm is flawed and should not be used. Use path(from: E, to: E) instead", ReplaceWith("path(from, to)"), level = DeprecationLevel.ERROR)
+    @Deprecated(
+        "This algorithm is flawed and should not be used. Use path(from: E, to: E) instead",
+        ReplaceWith("path(from, to)"),
+        level = DeprecationLevel.ERROR
+    )
     /**
      * An implimentation of Dijkstra's using looping rather than queues.
      */
@@ -803,7 +836,7 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
      * @return The table retrieved from [dijkstraTables]
      */
     private fun getDijkstraTable(fromIndex: Int): Array<Pair<Int, Int>> {
-        if(dijkstraTables == null) dijkstraTables = Array(size()) {null}
+        if (dijkstraTables == null) dijkstraTables = Array(size()) { null }
         if (dijkstraTables!![fromIndex] == null) dijkstraTables!![fromIndex] = dijkstraFibHeap(fromIndex)
         return dijkstraTables!![fromIndex]!!
     }
@@ -816,10 +849,14 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
      * @return The table retrieved from [dijkstraTables]
      */
     @Suppress("DEPRECATION_ERROR")
-    @Deprecated("The dijkstra algorithm that fills empty cache here is flawed and should not be used. " +
-            "It will produce wrong results in this method and potentially future pathing calls.", ReplaceWith("getDijkstraTable(fromIndex)"), level = DeprecationLevel.ERROR)
+    @Deprecated(
+        "The dijkstra algorithm that fills empty cache here is flawed and should not be used. " +
+                "It will produce wrong results in this method and potentially future pathing calls.",
+        ReplaceWith("getDijkstraTable(fromIndex)"),
+        level = DeprecationLevel.ERROR
+    )
     private fun getDijkstraTableSimple(fromIndex: Int): Array<Pair<Int, Int>> {
-        if(dijkstraTables == null) dijkstraTables = Array(size()) {null}
+        if (dijkstraTables == null) dijkstraTables = Array(size()) { null }
         if (dijkstraTables!![fromIndex] == null) dijkstraTables!![fromIndex] = dijkstra(fromIndex)
         return dijkstraTables!![fromIndex]!!
     }
@@ -849,7 +886,7 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
     }
 
     override fun getConnected(source: E): List<E> {
-        return getConnected(indexLookup[source]!!).map{ vertices[it] }
+        return getConnected(indexLookup[source]!!).map { vertices[it] }
     }
 
     /**
@@ -859,7 +896,7 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
      */
     private fun getConnected(vertex: Int): List<Int> {
         val connected = ArrayList<Int>()
-        for(id in vertices.indices){
+        for (id in vertices.indices) {
             if (id == vertex || path(id, vertex).isNotEmpty())
                 connected.add(id)
         }
@@ -905,10 +942,10 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
     }
 
     /*------------------ CLUSTERING ------------------*/
-    override fun highlyConnectedSubgraphs(connectedness: Double, kargerness: Int) : Collection<AMGraph<E>>{
+    override fun highlyConnectedSubgraphs(connectedness: Double, kargerness: Int): Collection<AMGraph<E>> {
         val minCut = karger(kargerness)
         //check if minCut size is acceptable or there's no cut (ie there's only 1 node in the graph)
-        if(minCut.size >= connectedness * size() || minCut.size == -1) return listOf(this)
+        if (minCut.size >= connectedness * size() || minCut.size == -1) return listOf(this)
 
         val clusters = ArrayList<AMGraph<E>>()
         val subgraph1 = subgraphFromIds(minCut.cluster1)
@@ -928,12 +965,12 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
      *
      * @return the smallest cut found.
      */
-    private fun karger(numAttempts: Int) : Cut {
+    private fun karger(numAttempts: Int): Cut {
         var bestCut = minCut()
 
-        repeat(numAttempts - 1){
-            if(Thread.currentThread().isInterrupted) throw InterruptedException()
-            bestCut = minCut().takeIf{
+        repeat(numAttempts - 1) {
+            if (Thread.currentThread().isInterrupted) throw InterruptedException()
+            bestCut = minCut().takeIf {
                 it < bestCut
             } ?: bestCut
         }
@@ -949,14 +986,15 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
      * @param cluster1 the first cluster created by the cut
      * @param cluster2 the second cluster created by the cut
      */
-    private data class Cut(val size: Int, val cluster1: Collection<Int>, val cluster2: Collection<Int>) : Comparable<Cut>{
+    private data class Cut(val size: Int, val cluster1: Collection<Int>, val cluster2: Collection<Int>) :
+        Comparable<Cut> {
         /**
          * @return the smallest cluster of this cut
          */
         fun minCluster() = min(cluster1.size, cluster2.size)
         override fun compareTo(other: Cut): Int {
-            return(this.size - other.size).let{
-                if(it == 0) other.minCluster() - this.minCluster()
+            return (this.size - other.size).let {
+                if (it == 0) other.minCluster() - this.minCluster()
                 else it
             }
         }
@@ -968,7 +1006,7 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
      *
      *  @return the [Cut] found by randomly collapsing edges
      */
-    private fun minCut() : Cut {
+    private fun minCut(): Cut {
         //'from' > 'to' in edges
         var edges: MutableList<Pair<Int, Int>> = ArrayList()
         //Initializing edges from edge-matrix, triangular to ensure from > to
@@ -1008,14 +1046,17 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
             val bigHead = maxOf(cluster1.last(), cluster2.last())
             val smallHead = minOf(cluster1.last(), cluster2.last())
 
-            nodeRedirection[bigHead].addAll(0, nodeRedirection[smallHead]) //Merge smallHead's cluster into bigHead's cluster
+            nodeRedirection[bigHead].addAll(
+                0,
+                nodeRedirection[smallHead]
+            ) //Merge smallHead's cluster into bigHead's cluster
             nodeRedirection[smallHead] = LinkedList<Int>().apply { add(bigHead) } //Make smallHead redirect to bigHead
 
             //Finished collapsing 2 clusters into 1
             numNodes--
         }
 
-        fun getClusters(): List<LinkedList<Int>> = nodeRedirection.filterIndexed{ id, cluster -> cluster.last() == id}
+        fun getClusters(): List<LinkedList<Int>> = nodeRedirection.filterIndexed { id, cluster -> cluster.last() == id }
 
         fun getCut(): Cut {
             require(numNodes == 2)
@@ -1036,13 +1077,13 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
         while (numNodes > 2 && edges.isNotEmpty()) {
             collapse()
         }
-        return when(numNodes) {
+        return when (numNodes) {
             1 -> Cut(-1, emptyList(), emptyList()) //SINGLE NODE CASE
             2 -> getCut() //REGULAR CASE
             else -> {//DISJOINT CASE
                 val clusters = getClusters()
-                val cluster1 = clusters.subList(0, clusters.size/2).flatten()
-                val cluster2 = clusters.subList(clusters.size/2, clusters.size).flatten()
+                val cluster1 = clusters.subList(0, clusters.size / 2).flatten()
+                val cluster2 = clusters.subList(clusters.size / 2, clusters.size).flatten()
                 Cut(0, cluster1, cluster2)
             }
         }
@@ -1053,13 +1094,13 @@ class AMGraph<E:Any> private constructor(vertices: ArrayList<E>?, indexLookup: H
      *
      * @param list the list to randomize. The list itself is modified and thus a new.
      */
-    private fun<T> randomizeList(list: MutableList<T>) {
+    private fun <T> randomizeList(list: MutableList<T>) {
         fun swap(index1: Int, index2: Int) {
-            list[index1] = list.set(index2,list[index1])
+            list[index1] = list.set(index2, list[index1])
         }
 
-        for(i in list.indices){
-            swap(i,Random.nextInt(i,list.size))
+        for (i in list.indices) {
+            swap(i, Random.nextInt(i, list.size))
         }
     }
 }
