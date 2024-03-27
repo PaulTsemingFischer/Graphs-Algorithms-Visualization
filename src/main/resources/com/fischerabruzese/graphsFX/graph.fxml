@@ -24,7 +24,7 @@
 <?import javafx.scene.text.Text?>
 <?import javafx.scene.text.TextFlow?>
 
-<HBox alignment="CENTER_RIGHT" prefHeight="820.0" prefWidth="1280.0" style="-fx-background-color: #282828;" xmlns="http://javafx.com/javafx/20.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.fischerabruzese.graphsFX.Controller">
+<HBox alignment="CENTER_RIGHT" prefHeight="820.0" prefWidth="1280.0" style="-fx-background-color: #282828;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.fischerabruzese.graphsFX.Controller">
    <children>
       <Pane fx:id="pane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="10.0" minWidth="10.0" style="-fx-background-color: lightgray;" HBox.hgrow="ALWAYS" />
       <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" maxHeight="1.7976931348623157E308" maxWidth="-Infinity" minWidth="-Infinity" style="-fx-background-color: #282828; -fx-background-insets: 0;" vbarPolicy="NEVER" HBox.hgrow="NEVER">
@@ -72,6 +72,8 @@
                         <Button mnemonicParsing="false" onAction="#preset4Pressed" text="4" />
                         <Button mnemonicParsing="false" onAction="#preset5Pressed" text="5" />
                         <Button mnemonicParsing="false" onAction="#preset6Pressed" text="6" />
+                        <Button layoutX="154.0" layoutY="10.0" mnemonicParsing="false" onAction="#preset7Pressed" text="7" />
+                        <Button layoutX="167.0" layoutY="10.0" mnemonicParsing="false" onAction="#preset8Pressed" text="8" />
                      </children>
                      <VBox.margin>
                         <Insets />
@@ -230,7 +232,7 @@
                               <Insets bottom="5.0" top="5.0" />
                            </StackPane.margin>
                         </Rectangle>
-                        <Text fill="#282828" strokeType="OUTSIDE" strokeWidth="0.0" text="Physics" StackPane.alignment="CENTER_LEFT">
+                        <Text fill="#282828" strokeType="OUTSIDE" strokeWidth="0.0" text="Graphics" StackPane.alignment="CENTER_LEFT">
                            <font>
                               <Font size="14.0" />
                            </font>
@@ -240,12 +242,34 @@
                         </Text>
                      </children>
                   </StackPane>
-                  <HBox alignment="CENTER" prefWidth="200.0">
+                  <HBox alignment="CENTER">
                      <children>
-                        <Label prefWidth="42.0" text="Speed" textFill="WHITE" />
+                        <Label prefWidth="43.0" text="Physics" textFill="WHITE" />
                         <Slider fx:id="physicsSlider" blockIncrement="0.0" max="1.0" />
                      </children>
                   </HBox>
+                  <GridPane fx:id="hideShowWeightGrid" alignment="CENTER">
+                    <columnConstraints>
+                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                    </columnConstraints>
+                    <rowConstraints>
+                      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                    </rowConstraints>
+                     <children>
+                        <Label text="Hide weight" textFill="WHITE">
+                           <font>
+                              <Font size="11.0" />
+                           </font>
+                        </Label>
+                        <Label text="Show weight" textFill="WHITE" GridPane.columnIndex="2">
+                           <font>
+                              <Font size="11.0" />
+                           </font>
+                        </Label>
+                     </children>
+                  </GridPane>
                   <StackPane>
                      <children>
                         <Rectangle height="26.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" width="200.0">
@@ -397,7 +421,7 @@
                         </CheckBox>
                         <Label text="Merge singles: " textFill="WHITE">
                            <HBox.margin>
-                              <Insets left="15.0" />
+                              <Insets left="5.0" />
                            </HBox.margin>
                         </Label>
                         <CheckBox fx:id="mergeSinglesToggle" alignment="CENTER" mnemonicParsing="false" onAction="#mergeSinglesToggled" selected="true" />

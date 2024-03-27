@@ -35,14 +35,11 @@ class Controller {
     private lateinit var graphicComponents: GraphicComponents<Any>
 
     //User inputs
+        //Randomization
+    @FXML
+    private lateinit var vertexCountField: TextField
     @FXML
     private lateinit var clusterRandomizationSwitchHBox: HBox
-    @FXML
-    private lateinit var physicsSlider: Slider
-    @FXML
-    private lateinit var fromVertexField: TextField
-    @FXML
-    private lateinit var toVertexField: TextField
     @FXML
     private lateinit var connectednessSlider: Slider
     @FXML
@@ -50,7 +47,7 @@ class Controller {
     @FXML
     private lateinit var mergeSinglesToggle: CheckBox
     @FXML
-    private lateinit var switchButton: SwitchButton
+    private lateinit var randSwitchButton: SwitchButton
     @FXML
     private lateinit var pureRandGridPane: GridPane
     @FXML
@@ -68,14 +65,21 @@ class Controller {
     @FXML
     private lateinit var maxWeightTextBox: TextField
     @FXML
-    private lateinit var vertexCountField: TextField
-    @FXML
     private lateinit var avgConnPerVertexField: TextField
     @FXML
     private lateinit var probOfConnectionsField: TextField
     @FXML
     private lateinit var clusteringProgress: ProgressIndicator
-
+    @FXML
+    private lateinit var physicsSlider: Slider
+    @FXML
+    private lateinit var hideShowWeightGrid: GridPane
+    @FXML
+    private lateinit var weightSwitchButton: SwitchButton
+    @FXML
+    private lateinit var fromVertexField: TextField
+    @FXML
+    private lateinit var toVertexField: TextField
     //Console
     @FXML
     private lateinit var console: TextFlow
@@ -111,12 +115,18 @@ class Controller {
         initializePhysicsSlider()
         initializeVertexSelection()
         initializeClusterConnectednessSlider()
-        switchButton.switchedEvents.addLast { switchSwitched(it) }
-        switchSwitched(SwitchButton.SwitchButtonState.LEFT) //initialize properties in specific graphic
+        randSwitchButton.switchedEvents.addLast { randSwitched(it) }
+        randSwitched(SwitchButton.SwitchButtonState.LEFT) //initialize properties in specific graphic
+        weightSwitchButton.switchedEvents.addLast { weightSwitched(it) }
+        weightSwitchButton.onMouseClicked()
+        weightSwitched(SwitchButton.SwitchButtonState.RIGHT)
+        initializeShowHideWeightSwitch()
 
         //Misc
         updateClusterColoringAsync()
     }
+
+
 
     //Window title
     private fun setTitle(numVerts: Int = graph.size(),
@@ -129,11 +139,13 @@ class Controller {
     }
 
     //Graph presets
-    private fun presetPressed(graph: Graph<Any>) {
+    private fun presetPressed(graph: Graph<Any>, preset: String) {
         this.graph = graph
         graphicComponents.graph = graph
         graphicComponents.draw()
+        graphicComponents.hideWeight()
         updateClusterColoringAsync()
+        printPreset(preset)
     }
 
     //Tree preset
@@ -152,12 +164,12 @@ class Controller {
             // Randomly decide whether the current vertex is a left child or a right child
             val isLeftChild = random.nextBoolean()
             if (isLeftChild) {
-                presetGraph[parentVertex, vertex] = 1
+                presetGraph[parentVertex, vertex] = 0
             } else {
-                presetGraph[parentVertex, vertex] = 1
+                presetGraph[parentVertex, vertex] = 0
             }
         }
-        presetPressed(presetGraph)
+        presetPressed(presetGraph, "Treeset")
     }
 
     @FXML
@@ -216,8 +228,8 @@ class Controller {
     }
 
         //Preset printing
-    private fun printPreset(presetNumber: Int) {
-        queuePrintEntry(Color.rgb(217, 67, 17), title = "Preset $presetNumber applied")
+    private fun printPreset(presetName: String) {
+        queuePrintEntry(Color.rgb(217, 67, 17), title = "Preset $presetName applied")
     }
 
         //Randomization printing
@@ -519,12 +531,12 @@ class Controller {
     private fun initializeClusterRandomizationSwitch(){
         clusterRandomizationSwitchHBox.children.addAll(
             Label("Cluster Rand ").apply { textFill = Color.WHITE },
-            SwitchButton().also { switchButton = it },
+            SwitchButton().also { randSwitchButton = it },
             Label(" Pure Rand").apply { textFill = Color.WHITE }
         )
     }
 
-    private fun switchSwitched(state: SwitchButton.SwitchButtonState) {
+    private fun randSwitched(state: SwitchButton.SwitchButtonState) {
         when(state){
             SwitchButton.SwitchButtonState.LEFT -> {
                 pureRandGridPane.opacity = 0.0
@@ -541,9 +553,19 @@ class Controller {
         }
     }
 
+    private fun weightSwitched(state: SwitchButton.SwitchButtonState){
+        when(state){
+            SwitchButton.SwitchButtonState.LEFT -> {
+                graphicComponents.hideWeight()
+            }
+            SwitchButton.SwitchButtonState.RIGHT -> {
+            }
+        }
+    }
+
     @FXML
     private fun randomizePressed(){
-        val state = switchButton.state
+        val state = randSwitchButton.state
 
         Thread(controllerSubroutines, {
             //Validate vertex count
@@ -682,5 +704,10 @@ class Controller {
                 probOfConnectionsEdited() //illegal edit was made, this method does data validation
             }
         }
+    }
+
+    //Show-hide weight switch
+    initializeShowHideWeightSwitch(){
+
     }
 }

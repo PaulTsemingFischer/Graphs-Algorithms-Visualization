@@ -548,14 +548,17 @@ class AMGraph<E : Any> private constructor(
         val isCopied = BooleanArray(vertices.size) { false }
 
         for ((newId, oldId) in verticesIds.withIndex()) {
+            //Get vertex
             val vertex = vertices[oldId]
+            //Add to HashMap + newVertices
             newIndexLookup[vertex] = newId
-            newVertices[newId] = vertex
+            newVertices += vertex
+            //Mark as copied
             isCopied[oldId] = true
         }
 
         //New edge matrix with vertices removed
-        val newEdgeMatrix = Array(size()) { IntArray(size()) { -1 } }
+        val newEdgeMatrix = Array(newVertices.size) { IntArray(newVertices.size) { -1 } }
         var fromOffset = 0
 
         //Copy over edges to new edge matrix
