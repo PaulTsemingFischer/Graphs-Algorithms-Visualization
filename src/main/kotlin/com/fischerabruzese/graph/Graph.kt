@@ -37,8 +37,7 @@ abstract class Graph<E : Any> : Iterable<E> {
     }
 
     /**
-     * The edge getter for graphs.
-     *
+     * Edge getter
      * @param from The source of the edge.
      * @param to The destination of the edge.
      * @return The weight of the directed edge between the two vertices, or null if no edge exists.
@@ -47,6 +46,7 @@ abstract class Graph<E : Any> : Iterable<E> {
     abstract operator fun get(from : E, to : E) : Int?
 
     /**
+     * Edge setter
      * @param from The vertex to start from.
      * @param to The vertex to end at.
      * @param value The weight to set on the edge between the two vertices.
