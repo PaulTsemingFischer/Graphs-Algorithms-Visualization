@@ -548,12 +548,9 @@ class AMGraph<E : Any> private constructor(
         val isCopied = BooleanArray(vertices.size) { false }
 
         for ((newId, oldId) in verticesIds.withIndex()) {
-            //Get vertex
             val vertex = vertices[oldId]
-            //Add to HashMap + newVertices
             newIndexLookup[vertex] = newId
             newVertices += vertex
-            //Mark as copied
             isCopied[oldId] = true
         }
 
@@ -875,12 +872,11 @@ class AMGraph<E : Any> private constructor(
      *  and [to] according to this [dijkstraTable]
      */
     private fun tracePath(from: Int, to: Int, dijkstraTable: Array<Pair<Int, Int>>): List<Int> {
-        //println("from: $from to: $to ${dijkstraTable.contentDeepToString()}")
         val path = LinkedList<Int>()
         path.add(to)
         var curr = to
         while (path.firstOrNull() != from) {
-            path.addFirst(dijkstraTable[curr].run { curr = first; first })//.also{println("curr path: $path")}
+            path.addFirst(dijkstraTable[curr].run { curr = first; first })
             if (path[0] == -1) {
                 path.removeFirst(); break
             }
@@ -951,7 +947,6 @@ class AMGraph<E : Any> private constructor(
         if (minCut.size >= connectedness * size() || minCut.size == -1) return listOf(this)
 
         val clusters = ArrayList<AMGraph<E>>()
-        println(this.getVertices())
         val subgraph1 = subgraphFromIds(minCut.cluster1)
         val subgraph2 = subgraphFromIds(minCut.cluster2)
 

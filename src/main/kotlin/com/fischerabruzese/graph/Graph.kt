@@ -2,6 +2,7 @@ package com.fischerabruzese.graph
 
 import java.util.*
 import kotlin.math.ln
+import kotlin.math.pow
 import kotlin.math.roundToInt
 import kotlin.random.Random
 
@@ -624,35 +625,33 @@ abstract class Graph<E : Any> : Iterable<E> {
      *         1.0 exclusive
      */
     fun getClusters(connectedness: Double = 0.5, confidence: Double): Collection<Graph<E>> {
-        return getClusters(connectedness, kargerness = estimateRequiredKargerness(size(), confidence))
+        return getClusters(connectedness, kargerness = estimateRequiredKargerness(confidence))
     }
 
     /**
      * Uses an **approximation** equation to provide a kargerness that we are
      * *at least* [pUpperBound] confident in correctly finding the min-cut.
      *
-     * @param graphSize the size of the graph to estimate the kargerness for.
      * @param pUpperBound an upperbound for the confidence that is desired
      *        however it's not a guaranteed upper-bound.
      *
      * @return the kargerness required to be [p][pUpperBound] confident in the
      *         specified clustering
      */
-    fun estimateRequiredKargerness(graphSize: Int, pUpperBound: Double): Int {
+    fun estimateRequiredKargerness(pUpperBound: Double): Int {
         require(pUpperBound > 0 && pUpperBound < 1)
-        return (0.380468110736 * (graphSize + 3.67357512953) * ln(-1 / (pUpperBound - 1))).roundToInt()
+        return (0.380468110736 * (size() + 3.67357512953) * ln(-1 / (pUpperBound - 1))).roundToInt()
     }
 
     /**
      * Uses an **approximation** equation to provide the confidence that we
-     * should have in [kargerness] at size [graphSize] in correctly finding
+     * should have in [kargerness] at this graph size in correctly finding
      * the min-cut.
      *
      * **Note that this uses the same equation as [estimateRequiredKargerness]
      * and will produce an upper bound for p that is likely higher than the
      * true p**
      *
-     * @param graphSize the size of the graph to estimate the confidence of.
      * @param kargerness the kargerness for [getClusters] to estimate the
      *        confidence of.
      *
@@ -660,8 +659,8 @@ abstract class Graph<E : Any> : Iterable<E> {
      *
      * @see AMGraph.findKargerSuccessRate
      */
-    fun estimateClusteringConfidence(graphSize: Int, kargerness: Int): Double {
-        TODO()
+    fun estimateClusteringConfidence(kargerness: Int): Double {
+        return 1-(0.07219812725.pow(kargerness / (size() + 3.67357512953))).coerceIn(0.0..1.0)
     }
 
     /**
