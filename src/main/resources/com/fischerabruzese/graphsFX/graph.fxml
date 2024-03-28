@@ -62,16 +62,35 @@
                         <Insets />
                      </VBox.margin>
                   </HBox>
+                  <HBox alignment="BOTTOM_CENTER" prefHeight="21.0" prefWidth="190.0">
+                     <children>
+                        <Label prefHeight="17.0" prefWidth="68.0" text="Copy Graph" textFill="WHITE" />
+                        <Button fx:id="copyToClipboardButton" alignment="BOTTOM_CENTER" mnemonicParsing="false" onMouseClicked="#copyToClipboardPressed" prefHeight="25.0" prefWidth="126.0" scaleX="0.75" scaleY="0.75" text="Copy to Clipboard" translateY="3.5" />
+                     </children>
+                  </HBox>
                   <HBox>
                      <children>
-                        <Label alignment="CENTER" contentDisplay="CENTER" prefHeight="17.0" prefWidth="102.0" text="Paste Graph:" textFill="WHITE" translateY="2.5" />
-                        <PasswordField fx:id="pastedGraph" onKeyTyped="#pasteGraphEdited" scaleX="0.9" scaleY="0.9" scaleZ="0.9" HBox.hgrow="NEVER" />
+                        <Label accessibleText="Pastes graph from clipboard if one is copied" alignment="CENTER" contentDisplay="CENTER" prefHeight="17.0" prefWidth="121.0" text="Paste Graph" textFill="WHITE" translateY="2.5" />
+                        <Button mnemonicParsing="false" onMouseClicked="#pasteGraphPreviewPressed" prefHeight="25.0" prefWidth="128.0" scaleX="0.75" scaleY="0.75" text="Preview">
+                           <HBox.margin>
+                              <Insets left="-5.0" right="-5.0" />
+                           </HBox.margin></Button>
+                        <Button layoutX="131.0" layoutY="10.0" mnemonicParsing="false" onMouseClicked="#pasteGraphPressed" prefHeight="25.0" prefWidth="108.0" scaleX="0.75" scaleY="0.75" text="Paste">
+                           <HBox.margin>
+                              <Insets left="-5.0" />
+                           </HBox.margin></Button>
+                        <Button mnemonicParsing="false" onMouseClicked="#clearPastedGraph" scaleX="0.6" scaleY="0.6" text="X">
+                           <HBox.margin>
+                              <Insets left="-5.0" />
+                           </HBox.margin>
+                        </Button>
+                        <Label fx:id="pastedGraph" maxHeight="0.0" maxWidth="0.0" minHeight="0.0" minWidth="0.0" prefHeight="0.0" prefWidth="0.0" text="Label" />
                      </children>
                      <VBox.margin>
                         <Insets top="5.0" />
                      </VBox.margin>
                   </HBox>
-                  <HBox fx:id="pastedGraphHBox" alignment="CENTER" minHeight="0.0" prefWidth="190.0" scaleShape="false" VBox.vgrow="ALWAYS">
+                  <HBox fx:id="pastedGraphHBox" alignment="CENTER" maxHeight="16.0" minHeight="0.0" prefWidth="190.0" scaleShape="false" VBox.vgrow="ALWAYS">
                      <children>
                         <Label fx:id="pastedGraphLabel" alignment="CENTER" contentDisplay="CENTER" textAlignment="CENTER" textFill="#c6c6c6" HBox.hgrow="ALWAYS">
                            <font>

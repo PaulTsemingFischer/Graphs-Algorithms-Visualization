@@ -2,6 +2,7 @@ package com.fischerabruzese.graph
 
 import java.math.BigInteger
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.math.min
 import kotlin.math.pow
 import kotlin.random.Random
@@ -159,48 +160,28 @@ class AMGraph<E : Any> private constructor(
      */
     companion object {
         @JvmName("graphOfCompressed")
-        fun graphOf(compressedString: String) : AMGraph<String> {
+        fun graphOf(graphCode: String) : AMGraph<String> {
             try {
-                val vertices = ArrayList<String>()
-                val reader = compressedString.toCharArray()
-                var begOfEdges = Int.MAX_VALUE
-                var current = StringBuilder()
+                val sectionedStrings = graphCode.split("@").also { if(it.size > 2) throw Exception()}
 
-                for((i,c) in reader.withIndex()){
-                    if(c == ';'){
-                        vertices += current.toString()
-                        begOfEdges = i+1
-                        break
-                    }
-
-                    if(c == ',') {
-                        vertices += current.toString()
-                        current = StringBuilder()
-                        continue
-                    }
-
-                    current.append(c)
-                }
+                val vertices = ArrayList(sectionedStrings[0].split("|"))
 
                 val graph = AMGraph(vertices)
 
-                var edge = Array(3) { StringBuilder() }
-                var pos = 0
-                for (i in begOfEdges until reader.size){
-                    val c = reader[i]
-                    if(c == ',') {
-                        if(pos == 2) {
-                            pos = 0
-                            graph[edge[0].toString(), edge[1].toString()] = edge[2].toString().toInt()
-                            edge = Array(3) { StringBuilder() }
-                        } else
-                            pos++
-                        continue
+                val edges: ArrayList<Triple<String, String, Int>> = ArrayList(
+                    sectionedStrings[1].split("|").map { tripleString ->
+                        val components = tripleString.split("#").also { if(it.size != 3) throw Exception()}
+                        Triple(components[0], components[1], components[2].toInt())
                     }
-                    edge[pos].append(c)
+                )
+
+                for(e in edges){
+                    graph[e.first, e.second] = e.third
                 }
+
                 return graph
             } catch (e: Exception) {throw IllegalStateException("Unable to read compressed graph")}
+
         }
         /**
          * Constructs a new [AMGraph] containing all vertices mentioned in

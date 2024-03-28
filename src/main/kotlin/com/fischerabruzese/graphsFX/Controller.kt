@@ -6,6 +6,9 @@ import javafx.application.Platform
 import javafx.beans.property.ReadOnlyDoubleProperty
 import javafx.fxml.FXML
 import javafx.scene.control.*
+import javafx.scene.input.Clipboard
+import javafx.scene.input.ClipboardContent
+import javafx.scene.input.DataFormat
 import javafx.scene.layout.GridPane
 import javafx.scene.layout.HBox
 import javafx.scene.layout.Pane
@@ -35,7 +38,9 @@ class Controller {
     //User inputs
         //Randomization
     @FXML
-    private lateinit var pastedGraph: PasswordField
+    private lateinit var copyToClipboardButton: Button
+    @FXML
+    private lateinit var pastedGraph: Label
     @FXML
     private lateinit var pastedGraphHBox: HBox
     @FXML
@@ -115,7 +120,8 @@ class Controller {
         graphicComponents.draw() //Draw the graphic components
 
         //Controls
-        pasteGraphEdited()
+
+        emptyPaste()
         initializeClusterRandomizationSwitch()
         initializeWeightDisplaySwitch()
         initializePhysicsSlider()
@@ -749,31 +755,71 @@ class Controller {
         }
     }
 
-    private var currentPastedGraph: AMGraph<String>? = null
+    private var currentPastedGraph: AMGraph<*>? = null
 
     @FXML
-    private fun pasteGraphEdited() {
+    private fun pasteGraphPreviewPressed() {
+        pastedGraph.text = Clipboard.getSystemClipboard().string
         if(pastedGraph.text.isNotEmpty()) {
             try {
-                if (!pastedGraph.text.contains(",")){
-                    throw IllegalStateException()
-                }
                 currentPastedGraph = AMGraph.graphOf(pastedGraph.text)
                 pastedGraphLabel.text =
                     "Vertices: ${currentPastedGraph!!.size()}" + "    " + "Edges: ${currentPastedGraph!!.getEdges().size}"
                 pastedGraphHBox.isVisible = true
                 pastedGraphHBox.prefHeight = pastedGraphLabel.prefHeight
-            } catch (e: IllegalStateException) {
-                e.printStackTrace()
-                pastedGraphLabel.text =
-                    "Invalid Format"
-                pastedGraphHBox.isVisible = true
-                pastedGraphHBox.prefHeight = pastedGraphLabel.prefHeight
+            } catch (e: Exception) {
+                invalidPasteFormat()
             }
         }
         else {
-            pastedGraphHBox.isVisible = false
-            pastedGraphHBox.prefHeight = 0.0
+            emptyPaste()
         }
+    }
+
+    private fun emptyPaste() {
+        pastedGraph.text = ""
+        pastedGraphHBox.isVisible = false
+        pastedGraphHBox.prefHeight = 0.0
+    }
+
+    private fun invalidPasteFormat(){
+        pastedGraphLabel.text =
+            "Invalid Format"
+        pastedGraphHBox.isVisible = true
+        pastedGraphHBox.prefHeight = pastedGraphLabel.prefHeight
+    }
+
+
+    @FXML
+    private fun clearPastedGraph() {
+        emptyPaste()
+    }
+
+    @FXML
+    private fun pasteGraphPressed() {
+        pasteGraphPreviewPressed()
+        try {
+            val g = AMGraph.graphOf(pastedGraph.text)
+            presetPressed(g as Graph<Any>, "from clipboard")
+        } catch (_:Exception) {
+            invalidPasteFormat()
+        }
+
+    }
+
+    @FXML
+    private fun copyToClipboardPressed() {
+        val content = ClipboardContent()
+        content[DataFormat.PLAIN_TEXT] = graph.compressed()
+        if(Clipboard.getSystemClipboard().setContent(content))
+            copyToClipboardButton.text = "Copied!"
+        else
+            copyToClipboardButton.text = "Not Copied :("
+        Thread{
+            Thread.sleep(3000)
+            Platform.runLater{
+                copyToClipboardButton.text = "Copy to Clipboard"
+            }
+        }.start()
     }
 }

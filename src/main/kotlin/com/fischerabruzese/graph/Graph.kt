@@ -1,5 +1,9 @@
 package com.fischerabruzese.graph
 
+import java.io.ByteArrayOutputStream
+import java.io.ObjectOutputStream
+import java.io.Serializable
+import java.math.BigInteger
 import java.util.*
 import kotlin.math.ln
 import kotlin.math.pow
@@ -28,7 +32,7 @@ import kotlin.random.Random
  * @author Skylar Abruzese
  * @author Paul Fischer
  */
-abstract class Graph<E : Any> : Iterable<E> {
+abstract class Graph<E : Any> : Iterable<E>, Serializable {
 
     /*---------------- FUNCTIONALITY ----------------*/
     /**
@@ -749,18 +753,15 @@ abstract class Graph<E : Any> : Iterable<E> {
     }
 
     fun compressed(): String {
-        val builder = StringBuilder()
-        for(v in getVertices()){
-            builder.append(v.toString().replace(";","").replace(",","")).append(",")
+        val vertStr = ArrayList(getVertices()).joinToString(separator = "|")
+
+        val edges: String = getEdges().map { Triple(it.first, it.second, this[it.first,it.second]) }.joinToString(separator = "|") { triple ->
+            "${triple.first}#${triple.second}#${triple.third}"
         }
-        builder.deleteAt(builder.length-1)
-        builder.append(";")
-        for(e in getEdges()){
-            builder.append(e.first.toString().replace(";","").replace(",","")).append(",")
-            builder.append(e.second.toString().replace(";","").replace(",","")).append(",")
-            builder.append(this[e.first,e.second]).append(",")
-        }
-        builder.deleteAt(builder.length-1)
-        return builder.toString()
+
+        val finalString = "$vertStr@$edges"
+
+        return finalString
     }
 }
+
