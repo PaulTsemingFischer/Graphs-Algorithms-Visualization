@@ -187,7 +187,7 @@ class AMGraph<E : Any> private constructor(
                 }
 
                 return graph
-            } catch (e: Exception) {throw IllegalStateException("Unable to read compressed graph")}
+            } catch (e: Exception) {throw IllegalStateException("Unable to read graph key")}
 
         }
         /**
