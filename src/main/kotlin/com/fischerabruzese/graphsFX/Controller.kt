@@ -157,15 +157,22 @@ class Controller {
         stage.title = title.toString()
     }
 
-    //Graph presets
+    //Preset printing
+    /**
+     * Prints a message that the [presetName] has loaded
+     */
+    private fun printPreset(presetName: String) {
+        queuePrintEntry(Color.rgb(217, 67, 17), title = "Preset '$presetName' loaded")
+    }
+
+    //Preset actions
     private fun presetPressed(graph: Graph<Any>, preset: String) {
         this.graph = graph
         tellPlatformRandomizationFinished(false)
         printPreset(preset)
     }
 
-    //Tree preset
-    @FXML
+    @FXML //Tree preset
     private fun preset1Pressed() {
         val random = Random(11)
         val vertices = ('A'..'K').toList()
@@ -249,8 +256,10 @@ class Controller {
     }
 
 
-    //Console
-        //General console printing
+    //Console Printing
+    /**
+     * Tells the JavaFX Application Thread to print a new entry to the console
+     */
     private fun queuePrintEntry(color: Color = Color.BLACK, text: String? = null, title: String? = null, titleSeparator: String = "\n"){
         Platform.runLater {
             val coloredTitle =
@@ -260,10 +269,15 @@ class Controller {
         }
     }
 
-        //Error printing
+    /**
+     * Represents a type of Error that has occurred in this program
+     */
     private enum class ErrorType {
         VERTEX_COUNT, CLUSTER_COUNT, EDGEWEIGHT_MIN, EDGEWEIGHT_MAX, FROM_VERTEX, TO_VERTEX
     }
+    /**
+     * Prints an error given the error type
+     */
     private fun printError(error:  ErrorType) {
         val errorName = when(error) {
             ErrorType.VERTEX_COUNT -> "Invalid vertex count"
@@ -284,92 +298,9 @@ class Controller {
         queuePrintEntry(Color.RED, errorDescription, errorName)
     }
 
-        //Preset printing
-    private fun printPreset(presetName: String) {
-        queuePrintEntry(Color.rgb(217, 67, 17), title = "Preset '$presetName' loaded")
-    }
-
-        //Randomization printing
-    private fun printPureRandomization(pureRandomizeInfo: PureRandomizeInfo) {
-        val title = "Pure randomization"
-        val text = buildString {
-            append("Vertex count: ${pureRandomizeInfo.vertexCount}\n")
-            append("Average connections per vertex: ${pureRandomizeInfo.avgConnections}\n")
-            append("Probability of connection: ${pureRandomizeInfo.probConnection}\n")
-            append("Disjoint graph: ${pureRandomizeInfo.disjointGraph}\n")
-            if(pureRandomizeInfo.min == 0 && pureRandomizeInfo.max == 1) {
-                append("Unweighted")
-            } else {
-                append("Edge weights: [${pureRandomizeInfo.min} - ${pureRandomizeInfo.max}]")
-            }
-        }
-        queuePrintEntry(Color.LIGHTBLUE, text, title)
-    }
-
-    private fun printClusterRandomization(clusterRandomizeInfo: ClusterRandomizeInfo) {
-        val title = "Cluster randomization"
-        val text = buildString {
-            append("Vertices: ${clusterRandomizeInfo.vertexCount} | ")
-            append("Clusters: ${clusterRandomizeInfo.clusterCount}\n")
-            append("Intra-connectedness: ${clusterRandomizeInfo.intraConn}\n")
-            append("Inter-connectedness: ${clusterRandomizeInfo.interConn}\n")
-            append("Disjoint graph: ${clusterRandomizeInfo.disjointGraph}\n")
-            if(clusterRandomizeInfo.min == 0 && clusterRandomizeInfo.max == 1) {
-                append("Unweighted")
-            } else {
-                append("Edge weights: [${clusterRandomizeInfo.min} - ${clusterRandomizeInfo.max}]\n")
-            }
-
-        }
-        queuePrintEntry(Color.DEEPPINK, text, title)
-    }
-
-        //Cluster console printing
-    private fun printClusters(info: ClusterInfo) {
-        val title = "Clusters (connectedness: ${NumberFormat.getNumberInstance().format(info.connectedness)})"
-        val text = buildString {
-            val sortedClusters = info.clusters.sortedByDescending { it.size() }
-            for (cluster in sortedClusters) {
-                val sortedVertices = cluster.getVertices().sortedBy { it.toString() }
-                append("\nSize ${sortedVertices.size}: ${sortedVertices}\n")
-            }
-            append("\nTime(ns): ${NumberFormat.getIntegerInstance().format(info.time ?: "untimed")}")
-        }
-        queuePrintEntry(Color.BLUE, text, title)
-    }
-
-        //Pathing console printing
-    private fun printDijkstra(from: Any, to: Any, path: List<Any>, distance: Int, time: Long) {
-        val title = "Dijkstra from $from to $to"
-        val text = buildString {
-            append("Path: $path\n")
-            append("Distance: $distance\n")
-            append("Time(ns): ${NumberFormat.getIntegerInstance().format(time)}")
-        }
-        queuePrintEntry(Color.DEEPSKYBLUE, text, title)
-    }
-
-    private fun printBfs(from: Any, to: Any, path: List<Any>, time: Long) {
-        val title = "Breadth first search from $from to $to"
-        val text = pathingString(path, time)
-        queuePrintEntry(Color.DEEPSKYBLUE, text, title)
-    }
-
-    private fun printDfs(from: Any, to: Any, path: List<Any>, time: Long) {
-        val title = "Depth first search from $from to $to"
-        val text = pathingString(path, time)
-        queuePrintEntry(Color.DEEPSKYBLUE, text, title)
-    }
-
-    private fun pathingString(path: List<Any>, time: Long): String{
-        return buildString {
-            append("Path: $path\n")
-            append("Time(ns): ${NumberFormat.getIntegerInstance().format(time)}")
-        }
-    }
 
     //Physics
-    private fun initializePhysicsSlider(){
+    private fun initializePhysicsSlider() {
         physicsSlider.valueProperty().addListener { _, _, newValue ->
             newValue?.let {
                 if(it.toDouble() < 0.02)
@@ -404,7 +335,6 @@ class Controller {
     private fun retrieveVertexElement(lookupKey: String): Any? {
         return graphicComponents.stringToVMap[lookupKey]?.v
     }
-    //throw InvalidKeyException("user input: \"${fromVertexField.text}\" is not an existing vertex")
 
     private fun getFromField(): Any? {
         return retrieveVertexElement(fromVertexField.text)
@@ -423,7 +353,37 @@ class Controller {
     private fun toVertexChanged() {
     }
 
-    //Pathing
+    //Pathing printing
+    private fun printDijkstra(from: Any, to: Any, path: List<Any>, distance: Int, time: Long) {
+        val title = "Dijkstra from $from to $to"
+        val text = buildString {
+            append("Path: $path\n")
+            append("Distance: $distance\n")
+            append("Time(ns): ${NumberFormat.getIntegerInstance().format(time)}")
+        }
+        queuePrintEntry(Color.DEEPSKYBLUE, text, title)
+    }
+
+    private fun printBfs(from: Any, to: Any, path: List<Any>, time: Long) {
+        val title = "Breadth first search from $from to $to"
+        val text = pathingString(path, time)
+        queuePrintEntry(Color.DEEPSKYBLUE, text, title)
+    }
+
+    private fun printDfs(from: Any, to: Any, path: List<Any>, time: Long) {
+        val title = "Depth first search from $from to $to"
+        val text = pathingString(path, time)
+        queuePrintEntry(Color.DEEPSKYBLUE, text, title)
+    }
+
+    private fun pathingString(path: List<Any>, time: Long): String{
+        return buildString {
+            append("Path: $path\n")
+            append("Time(ns): ${NumberFormat.getIntegerInstance().format(time)}")
+        }
+    }
+
+    //Pathing actions
     @FXML
     private fun dijkstraPressed() {
         pathingButtonPressed(graph::path)?.let {
@@ -468,9 +428,24 @@ class Controller {
         return Triple((from to to), path, time)
     }
 
-    //Clusterin
+    //Cluster printing
+    private fun printClusters(info: ClusterInfo) {
+        val title = "Clusters (connectedness: ${NumberFormat.getNumberInstance().format(info.connectedness)})"
+        val text = buildString {
+            val sortedClusters = info.clusters.sortedByDescending { it.size() }
+            for (cluster in sortedClusters) {
+                val sortedVertices = cluster.getVertices().sortedBy { it.toString() }
+                append("\nSize ${sortedVertices.size}: ${sortedVertices}\n")
+            }
+            append("\nTime(ns): ${NumberFormat.getIntegerInstance().format(info.time ?: "untimed")}")
+        }
+        queuePrintEntry(Color.BLUE, text, title)
+    }
 
-
+    //Clustering actions
+    private var clusteringThread: Thread? = null
+    private var numClusterTasks = 0
+    private var completedClusterTasks = 0
     private data class ClusterInfo(
         val clusters: Collection<Graph<Any>>,
         val connectedness: Double,
@@ -478,6 +453,12 @@ class Controller {
         val confidence: Double,
         val time: Long? = null
     )
+
+    private fun initializeClusterConnectednessSlider() {
+        connectednessSlider.valueProperty().addListener { _, _, _ ->
+            updateClusterColoringAsync()
+        }
+    }
 
     private fun getClusters(): ClusterInfo {
         val connectedness = connectednessSlider.value
@@ -494,7 +475,6 @@ class Controller {
         return info
     }
 
-    private var clusteringThread: Thread? = null
     @FXML
     private fun printClustersPressed() {
         var clustersInfo: ClusterInfo
@@ -519,7 +499,7 @@ class Controller {
         }, "Clustering Thread (Printing)").start()
     }
 
-    private fun updateClusterColoringAsync(){
+    private fun updateClusterColoringAsync() {
         if(clusteringToggle.isSelected){
             clusteringThread?.interrupt()
             clusteringProgress(1)
@@ -545,8 +525,6 @@ class Controller {
         }
     }
 
-    private var numClusterTasks = 0
-    private var completedClusterTasks = 0
     private fun clusteringProgress(i: Int) {
         when(i){
             1 -> numClusterTasks++
@@ -559,23 +537,52 @@ class Controller {
         }
     }
 
-    private fun initializeClusterConnectednessSlider(){
-        connectednessSlider.valueProperty().addListener { _, _, _ ->
-            updateClusterColoringAsync()
+    @FXML
+    private fun clusteringToggled() {
+        updateClusterColoringAsync()
+    }
+
+    @FXML
+    private fun mergeSinglesToggled() {
+        updateClusterColoringAsync()
+    }
+
+    //Randomization printing
+    private fun printPureRandomization(pureRandomizeInfo: PureRandomizeInfo) {
+        val title = "Pure randomization"
+        val text = buildString {
+            append("Vertex count: ${pureRandomizeInfo.vertexCount}\n")
+            append("Average connections per vertex: ${pureRandomizeInfo.avgConnections}\n")
+            append("Probability of connection: ${pureRandomizeInfo.probConnection}\n")
+            append("Disjoint graph: ${pureRandomizeInfo.disjointGraph}\n")
+            if(pureRandomizeInfo.min == 0 && pureRandomizeInfo.max == 1) {
+                append("Unweighted")
+            } else {
+                append("Edge weights: [${pureRandomizeInfo.min} - ${pureRandomizeInfo.max}]")
+            }
         }
+        queuePrintEntry(Color.LIGHTBLUE, text, title)
     }
 
-    @FXML
-    private fun clusteringToggled(){
-        updateClusterColoringAsync()
+    private fun printClusterRandomization(clusterRandomizeInfo: ClusterRandomizeInfo) {
+        val title = "Cluster randomization"
+        val text = buildString {
+            append("Vertices: ${clusterRandomizeInfo.vertexCount} | ")
+            append("Clusters: ${clusterRandomizeInfo.clusterCount}\n")
+            append("Intra-connectedness: ${clusterRandomizeInfo.intraConn}\n")
+            append("Inter-connectedness: ${clusterRandomizeInfo.interConn}\n")
+            append("Disjoint graph: ${clusterRandomizeInfo.disjointGraph}\n")
+            if(clusterRandomizeInfo.min == 0 && clusterRandomizeInfo.max == 1) {
+                append("Unweighted")
+            } else {
+                append("Edge weights: [${clusterRandomizeInfo.min} - ${clusterRandomizeInfo.max}]\n")
+            }
+
+        }
+        queuePrintEntry(Color.DEEPPINK, text, title)
     }
 
-    @FXML
-    private fun mergeSinglesToggled(){
-        updateClusterColoringAsync()
-    }
-
-    //Randomization
+    //Randomization Switch
     private fun initializeClusterRandomizationSwitch(){
         clusterRandomizationSwitchHBox.children.addAll(
             Label("Cluster Rand ").apply { textFill = Color.WHITE },
@@ -591,7 +598,6 @@ class Controller {
             Label(" Show Weights").apply { textFill = Color.WHITE }
         )
     }
-
 
     private fun randSwitched(state: SwitchButton.SwitchButtonState) {
         when(state){
@@ -621,6 +627,7 @@ class Controller {
         }
     }
 
+    //Randomization actions
     @FXML
     private fun randomizePressed(){
         val state = randSwitchButton.state
@@ -766,8 +773,7 @@ class Controller {
 
     private var currentPastedGraph: AMGraph<*>? = null
 
-
-    /* Graph Copy/Paste */
+    //Copy-paste actions
     @FXML
     private fun copyToClipboardPressed() {
         val content = ClipboardContent()
@@ -832,6 +838,4 @@ class Controller {
         }
 
     }
-
-
 }
