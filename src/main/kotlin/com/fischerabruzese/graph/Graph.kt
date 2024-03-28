@@ -1,9 +1,6 @@
 package com.fischerabruzese.graph
 
-import java.io.ByteArrayOutputStream
-import java.io.ObjectOutputStream
 import java.io.Serializable
-import java.math.BigInteger
 import java.util.*
 import kotlin.math.ln
 import kotlin.math.pow
@@ -752,7 +749,14 @@ abstract class Graph<E : Any> : Iterable<E>, Serializable {
         return clusters
     }
 
-    fun compressed(): String {
+    /**
+     * Generate a key for the graph that contains its current vertices, edges,
+     * and weights. This key can typically be read by a constructor of
+     * subclasses to reproduce the graph.
+     *
+     * @return a string containing the information in the current graph.
+     */
+    fun getKey(): String {
         val vertStr = ArrayList(getVertices()).joinToString(separator = "|")
 
         val edges: String = getEdges().map { Triple(it.first, it.second, this[it.first,it.second]) }.joinToString(separator = "|") { triple ->

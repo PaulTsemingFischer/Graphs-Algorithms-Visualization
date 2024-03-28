@@ -26,6 +26,8 @@ class Controller {
     companion object {
         val PATH_START: Color = Color.ORANGE
         val PATH_END: Color = Color.rgb(207, 3, 252)
+        val CONSOLE_LINE_SEPARATOR = "-".repeat(20) + "\n"
+
     }
 
     //Pane
@@ -35,8 +37,7 @@ class Controller {
     private lateinit var paneHeight: ReadOnlyDoubleProperty
     private lateinit var graphicComponents: GraphicComponents<Any>
 
-    //User inputs
-        //Randomization
+    //Presets
     @FXML
     private lateinit var copyToClipboardButton: Button
     @FXML
@@ -45,16 +46,10 @@ class Controller {
     private lateinit var pastedGraphHBox: HBox
     @FXML
     private lateinit var pastedGraphLabel: Label
-    @FXML
-    private lateinit var vertexCountField: TextField
+
+    //Randomization
     @FXML
     private lateinit var clusterRandomizationSwitchHBox: HBox
-    @FXML
-    private lateinit var connectednessSlider: Slider
-    @FXML
-    private lateinit var clusteringToggle: CheckBox
-    @FXML
-    private lateinit var mergeSinglesToggle: CheckBox
     @FXML
     private lateinit var randSwitchButton: SwitchButton
     @FXML
@@ -62,7 +57,13 @@ class Controller {
     @FXML
     private lateinit var clusterRandGridPane: GridPane
     @FXML
+    private lateinit var vertexCountField: TextField
+    @FXML
     private lateinit var clusterCountTextBox: TextField
+    @FXML
+    private lateinit var avgConnPerVertexField: TextField
+    @FXML
+    private lateinit var probOfConnectionsField: TextField
     @FXML
     private lateinit var intraConnectednessSlider: Slider
     @FXML
@@ -73,12 +74,18 @@ class Controller {
     private lateinit var minWeightTextBox: TextField
     @FXML
     private lateinit var maxWeightTextBox: TextField
+
+    //Clustering
     @FXML
-    private lateinit var avgConnPerVertexField: TextField
+    private lateinit var connectednessSlider: Slider
     @FXML
-    private lateinit var probOfConnectionsField: TextField
+    private lateinit var clusteringToggle: CheckBox
+    @FXML
+    private lateinit var mergeSinglesToggle: CheckBox
     @FXML
     private lateinit var clusteringProgress: ProgressIndicator
+
+    //Display Settings
     @FXML
     private lateinit var physicsSlider: Slider
     @FXML
@@ -86,13 +93,15 @@ class Controller {
     @FXML
     private lateinit var weightSwitchButton: SwitchButton
     @FXML
+
+    //Pathing
     private lateinit var fromVertexField: TextField
     @FXML
     private lateinit var toVertexField: TextField
+
     //Console
     @FXML
     private lateinit var console: TextFlow
-    private val CONSOLE_LINE_SEPARATOR = "-".repeat(20) + "\n"
 
     //Stage
     private lateinit var stage: Stage
@@ -757,6 +766,24 @@ class Controller {
 
     private var currentPastedGraph: AMGraph<*>? = null
 
+
+    /* Graph Copy/Paste */
+    @FXML
+    private fun copyToClipboardPressed() {
+        val content = ClipboardContent()
+        content[DataFormat.PLAIN_TEXT] = graph.getKey()
+        if(Clipboard.getSystemClipboard().setContent(content))
+            copyToClipboardButton.text = "Copied!"
+        else
+            copyToClipboardButton.text = "Not Copied :("
+        Thread{
+            Thread.sleep(3000)
+            Platform.runLater{
+                copyToClipboardButton.text = "Copy to Clipboard"
+            }
+        }.start()
+    }
+
     @FXML
     private fun pasteGraphPreviewPressed() {
         pastedGraph.text = Clipboard.getSystemClipboard().string
@@ -789,7 +816,6 @@ class Controller {
         pastedGraphHBox.prefHeight = pastedGraphLabel.prefHeight
     }
 
-
     @FXML
     private fun clearPastedGraph() {
         emptyPaste()
@@ -807,19 +833,5 @@ class Controller {
 
     }
 
-    @FXML
-    private fun copyToClipboardPressed() {
-        val content = ClipboardContent()
-        content[DataFormat.PLAIN_TEXT] = graph.compressed()
-        if(Clipboard.getSystemClipboard().setContent(content))
-            copyToClipboardButton.text = "Copied!"
-        else
-            copyToClipboardButton.text = "Not Copied :("
-        Thread{
-            Thread.sleep(3000)
-            Platform.runLater{
-                copyToClipboardButton.text = "Copy to Clipboard"
-            }
-        }.start()
-    }
+
 }

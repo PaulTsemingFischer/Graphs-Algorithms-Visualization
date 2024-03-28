@@ -23,7 +23,6 @@ class GraphApp : Application() {
         val graph = AMGraph(verts)
         //graph.randomize(0.3, 1, 9, false)
         graph.randomizeWithCluster(4, 1, 9, .39, 0.015)
-        println(graph.compressed())
 
 
 //        val graph = AMGraph.graphOf<Int>(
