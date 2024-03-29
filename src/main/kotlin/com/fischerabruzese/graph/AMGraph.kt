@@ -187,9 +187,9 @@ class AMGraph<E : Any> private constructor(
                 }
 
                 return graph
-            } catch (e: Exception) {throw IllegalStateException("Unable to read graph key")}
-
+            } catch (e: Exception) {  throw IllegalStateException("Unable to read graph key")}
         }
+
         /**
          * Constructs a new [AMGraph] containing all vertices mentioned in
          * [weightedConnections] with their corresponding edges.
@@ -576,6 +576,7 @@ class AMGraph<E : Any> private constructor(
      * @see AMGraph.subgraph
      */
     private fun subgraphFromIds(verticesIds: Collection<Int>): AMGraph<E> {
+        val verticesIds = verticesIds.sorted()
         val newVertices = ArrayList<E>(verticesIds.size)
         val newIndexLookup = HashMap<E, Int>()
         val isCopied = BooleanArray(vertices.size) { false }
@@ -611,7 +612,6 @@ class AMGraph<E : Any> private constructor(
             indexLookup = newIndexLookup,
             edgeMatrix = newEdgeMatrix
         )
-
     }
 
 

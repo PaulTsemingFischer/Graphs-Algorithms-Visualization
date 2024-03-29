@@ -705,6 +705,7 @@ abstract class Graph<E : Any> : Iterable<E>, Serializable {
             val singleton = cluster.getVertices().first()
 
             //aka hcc
+            var highScore = 1
             var highestConnectedCluster = cluster
             var hccInbounds = LinkedList<E>()
             var hccOutbounds = LinkedList<E>()
@@ -720,9 +721,9 @@ abstract class Graph<E : Any> : Iterable<E>, Serializable {
                     if (this[singleton, v] != null) obConnections.add(v)
                 }
 
-                val highestConnectedness = hccInbounds.size + hccOutbounds.size
-                val newConnectedness = ibConnections.size + obConnections.size
-                if (newConnectedness > highestConnectedness || (newConnectedness == highestConnectedness && neighborCluster.size() > highestConnectedCluster.size() )) {
+                val score = ibConnections.size + obConnections.size
+                if (score > highScore || (score == highScore && neighborCluster.size() >= highestConnectedCluster.size() )) {
+                    highScore = score
                     hccInbounds = ibConnections
                     hccOutbounds = obConnections
                     highestConnectedCluster = neighborCluster
