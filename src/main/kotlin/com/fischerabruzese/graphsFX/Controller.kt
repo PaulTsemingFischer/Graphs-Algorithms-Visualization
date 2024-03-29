@@ -462,7 +462,7 @@ class Controller {
 
     private fun getClusters(): ClusterInfo {
         val connectedness = connectednessSlider.value
-        val numRuns = 1000//graph.estimateRequiredKargerness(0.9999).coerceIn(0..10000)
+        val numRuns = graph.estimateRequiredKargerness(0.997).coerceIn(0..10000)
         val clusters: Collection<Graph<Any>>
         val time = measureNanoTime {
             clusters = if(mergeSinglesToggle.isSelected) graph.getClusters(connectedness, numRuns)

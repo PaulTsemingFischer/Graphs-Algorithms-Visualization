@@ -2,9 +2,11 @@ package com.fischerabruzese.graph
 
 import java.io.Serializable
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.math.ln
 import kotlin.math.pow
 import kotlin.math.roundToInt
+import kotlin.math.sin
 import kotlin.random.Random
 
 /**
@@ -687,15 +689,21 @@ abstract class Graph<E : Any> : Iterable<E>, Serializable {
      * connected to.
      *
      * @param clusters the unmerged clusters
+     * @param extraPasses the number of time singletons should be checked. If merge
+     * singletons are creating new large clusters this will assign singletons
+     * to clusters that might not have been as big when they were initially
+     * checked. Usually a value of 1 or 2 is sufficient.
      *
      * @return the clusters with singletons merged into the cluster that
      *         they're most connected to
      */
-    private fun mergeSingletons(clusters: Collection<Graph<E>>): Collection<Graph<E>> {
+    private fun mergeSingletons(clusters: Collection<Graph<E>>, extraPasses: Int = 1): Collection<Graph<E>> {
         val clusters = ArrayList(clusters)
 
         //singletons to remove
         val removeQueue = LinkedList<Graph<E>>()
+
+        val singletonsForSecondPass = ArrayList<E>(clusters.size)
 
         //for each singleton
         for (cluster in clusters) {
@@ -744,8 +752,63 @@ abstract class Graph<E : Any> : Iterable<E>, Serializable {
 
             //remove singleton cluster
             removeQueue.add(cluster)
+
+            //If you have a valid cluster to merge into lets verify it's the correct one.
+            singletonsForSecondPass.addLast(singleton)
         }
         clusters.removeAll(removeQueue)
+
+        //optional repetition for validation
+        var reps = extraPasses
+        while (reps > 0) {
+            for(singleton in singletonsForSecondPass){
+
+                //null or -1 will get overridden by first cluster
+                var highScore = -1
+                var highestConnectedCluster: Graph<E>? = null
+                var hccInbounds = LinkedList<E>()
+                var hccOutbounds = LinkedList<E>()
+                var oldCluster : Graph<E>? = null
+
+                //find hcc
+                for (neighborCluster in clusters) {
+                    val obConnections = LinkedList<E>()
+                    val ibConnections = LinkedList<E>()
+
+                    for (v in neighborCluster) {
+                        if(v === singleton) {
+                            oldCluster = neighborCluster
+                            continue //don't count self-edges
+                        }
+                        if (this[v, singleton] != null) ibConnections.add(v)
+                        if (this[singleton, v] != null) obConnections.add(v)
+                    }
+
+                    val score = ibConnections.size + obConnections.size
+                    if (score > highScore || ( score == highScore && neighborCluster.size() >= (highestConnectedCluster?.size() ?: -1) )) {
+                        highScore = score
+                        hccInbounds = ibConnections
+                        hccOutbounds = obConnections
+                        highestConnectedCluster = neighborCluster
+                    }
+                }
+
+                if( highestConnectedCluster === oldCluster ) continue
+
+                oldCluster!!.remove(singleton)
+
+                highestConnectedCluster!!.add(singleton)
+
+                for (ib in hccInbounds) {
+                    highestConnectedCluster[ib, singleton] = this[ib, singleton]!!
+                }
+                for (ob in hccOutbounds) {
+                    highestConnectedCluster[singleton, ob] = this[singleton, ob]!!
+                }
+
+                reps--
+            }
+        }
 
         return clusters
     }
