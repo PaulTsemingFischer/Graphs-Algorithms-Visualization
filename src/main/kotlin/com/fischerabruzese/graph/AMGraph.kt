@@ -481,6 +481,7 @@ class AMGraph<E : Any> private constructor(
         //Removing vertices from vertices list
         for (i in vertexToRemove.indices.reversed()) {
             if (vertexToRemove[i]) this.vertices.removeAt(i)
+
         }
 
         //New edge matrix with vertices removed
@@ -505,6 +506,11 @@ class AMGraph<E : Any> private constructor(
 
         //Nuke dijkstra table
         dijkstraTables = null
+
+        indexLookup.clear()
+        for((i,v) in this.vertices.withIndex()){
+            indexLookup[v] = i
+        }
 
         return failed
     }
