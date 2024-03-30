@@ -961,7 +961,9 @@ class GraphicComponents<E: Any>(
             Color.rgb(255, 215, 0), // Gold
             Color.rgb(255, 160, 122) // Light Salmon
         ))
-        val sortedClusters = clusters.sortedWith(compareBy({ it.size() }, { cluster -> (cluster.mapVertices { e -> e.toString() }).minByOrNull { it.length}  }))
+
+        //Sorted first by minSize, then by lexicographic order of the minimum toString of the vertices
+        val sortedClusters = clusters.sortedBy { cluster -> cluster.getVertices().minOfOrNull { it.toString() } }.sortedByDescending { it.size() }
         for(cluster in sortedClusters){
             val color = if(colors.isNotEmpty()) colors.removeFirst() else randomColor()
             for(vertex in cluster){
