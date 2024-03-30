@@ -817,9 +817,11 @@ class GraphicComponents<E: Any>(
                             }
                     }
 
-//                edges.zip(edges.dumpPositions())
-//                    .filterNot { (e, _) -> e.v1 == affectedVertex || e.v2 == affectedVertex } //should I add another filter for effector stuff
-//                    .mapTo(effectors) { (_, effectorPos) -> Pair(effectorPos, edgeFieldEquation) }
+                /*
+                edges.zip(edges.dumpPositions())
+                    .filterNot { (e, _) -> e.v1 == affectedVertex || e.v2 == affectedVertex } //should I add another filter for effector stuff
+                    .mapTo(effectors) { (_, effectorPos) -> Pair(effectorPos, edgeFieldEquation) }
+                 */
 
                 //walls
                 listOf(Position(1.0, affectedPos.y), Position(0.0, affectedPos.y), Position(affectedPos.x, 1.0), Position(affectedPos.x, 0.0))
