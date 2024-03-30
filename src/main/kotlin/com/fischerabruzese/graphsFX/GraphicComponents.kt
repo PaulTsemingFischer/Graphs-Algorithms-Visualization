@@ -656,7 +656,6 @@ class GraphicComponents<E: Any>(
 
 
             Thread(simulationThreadGroup, {
-                val thisThread = Thread.currentThread()
                 while (!Thread.interrupted()) {
                     val latch = CountDownLatch(1) // Initialize with a count of 1
                     Platform.runLater {
@@ -705,16 +704,6 @@ class GraphicComponents<E: Any>(
         }
 
         /**
-         * Sums all the displacements from all the effectors of [at]
-         *
-         * @param at The position at which to calculate the adjustment
-         * @param froms A list of positions and lambda that calculates the displacement that position should cause on an object given the distance-squared between the 2 objects
-         * @param forceCapPerPos The maximum force cap per position, default is 0.1
-         * @return The displacement calculated based on the provided parameters
-         */
-        abstract fun calculateAdjustmentAtPos(at: Position, froms: List<Pair<Position, (Double) -> Double>>, forceCapPerPos: Double = 0.1): Displacement
-
-        /**
          * @param speed the speed (ie magnitude) of the calculations
          * @param unaffected all the vertices that aren't moved
          * @param uneffectors all the vertices that do not cause movements
@@ -751,7 +740,16 @@ class GraphicComponents<E: Any>(
      * The custom physics object used for this graphic
      */
     val physicsC = object: Physics(0.0) {
-        override fun calculateAdjustmentAtPos(at: Position, froms: List<Pair<Position, (Double) -> Double>>, forceCapPerPos: Double): Displacement{
+
+        /**
+         * Sums all the displacements from all the effectors of [at]
+         *
+         * @param at The position at which to calculate the adjustment
+         * @param froms A list of positions and lambda that calculates the displacement that position should cause on an object given the distance-squared between the 2 objects
+         * @param forceCapPerPos The maximum force cap per position, default is 0.1
+         * @return The displacement calculated based on the provided parameters
+         */
+        fun calculateAdjustmentAtPos(at: Position, froms: List<Pair<Position, (Double) -> Double>>, forceCapPerPos: Double = 0.1): Displacement {
             val displacement = Displacement(0.0, 0.0)
 
             //Adding adjustments
