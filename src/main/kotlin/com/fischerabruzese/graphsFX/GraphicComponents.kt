@@ -31,7 +31,7 @@ class GraphicComponents<E: Any>(
 ) {
     //Constants
     companion object {
-        private val CIRCLE_RADIUS = 20.0
+        private const val CIRCLE_RADIUS = 20.0
     }
 
     //Vertex + edge storage
@@ -39,6 +39,7 @@ class GraphicComponents<E: Any>(
     private val hitboxes = ArrayList<Circle>()
     private var edges = ArrayList<Edge>()
     internal var vertices = ArrayList<Vertex>()
+
     @JvmName("dumpEdgePositions")
     private fun ArrayList<Edge>.dumpPositions() = this.map { Position(((it.v2.x.get()+it.v1.x.get())/2.0), ((it.v2.y.get()+it.v1.y.get())/2.0)) }.toTypedArray()
     @JvmName("dumpVertexPositions")
@@ -121,7 +122,7 @@ class GraphicComponents<E: Any>(
         //Graphical Display Components
         private val circle = Circle(Companion.CIRCLE_RADIUS, Color.BLUE)
         private val label = Label(v.toString())
-        internal val hitbox = Circle(Companion.CIRCLE_RADIUS, Color.TRANSPARENT)
+        private val hitbox = Circle(Companion.CIRCLE_RADIUS, Color.TRANSPARENT)
 
         /*Location Bindings*/
         private val usablePercentPaneWidth: DoubleBinding = Bindings.createDoubleBinding(
@@ -168,7 +169,7 @@ class GraphicComponents<E: Any>(
                     ungreyEverything()
                     currentPathVertices.clear()
                     currentPathConnections.clear()
-                    greyDetached(this) //normal selection greying
+                    greyDetached(this)
                     setSelected()
                 }
             }
@@ -229,7 +230,7 @@ class GraphicComponents<E: Any>(
          * @return The priority of the current color.
          */
         private fun highestActivePriority(): Int {
-            colorStorage.forEachIndexed() { index, color ->
+            colorStorage.forEachIndexed { index, color ->
                 if (color != null) return index
             }
             return colorPriorityMap[ColorType.DEFAULT]!!
@@ -630,7 +631,7 @@ class GraphicComponents<E: Any>(
         private var simulationThreads = LinkedList<Thread>()
 
         /**
-         * Opens a thread that will generate and push frames to the gui at [speed] until [on] is false
+         * Opens a thread that will generate and push frames to the gui at [speed] until [stopSimulation]
          */
         private fun simulate() {
             ghostVertices = ArrayList(vertices.map { it to it.pos })
@@ -641,9 +642,11 @@ class GraphicComponents<E: Any>(
                     } catch (ex: Exception) {
                         when(ex) {
                             is NoSuchElementException, is IndexOutOfBoundsException -> {
-                                Platform.runLater {
-                                    stopSimulation()
-                                    startSimulation()
+                                if (!stopping) {
+                                    Platform.runLater {
+                                        stopSimulation()
+                                        startSimulation()
+                                    }
                                 }
                                 return@Thread
                             }
@@ -664,8 +667,10 @@ class GraphicComponents<E: Any>(
                         } catch (ex: Exception) {
                             when(ex) {
                                 is NoSuchElementException, is IndexOutOfBoundsException -> {
-                                    stopSimulation()
-                                    startSimulation()
+                                    if (!stopping) {
+                                        stopSimulation()
+                                        startSimulation()
+                                    }
                                     return@runLater //Don't count down latch and cause a InterruptedException in thread
                                 }
                                 else -> throw ex
@@ -679,11 +684,17 @@ class GraphicComponents<E: Any>(
             }, "Real Frame Pusher").also{Platform.runLater{simulationThreads.add(it)}}.start()
         }
 
+        private var stopping = false
+
         fun stopSimulation(){
+            if(stopping) return
+
+            stopping = true
             for(t in simulationThreads){
                 t.interrupt()
                 t.join() //wait for each thread to die
             }
+
             ghostVertices = ArrayList()
             simulationThreads = LinkedList<Thread>()
         }
@@ -698,6 +709,7 @@ class GraphicComponents<E: Any>(
          */
         fun startSimulation(): Boolean{
             if(isActive()) return false
+            stopping = false
 
             simulate()
             return true
@@ -789,7 +801,7 @@ class GraphicComponents<E: Any>(
         }
 
         override fun generateFrame(speed: Double, unaffected: List<GraphicComponents<E>.Vertex>, uneffectors: List<GraphicComponents<E>.Vertex>, verticesPos: List<Pair<GraphicComponents<E>.Vertex,Position>>): Array<Displacement>{
-            val max = 2000
+            val max = 1500
             val scaleFactor = speed.pow(4) * max
 
             val displacements = Array(vertices.size) { Displacement(0.0, 0.0) }
