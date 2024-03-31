@@ -35,7 +35,7 @@ class Controller {
     private lateinit var pane: Pane
     private lateinit var paneWidth: ReadOnlyDoubleProperty
     private lateinit var paneHeight: ReadOnlyDoubleProperty
-    private lateinit var graphicComponents: GraphicComponents<Any>
+    internal lateinit var graphicComponents: GraphicComponents<Any>
 
     //Presets
     @FXML
