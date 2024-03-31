@@ -303,11 +303,15 @@ class Controller {
     private fun initializePhysicsSlider() {
         physicsSlider.valueProperty().addListener { _, _, newValue ->
             newValue?.let {
-                if(it.toDouble() < 0.02)
-                    graphicComponents.physicsC.stopSimulation()
-                else {
-                    graphicComponents.physicsC.speed = it.toDouble()
-                    graphicComponents.physicsC.startSimulation()
+                graphicComponents.physicsC.run {
+                    if(it.toDouble() < 0.02){
+                        if(isActive()) stopSimulation()
+                    }
+                    else {
+                        speed = it.toDouble()
+                        if (!isActive())
+                            startSimulation()
+                    }
                 }
             }
         }

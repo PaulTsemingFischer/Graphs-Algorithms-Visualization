@@ -57,7 +57,7 @@ class SwitchButton : StackPane() {
     }
 
     fun manuallySwitch(newState: SwitchButtonState? = null) = run {
-        var newState = newState
+        val newState = newState
         if(newState != null){
             state =
                 if(newState == SwitchButtonState.LEFT)
