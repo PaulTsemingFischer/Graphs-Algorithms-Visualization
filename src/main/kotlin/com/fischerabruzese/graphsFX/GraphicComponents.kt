@@ -965,10 +965,11 @@ class GraphicComponents<E: Any>(
         ))
 
         //Sorted first by minSize, then by lexicographic order of the minimum toString of the vertices
-        val sortedClusters = clusters.sortedBy { cluster -> cluster.getVertices().minOfOrNull { it.toString() } }.sortedByDescending { it.size() }
-        for(cluster in sortedClusters){
-            val color = if(colors.isNotEmpty()) colors.removeFirst() else randomColor()
-            for(vertex in cluster){
+        val sortedClusters = clusters.sortedBy { cluster -> cluster.getVertices().minOfOrNull { it.toString() } }
+            .sortedByDescending { it.size() }
+        for (cluster in sortedClusters) {
+            val color = if (colors.isNotEmpty()) colors.removeFirst() else randomColor()
+            for (vertex in cluster) {
                 stringToVMap[vertex.toString()]?.setColor(ColorType.CLUSTERED, color)
             }
         }

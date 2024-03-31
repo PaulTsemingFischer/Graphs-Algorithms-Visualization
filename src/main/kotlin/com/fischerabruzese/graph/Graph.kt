@@ -17,7 +17,7 @@ import kotlin.random.Random
  * Implementations can store vertices in an Adjacency Matrix, Adjacency List,
  * or a different way.
  *
- * All implimentation of Graphs contain the following algorithms that
+ * All implementation of Graphs contain the following algorithms that
  * are either defined here (and are open for optimization in subclasses) or
  * must be defined in its entirety in the specific implementation.
  *
@@ -615,7 +615,7 @@ abstract class Graph<E : Any> : Iterable<E>, Serializable {
      *
      * @param confidence The confidence that this answer is the true HCS; more
      *        specifically, the desired probability of finding the correct
-     *        min-cut during each iteration of Kargers algorithm.
+     *        min-cut during each iteration of Karger's algorithm.
      *
      * @return a collection of subgraphs that are the clusters of this graph
      *         via the given parameters
@@ -670,11 +670,11 @@ abstract class Graph<E : Any> : Iterable<E>, Serializable {
      * that the minimum cut of those subgraphs contain more than
      * [connectedness]*sizeOfTheGraph edges, and identifies them as clusters.
      *
-     * This implementation uses Kargers algorithm (see
-     * [kargers][AMGraph.karger]) with a repeat value of [kargerness]
+     * This implementation uses Karger's algorithm (see
+     * [karger's][AMGraph.karger]) with a repeat value of [kargerness]
      *
      * @param connectedness the minimum edges (this*graphSize) that must be
-     *        connected to consider a vetex clustered
+     *        connected to consider a vertex clustered
      * @param kargerness The number of iterations of [min-cut][AMGraph.minCut]
      *        to try before taking the best one
      *

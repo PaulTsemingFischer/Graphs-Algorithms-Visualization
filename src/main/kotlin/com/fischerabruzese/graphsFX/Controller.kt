@@ -162,7 +162,7 @@ class Controller {
      * Prints a message that the [presetName] has loaded
      */
     private fun printPreset(presetName: String) {
-        queuePrintEntry(Color.rgb(217, 67, 17), title = "Preset '$presetName' loaded")
+        queuePrintEntry(Color.PURPLE, title = "Preset '$presetName' loaded")
     }
 
     //Preset actions
@@ -561,7 +561,7 @@ class Controller {
                 append("Edge weights: [${pureRandomizeInfo.min} - ${pureRandomizeInfo.max}]")
             }
         }
-        queuePrintEntry(Color.LIGHTBLUE, text, title)
+        queuePrintEntry(Color.rgb(61, 224, 167), text, title)
     }
 
     private fun printClusterRandomization(clusterRandomizeInfo: ClusterRandomizeInfo) {
@@ -575,7 +575,7 @@ class Controller {
             if(clusterRandomizeInfo.min == 0 && clusterRandomizeInfo.max == 1) {
                 append("Unweighted")
             } else {
-                append("Edge weights: [${clusterRandomizeInfo.min} - ${clusterRandomizeInfo.max}]\n")
+                append("Edge weights: [${clusterRandomizeInfo.min} - ${clusterRandomizeInfo.max}]")
             }
 
         }
