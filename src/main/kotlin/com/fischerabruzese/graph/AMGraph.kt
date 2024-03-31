@@ -12,7 +12,7 @@ import kotlin.random.Random
  * adjacency matrix. Permits [Any] elements as the vertex type and does **not**
  * permit nullable types.
  *
- * This implimentation provides constant time edge and vertex search via
+ * This implementation provides constant time edge and vertex search via
  * [get][AMGraph.getWithIndex] and [contains][AMGraph.contains]; O(n^2) vertex addition
  * and removal via [add][AMGraph.add] and [remove][AMGraph.removeEdgeWithIndex]; Constant
  * time edge addition and removal via [set][AMGraph.setWithIndex] and [removeEdgeWithIndex];
@@ -21,7 +21,7 @@ import kotlin.random.Random
  *  * Dijkstra's Algorithm ->  O(V^2*log(V))
  *  * Breadth First Search -> O(V^2)
  *  * Depth First Search -> O(V^2)
- *  * HCS (Highly Connected Subgraphs) -> TODO
+ *  * HCS (Highly Connected Subgraphs) -> O(V^4)
  *
  * **Note that this implementation is not synchronized.** If multiple threads
  * access a [AMGraph] concurrently and at least one of the threads modifies the
@@ -241,16 +241,16 @@ class AMGraph<E : Any> private constructor(
         )
 
         /**
-         * Made for testing purposes. Finds the success rate of running Kargers
+         * Made for testing purposes. Finds the success rate of running Karger's
          * Algorithm with min-cut repeated [kargerness] times for the given
          * [graph].
-         * This will repeat Kargers on the graph until it produces the wrong
+         * This will repeat Karger's on the graph until it produces the wrong
          * answer. It will calculate the proportion of successes from this,
          * averaging together the results over the [totalRepetitions].
          *
          * @param graph The graph you want to test.
          * @param kargerness The kargerness that you want to test.
-         * @param totalRepetitions The total amount of wrong kargers found
+         * @param totalRepetitions The total amount of wrong karger's found
          *        before calculating the success rate. The higher the value,
          *        the slower, but higher confidence answer.
          * @param updateInterval Prints the current values at the specified
@@ -260,7 +260,7 @@ class AMGraph<E : Any> private constructor(
          * @param printing Prints the answer and [updateInterval]s to the
          *        console.
          *
-         * @return The proportion of times kargers failed given the inputs
+         * @return The proportion of times karger's failed given the inputs
          *         above.
          *
          * @throws IllegalStateException Very (and I mean very) rarely or under
@@ -318,16 +318,16 @@ class AMGraph<E : Any> private constructor(
 
         /**
          * Made for testing purposes. Finds the worst case success rate of
-         * running Kargers Algorithm with min-cut repeated [kargerness] times
+         * running Karger's Algorithm with min-cut repeated [kargerness] times
          * for a graph of size [graphSize].
-         * This will repeat Kargers on a graph with the specified size and only
+         * This will repeat Karger's on a graph with the specified size and only
          * 1 correct min-cut until it produces the wrong answer. It will
          * calculate the proportion of successes from this, averaging together
          * the results over the [totalRepetitions].
          *
          * @param graphSize This size of the graph you want to test.
          * @param kargerness The kargerness that you want to test.
-         * @param totalRepetitions The total amount of wrong kargers found
+         * @param totalRepetitions The total amount of wrong karger's found
          *        before calculating the success rate. The higher the value,
          *        the slower, but higher confidence answer.
          * @param updateInterval Prints the current values at the specified
@@ -337,7 +337,7 @@ class AMGraph<E : Any> private constructor(
          * @param printing Prints the answer and [updateInterval]s to the
          *        console.
          *
-         * @return The proportion of times kargers failed given the inputs
+         * @return The proportion of times karger's failed given the inputs
          *         above.
          *
          * @throws IllegalStateException Very (and I mean very) rarely or under
@@ -782,7 +782,7 @@ class AMGraph<E : Any> private constructor(
     }
 
     /**
-     * An implimentation of Dijkstra's algorithm using a Fibonacci Heap as a
+     * An implementation of Dijkstra's algorithm using a Fibonacci Heap as a
      * queue.
      *
      * Due to the nature of this graph using an adjacency matrix, this runs in
@@ -836,7 +836,7 @@ class AMGraph<E : Any> private constructor(
         level = DeprecationLevel.ERROR
     )
     /**
-     * An implimentation of Dijkstra's using looping rather than queues.
+     * An implementation of Dijkstra's using looping rather than queues.
      */
     private fun dijkstra(from: Int, to: Int? = null): Array<Pair<Int, Int>> {
         val distance = IntArray(size()) { Int.MAX_VALUE }

@@ -183,7 +183,7 @@ class Controller {
 
     @FXML
     private fun preset2Pressed() {
-        val random = Random(22)
+        val random = Random(23)
         val vertices = ('A'..'Z').toList()
         val presetGraph = AMGraph<Any>(vertices)
         presetGraph.randomizeWithCluster(4, 0, 10, 0.4, 0.01, random)
@@ -192,10 +192,32 @@ class Controller {
 
     @FXML
     private fun preset3Pressed() {
+        val random = Random(33)
+        val vertices: List<String> = (('A'..'Z')
+                + ('A'..'Z').map { "A$it" }
+                + ('A'..'Z').map { "B$it" }
+                + ('A'..'Z').map { "C$it" }
+                ).toList().map{it.toString()}
+        val presetGraph = AMGraph<Any>(vertices)
+        presetGraph.randomizeWithCluster(4, 0, 10, 0.2, 0.004, random)
+        presetPressed(presetGraph, "Large 4 Clusters")
     }
 
     @FXML
     private fun preset4Pressed() {
+        val random = Random(44)
+        val vertices: List<String> = (('A'..'Z')
+                + ('A'..'Z').map { "A$it" }
+                + ('A'..'Z').map { "B$it" }
+                + ('A'..'Z').map { "C$it" }
+                + ('A'..'Z').map { "D$it" }
+                + ('A'..'Z').map { "E$it" }
+                + ('A'..'Z').map { "F$it" }
+                + ('A'..'Z').map { "G$it" }
+                ).toList().map{it.toString()}
+        val presetGraph = AMGraph<Any>(vertices)
+        presetGraph.randomizeWithCluster(8, 0, 10, 0.2, 0.0003, random)
+        presetPressed(presetGraph, "Massive 8 Cluster")
     }
 
     @FXML
