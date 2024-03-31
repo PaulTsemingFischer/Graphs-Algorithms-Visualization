@@ -177,16 +177,16 @@ class Controller {
         val random = Random(11)
         val vertices = ('A'..'K').toList()
         val presetGraph = AMGraph<Any>(vertices)
-        presetGraph.randomizeWithCluster(2, 0, 10, 0.4, 0.02, random)
+        presetGraph.randomizeWithCluster(2, 0, 10, 0.4, 0.02, false, random)
         presetPressed(presetGraph, "Small 2 Cluster")
     }
 
     @FXML
     private fun preset2Pressed() {
-        val random = Random(23)
+        val random = Random(26)
         val vertices = ('A'..'Z').toList()
         val presetGraph = AMGraph<Any>(vertices)
-        presetGraph.randomizeWithCluster(4, 0, 10, 0.4, 0.01, random)
+        presetGraph.randomizeWithCluster(4, 0, 10, 0.4, 0.01, false, random)
         presetPressed(presetGraph, "Medium 4 Cluster")
     }
 
@@ -199,7 +199,7 @@ class Controller {
                 + ('A'..'Z').map { "C$it" }
                 ).toList().map{it.toString()}
         val presetGraph = AMGraph<Any>(vertices)
-        presetGraph.randomizeWithCluster(4, 0, 10, 0.2, 0.004, random)
+        presetGraph.randomizeWithCluster(4, 0, 10, 0.2, 0.004, false, random)
         presetPressed(presetGraph, "Large 4 Clusters")
     }
 
@@ -216,7 +216,7 @@ class Controller {
                 + ('A'..'Z').map { "G$it" }
                 ).toList().map{it.toString()}
         val presetGraph = AMGraph<Any>(vertices)
-        presetGraph.randomizeWithCluster(8, 0, 10, 0.2, 0.0003, random)
+        presetGraph.randomizeWithCluster(8, 0, 10, 0.2, 0.0003, false, random)
         presetPressed(presetGraph, "Massive 8 Cluster")
     }
 
@@ -256,7 +256,7 @@ class Controller {
 
             presetGraph[parentVertex, vertex] = random.nextInt(0, 10)
         }
-        presetPressed(presetGraph, "Tree")
+        presetPressed(presetGraph, "Binary Tree")
     }
 
     @FXML
@@ -711,7 +711,7 @@ class Controller {
         val intraConn = intraConnectednessSlider.value
 
         val (min, max) = getEdgeWeights() ?: return null
-        this.graph.randomizeWithCluster(clusterCount, min, max, intraConn, interConn)
+        this.graph.randomizeWithCluster(clusterCount, min, max, intraConn, interConn, allowDisjointSelectionBox.isSelected)
 
         if(!allowDisjointSelectionBox.isSelected) this.graph.mergeDisjoint(min, max)
 
@@ -723,9 +723,7 @@ class Controller {
     private fun generateRandomGraph(): PureRandomizeInfo? {
         val (min, max) = getEdgeWeights() ?: return null
         val probConn = probOfConnectionsField.text.toDouble()
-        this.graph.randomize(probConn, min, max)
-
-        if(!allowDisjointSelectionBox.isSelected) this.graph.mergeDisjoint(min, max)
+        this.graph.randomize(probConn, min, max, allowDisjointSelectionBox.isSelected)
 
         tellPlatformRandomizationFinished(min ==0 && max == 1)
         return PureRandomizeInfo(graph.size(), probConn, probConn,  allowDisjointSelectionBox.isSelected, min, max)

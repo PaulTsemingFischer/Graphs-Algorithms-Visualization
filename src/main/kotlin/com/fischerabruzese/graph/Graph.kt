@@ -381,6 +381,7 @@ abstract class Graph<E : Any> : Iterable<E>, Serializable {
         maxEdgeWeight: Int,
         intraClusterConnectedness: Double,
         interClusterConnectedness: Double,
+        allowDisjoint: Boolean = true,
         random: Random = Random
     ) {
         var remainingVertices = LinkedList(getVertices())
@@ -421,8 +422,8 @@ abstract class Graph<E : Any> : Iterable<E>, Serializable {
                 }
             }
         }
-
         becomeCloneOf(mergedGraph)
+        if (!allowDisjoint) mergeDisjoint(minEdgeWeight, maxEdgeWeight, random)
     }
 
     /**
