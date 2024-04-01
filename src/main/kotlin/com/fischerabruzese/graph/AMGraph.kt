@@ -167,9 +167,9 @@ class AMGraph<E : Any> private constructor(
          *         key
          */
         @JvmName("graphOfCompressed")
-        fun graphOf(graphKey: String) : AMGraph<String> {
+        fun graphOf(graphKey: String): AMGraph<String> {
             try {
-                val sectionedStrings = graphKey.split("@").also { if(it.size > 2) throw Exception()}
+                val sectionedStrings = graphKey.split("@").also { if (it.size > 2) throw Exception() }
 
                 val vertices = ArrayList(sectionedStrings[0].split("|"))
 
@@ -177,17 +177,19 @@ class AMGraph<E : Any> private constructor(
 
                 val edges: ArrayList<Triple<String, String, Int>> = ArrayList(
                     sectionedStrings[1].split("|").map { tripleString ->
-                        val components = tripleString.split("#").also { if(it.size != 3) throw Exception()}
+                        val components = tripleString.split("#").also { if (it.size != 3) throw Exception() }
                         Triple(components[0], components[1], components[2].toInt())
                     }
                 )
 
-                for(e in edges){
+                for (e in edges) {
                     graph[e.first, e.second] = e.third
                 }
 
                 return graph
-            } catch (e: Exception) {  throw IllegalStateException("Unable to read graph key")}
+            } catch (e: Exception) {
+                throw IllegalStateException("Unable to read graph key")
+            }
         }
 
         /**
@@ -508,7 +510,7 @@ class AMGraph<E : Any> private constructor(
         dijkstraTables = null
 
         indexLookup.clear()
-        for((i,v) in this.vertices.withIndex()){
+        for ((i, v) in this.vertices.withIndex()) {
             indexLookup[v] = i
         }
 
@@ -853,7 +855,7 @@ class AMGraph<E : Any> private constructor(
                     currVert = i
                 }
             }
-            if(distance[currVert] == Int.MAX_VALUE) break //Only disjoint nodes left
+            if (distance[currVert] == Int.MAX_VALUE) break //Only disjoint nodes left
 
             //Update distances and previous
             val currDist = distance[currVert]
