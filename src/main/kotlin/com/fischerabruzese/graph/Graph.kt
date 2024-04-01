@@ -390,16 +390,17 @@ abstract class Graph<E : Any> : Iterable<E>, Serializable {
         val vertsPerCluster = size() / numClusters
 
         for (cluster in 0 until numClusters - 1) {
+            val clustersLeft = numClusters - 1 - cluster
             val size = random.nextInt(
                 vertsPerCluster - (size() / 10),
                 vertsPerCluster + (size() / 10) + 1
             )
-                .coerceIn(1 until remainingVertices.size - (numClusters - 1 - cluster)) //ensure we have enough for numClusters
+                .coerceIn(1 .. remainingVertices.size - clustersLeft) //ensure we have enough for every cluster to have at least 1 vertex
 
             clusters += AMGraph(remainingVertices.take(size)).apply {
                 randomize(intraClusterConnectedness, minEdgeWeight, maxEdgeWeight, true, random)
             }
-            remainingVertices = LinkedList(remainingVertices.subList(size, remainingVertices.size))
+            remainingVertices = LinkedList(remainingVertices.drop(size))
         }
         clusters += AMGraph(remainingVertices).apply {
             randomize(intraClusterConnectedness, minEdgeWeight, maxEdgeWeight, true, random)

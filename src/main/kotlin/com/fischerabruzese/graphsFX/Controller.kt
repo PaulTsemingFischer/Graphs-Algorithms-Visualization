@@ -124,7 +124,7 @@ class Controller {
         this.stage = stage
 
         //Graphic components
-        this.graph = graph.mapVertices {it as Any}
+        this.graph = graph.mapVertices { it }
         graphicComponents = GraphicComponents(this.graph, pane) //Create the graphic components
         graphicComponents.draw() //Draw the graphic components
 
@@ -193,7 +193,8 @@ class Controller {
     @FXML
     private fun preset3Pressed() {
         val random = Random(33)
-        val vertices: List<String> = (('A'..'Z')
+        val vertices: List<String> =
+                (('A'..'Z')
                 + ('A'..'Z').map { "A$it" }
                 + ('A'..'Z').map { "B$it" }
                 + ('A'..'Z').map { "C$it" }
@@ -205,8 +206,9 @@ class Controller {
 
     @FXML
     private fun preset4Pressed() {
-        val random = Random(44)
-        val vertices: List<String> = (('A'..'Z')
+        val random = Random(42)
+        val vertices: List<String> =
+                (('A'..'Z')
                 + ('A'..'Z').map { "A$it" }
                 + ('A'..'Z').map { "B$it" }
                 + ('A'..'Z').map { "C$it" }
@@ -232,7 +234,8 @@ class Controller {
     @FXML
     private fun preset6Pressed() {
         val random = Random(66)
-        val vertices: List<String> = (('A'..'Z')
+        val vertices: List<String> =
+                (('A'..'Z')
                 + ('A'..'Z').map { "A$it" }
                 + ('A'..'Z').map { "B$it" }
                 + ('A'..'Z').map { "C$it" }
