@@ -762,7 +762,7 @@ class AMGraph<E : Any> private constructor(
      *
      * @see AMGraph.path
      */
-    private fun path(from: Int, to: Int, useSimpleAlgorithm: Boolean = false): List<Int> {
+    private fun path(from: Int, to: Int, useSimpleAlgorithm: Boolean = true): List<Int> {
         return try {
             tracePath(
                 from,
@@ -847,12 +847,14 @@ class AMGraph<E : Any> private constructor(
         while (to == null || !visited[to]) {
             //Determine the next vertex to visit
             var currVert = visited.indexOfFirst { !it } //Finds first unvisited
-            if (currVert == -1 || distance[currVert] == Int.MAX_VALUE) break //All visited
+            if (currVert == -1) break //All visited
             for (i in currVert + 1 until visited.size) {
                 if (!visited[i] && distance[i] < distance[currVert]) {
                     currVert = i
                 }
             }
+            if(distance[currVert] == Int.MAX_VALUE) break //Only disjoint nodes left
+
             //Update distances and previous
             val currDist = distance[currVert]
             for ((i, edge) in edgeMatrix[currVert].withIndex()) {
