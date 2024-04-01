@@ -5,14 +5,16 @@ import javafx.application.Application
 import javafx.fxml.FXMLLoader
 import javafx.scene.Scene
 import javafx.stage.Stage
-import kotlin.math.*
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
 import kotlin.random.Random
 
 class GraphApp : Application() {
     override fun start(stage: Stage) {
         val fxmlLoader = FXMLLoader(GraphApp::class.java.getResource("graph.fxml"))
         val scene = Scene(fxmlLoader.load(), 1280.0, 820.0)
-        val controller : Controller = fxmlLoader.getController()!!
+        val controller: Controller = fxmlLoader.getController()!!
         scene.stylesheets.addAll(GraphApp::class.java.getResource("style.css")!!.toExternalForm())
 
         stage.title = "Graph"
@@ -42,8 +44,8 @@ class GraphApp : Application() {
 
         val r1 = 0.4
         val r2 = 0.2
-        for(v in controller.graphicComponents.vertices){
-            when(v.v){
+        for (v in controller.graphicComponents.vertices) {
+            when (v.v) {
                 'A' -> v.pos = Position(cos(((0*72.0) + 90.0) * (PI / 180.0)) * r1 + 0.5, -1 * sin(((0*72.0) + 90.0) * (PI / 180.0)) * r1 + 0.5)
                 'B' -> v.pos = Position(cos(((1*72.0) + 90.0) * (PI / 180.0)) * r1 + 0.5, -1 * sin(((1*72.0) + 90.0) * (PI / 180.0)) * r1 + 0.5)
                 'I' -> v.pos = Position(cos(((2*72.0) + 90.0) * (PI / 180.0)) * r1 + 0.5, -1 * sin(((2*72.0) + 90.0) * (PI / 180.0)) * r1 + 0.5)

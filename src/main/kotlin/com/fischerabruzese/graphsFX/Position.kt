@@ -15,6 +15,7 @@ open class Position(x: Double, y: Double) {
         (value < 0) -> 0.0
         else -> value
     }
+
     /** Adding will return a [Position] if either is a Position */
     open operator fun plus(other: Position): Position {
         return if (this is Displacement || other is Displacement)
@@ -43,7 +44,12 @@ open class Position(x: Double, y: Double) {
 }
 
 /** Equivalent to [Position] but with no bounds and mutable */
-class Displacement(override var x: Double, override var y: Double, private val enforceMaximum: Double = Double.MAX_VALUE, private val enforceMinimum: Double = Double.MIN_VALUE): Position(x, y){
+class Displacement(
+    override var x: Double,
+    override var y: Double,
+    private val enforceMaximum: Double = Double.MAX_VALUE,
+    private val enforceMinimum: Double = Double.MIN_VALUE
+) : Position(x, y) {
     override fun constrain(value: Double) = when {
         (value > enforceMaximum) -> enforceMaximum
         (value < enforceMinimum) -> enforceMinimum

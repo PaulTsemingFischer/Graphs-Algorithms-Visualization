@@ -58,9 +58,9 @@ class SwitchButton : StackPane() {
 
     fun manuallySwitch(newState: SwitchButtonState? = null) = run {
         val newState = newState
-        if(newState != null){
+        if (newState != null) {
             state =
-                if(newState == SwitchButtonState.LEFT)
+                if (newState == SwitchButtonState.LEFT)
                     SwitchButtonState.RIGHT
                 else
                     SwitchButtonState.LEFT
@@ -77,6 +77,6 @@ class SwitchButton : StackPane() {
             setAlignment(button, Pos.CENTER_RIGHT)
             state = SwitchButtonState.RIGHT
         }
-        for(s in switchedEvents) s(state)
+        for (s in switchedEvents) s(state)
     }
 }

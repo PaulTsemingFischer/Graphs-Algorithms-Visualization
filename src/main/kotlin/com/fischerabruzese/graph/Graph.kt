@@ -2,7 +2,6 @@ package com.fischerabruzese.graph
 
 import java.io.Serializable
 import java.util.*
-import kotlin.collections.ArrayList
 import kotlin.math.ln
 import kotlin.math.pow
 import kotlin.math.roundToInt
@@ -395,7 +394,7 @@ abstract class Graph<E : Any> : Iterable<E>, Serializable {
                 vertsPerCluster - (size() / 10),
                 vertsPerCluster + (size() / 10) + 1
             )
-                .coerceIn(1 .. remainingVertices.size - clustersLeft) //ensure we have enough for every cluster to have at least 1 vertex
+                .coerceIn(1..remainingVertices.size - clustersLeft) //ensure we have enough for every cluster to have at least 1 vertex
 
             clusters += AMGraph(remainingVertices.take(size)).apply {
                 randomize(intraClusterConnectedness, minEdgeWeight, maxEdgeWeight, true, random)
@@ -664,7 +663,7 @@ abstract class Graph<E : Any> : Iterable<E>, Serializable {
      * @see AMGraph.findKargerSuccessRate
      */
     fun estimateClusteringConfidence(kargerness: Int): Double {
-        return 1-(0.07219812725.pow(kargerness / (size() + 3.67357512953))).coerceIn(0.0..1.0)
+        return 1 - (0.07219812725.pow(kargerness / (size() + 3.67357512953))).coerceIn(0.0..1.0)
     }
 
     /**
@@ -709,21 +708,21 @@ abstract class Graph<E : Any> : Iterable<E>, Serializable {
             passes--
 
             //Cleans up existing singletons (will do nothing on first pass)
-            for(singleton in singletons) {
+            for (singleton in singletons) {
                 var hcc: Graph<E>? = null
                 var highScore = 0
-                var connections = LinkedList<Pair<E,E>>()
+                var connections = LinkedList<Pair<E, E>>()
                 var oldCluster: Graph<E>? = null
 
-                for(cluster in clusters){
-                    val theseConnections = LinkedList<Pair<E,E>>()
-                    for(v in cluster){
-                        if(v === singleton){
+                for (cluster in clusters) {
+                    val theseConnections = LinkedList<Pair<E, E>>()
+                    for (v in cluster) {
+                        if (v === singleton) {
                             oldCluster = cluster
                             continue
                         }
-                        if(this[v,singleton] != null) theseConnections += v to singleton
-                        if(this[singleton,v] != null) theseConnections += singleton to v
+                        if (this[v, singleton] != null) theseConnections += v to singleton
+                        if (this[singleton, v] != null) theseConnections += singleton to v
                     }
 
                     if (theseConnections.size > highScore || (theseConnections.size == highScore && cluster.size() > (oldCluster?.size() ?:-1))){
@@ -739,7 +738,7 @@ abstract class Graph<E : Any> : Iterable<E>, Serializable {
 
                 hcc!!.add(singleton)
 
-                for(c in connections) {
+                for (c in connections) {
                     hcc[c.first, c.second] = this[c.first, c.second]!!
                 }
             }
@@ -775,7 +774,7 @@ abstract class Graph<E : Any> : Iterable<E>, Serializable {
                     }
 
                     val score = ibConnections.size + obConnections.size
-                    if (score > highScore || (score == highScore && neighborCluster.size() >= highestConnectedCluster.size() )) {
+                    if (score > highScore || (score == highScore && neighborCluster.size() >= highestConnectedCluster.size())) {
                         highScore = score
                         hccInbounds = ibConnections
                         hccOutbounds = obConnections
@@ -803,7 +802,7 @@ abstract class Graph<E : Any> : Iterable<E>, Serializable {
             }
             clusters.removeAll(removeQueue)
 
-        } while(passes > 0)
+        } while (passes > 0)
 
         return clusters
     }
@@ -818,9 +817,10 @@ abstract class Graph<E : Any> : Iterable<E>, Serializable {
     fun getKey(): String {
         val vertStr = ArrayList(getVertices()).joinToString(separator = "|")
 
-        val edges: String = getEdges().map { Triple(it.first, it.second, this[it.first,it.second]) }.joinToString(separator = "|") { triple ->
-            "${triple.first}#${triple.second}#${triple.third}"
-        }
+        val edges: String = getEdges().map { Triple(it.first, it.second, this[it.first, it.second]) }
+            .joinToString(separator = "|") { triple ->
+                "${triple.first}#${triple.second}#${triple.third}"
+            }
 
         val finalString = "$vertStr@$edges"
 

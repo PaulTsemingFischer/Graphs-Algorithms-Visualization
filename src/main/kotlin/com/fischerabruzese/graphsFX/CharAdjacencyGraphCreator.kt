@@ -19,17 +19,18 @@ fun createGraph(text: String, numLetters: Int = 10): AMGraph<Char> {
     }
 
     //Creating edge start counter
-    val edgeStartCounter = IntArray(numLetters) { frequencyMatrix[it].sum() }//# edges starting at each vertex(= occurrences except for  first and last char)
+    val edgeStartCounter =
+        IntArray(numLetters) { frequencyMatrix[it].sum() }//# edges starting at each vertex(= occurrences except for  first and last char)
     println(edgeStartCounter.joinToString(",", "[", "]"))
 
     //Creating graph
-    val graph = AMGraph(List(numLetters){Char('a'.code + it)})
-    for(i in frequencyMatrix.indices){
-        for(j in frequencyMatrix[i].indices){
+    val graph = AMGraph(List(numLetters) { Char('a'.code + it) })
+    for (i in frequencyMatrix.indices) {
+        for (j in frequencyMatrix[i].indices) {
             val edgeWeight = frequencyMatrix[i][j]
             val averageEdgeWeight = edgeStartCounter[i] / numLetters.toDouble()
 
-            if(edgeWeight/averageEdgeWeight > 1.0){
+            if (edgeWeight / averageEdgeWeight > 1.0) {
                 graph[Char('a'.code + i), Char('a'.code + j)] = (10 * edgeWeight / averageEdgeWeight).toInt()
             }
         }
@@ -41,7 +42,7 @@ fun getText(): String {
     val text = StringBuilder()
     val scanner = Scanner(System.`in`)
     var nextLine = ""
-    while (nextLine != "EXIT"){
+    while (nextLine != "EXIT") {
         text.append(nextLine)
         nextLine = scanner.nextLine()
     }

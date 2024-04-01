@@ -870,7 +870,8 @@ class AMGraph<E : Any> private constructor(
      */
     private fun getDijkstraTable(fromIndex: Int, useArray: Boolean = false): Array<Pair<Int, Int>> {
         if (dijkstraTables == null) dijkstraTables = Array(size()) { null }
-        if (dijkstraTables!![fromIndex] == null) dijkstraTables!![fromIndex] = if(useArray) dijkstraArr(fromIndex) else dijkstraFibHeap(fromIndex)
+        if (dijkstraTables!![fromIndex] == null) dijkstraTables!![fromIndex] =
+            if (useArray) dijkstraArr(fromIndex) else dijkstraFibHeap(fromIndex)
         return dijkstraTables!![fromIndex]!!
     }
 

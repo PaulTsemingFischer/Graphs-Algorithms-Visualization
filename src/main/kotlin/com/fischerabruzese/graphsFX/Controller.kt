@@ -40,10 +40,13 @@ class Controller {
     //Presets
     @FXML
     private lateinit var copyToClipboardButton: Button
+
     @FXML
     private lateinit var pastedGraph: Label
+
     @FXML
     private lateinit var pastedGraphHBox: HBox
+
     @FXML
     private lateinit var pastedGraphLabel: Label
 
@@ -119,7 +122,7 @@ class Controller {
     }
 
     //Initialization for anything involving the graph
-    fun<E: Any> initializeGraph(graph: Graph<E>, stage: Stage) {
+    fun <E : Any> initializeGraph(graph: Graph<E>, stage: Stage) {
         //Stage
         this.stage = stage
 
@@ -146,14 +149,21 @@ class Controller {
     }
 
 
-
     //Window title
-    private fun setTitle(numVerts: Int = graph.size(),
-                         numEdges: Int = graph.getEdges().size,
-                         clusterInfo: ClusterInfo? = null
-                         ) {
+    private fun setTitle(
+        numVerts: Int = graph.size(),
+        numEdges: Int = graph.getEdges().size,
+        clusterInfo: ClusterInfo? = null
+    ) {
         val title = StringBuilder("Vertices: $numVerts | Edges: $numEdges")
-        if(clusterInfo != null) title.append(" | Clusters: ${clusterInfo.clusters.size} | Kargerness: ${clusterInfo.kargerness} (${String.format("%.3f",clusterInfo.confidence*100)}%)")
+        if (clusterInfo != null) title.append(
+            " | Clusters: ${clusterInfo.clusters.size} | Kargerness: ${clusterInfo.kargerness} (${
+                String.format(
+                    "%.3f",
+                    clusterInfo.confidence * 100
+                )
+            }%)"
+        )
         stage.title = title.toString()
     }
 
@@ -194,11 +204,11 @@ class Controller {
     private fun preset3Pressed() {
         val random = Random(33)
         val vertices: List<String> =
-                (('A'..'Z')
-                + ('A'..'Z').map { "A$it" }
-                + ('A'..'Z').map { "B$it" }
-                + ('A'..'Z').map { "C$it" }
-                ).toList().map{it.toString()}
+            (('A'..'Z')
+                    + ('A'..'Z').map { "A$it" }
+                    + ('A'..'Z').map { "B$it" }
+                    + ('A'..'Z').map { "C$it" }
+                    ).toList().map { it.toString() }
         val presetGraph = AMGraph<Any>(vertices)
         presetGraph.randomizeWithCluster(4, 0, 10, 0.2, 0.004, false, random)
         presetPressed(presetGraph, "Large 4 Clusters")
@@ -208,15 +218,15 @@ class Controller {
     private fun preset4Pressed() {
         val random = Random(42)
         val vertices: List<String> =
-                (('A'..'Z')
-                + ('A'..'Z').map { "A$it" }
-                + ('A'..'Z').map { "B$it" }
-                + ('A'..'Z').map { "C$it" }
-                + ('A'..'Z').map { "D$it" }
-                + ('A'..'Z').map { "E$it" }
-                + ('A'..'Z').map { "F$it" }
-                + ('A'..'Z').map { "G$it" }
-                ).toList().map{it.toString()}
+            (('A'..'Z')
+                    + ('A'..'Z').map { "A$it" }
+                    + ('A'..'Z').map { "B$it" }
+                    + ('A'..'Z').map { "C$it" }
+                    + ('A'..'Z').map { "D$it" }
+                    + ('A'..'Z').map { "E$it" }
+                    + ('A'..'Z').map { "F$it" }
+                    + ('A'..'Z').map { "G$it" }
+                    ).toList().map { it.toString() }
         val presetGraph = AMGraph<Any>(vertices)
         presetGraph.randomizeWithCluster(8, 0, 10, 0.2, 0.0003, false, random)
         presetPressed(presetGraph, "Massive 8 Cluster")
@@ -235,11 +245,11 @@ class Controller {
     private fun preset6Pressed() {
         val random = Random(66)
         val vertices: List<String> =
-                (('A'..'Z')
-                + ('A'..'Z').map { "A$it" }
-                + ('A'..'Z').map { "B$it" }
-                + ('A'..'Z').map { "C$it" }
-                ).toList().map{it.toString()}
+            (('A'..'Z')
+                    + ('A'..'Z').map { "A$it" }
+                    + ('A'..'Z').map { "B$it" }
+                    + ('A'..'Z').map { "C$it" }
+                    ).toList().map { it.toString() }
         val presetGraph = AMGraph<Any>(vertices)
         presetGraph.randomize(0.05, 0, 10, true, random)
         presetPressed(presetGraph, "Large Pure Random")
@@ -285,7 +295,12 @@ class Controller {
     /**
      * Tells the JavaFX Application Thread to print a new entry to the console
      */
-    private fun queuePrintEntry(color: Color = Color.BLACK, text: String? = null, title: String? = null, titleSeparator: String = "\n"){
+    private fun queuePrintEntry(
+        color: Color = Color.BLACK,
+        text: String? = null,
+        title: String? = null,
+        titleSeparator: String = "\n"
+    ) {
         Platform.runLater {
             val coloredTitle =
                 title?.let { Text(it + titleSeparator).apply { fill = color; style = "-fx-font-weight: bold" } }
@@ -300,11 +315,12 @@ class Controller {
     private enum class ErrorType {
         VERTEX_COUNT, CLUSTER_COUNT, EDGEWEIGHT_MIN, EDGEWEIGHT_MAX, FROM_VERTEX, TO_VERTEX
     }
+
     /**
      * Prints an error given the error type
      */
-    private fun printError(error:  ErrorType) {
-        val errorName = when(error) {
+    private fun printError(error: ErrorType) {
+        val errorName = when (error) {
             ErrorType.VERTEX_COUNT -> "Invalid vertex count"
             ErrorType.CLUSTER_COUNT -> "Invalid cluster count"
             ErrorType.EDGEWEIGHT_MIN -> "Invalid minimum edge weight"
@@ -312,7 +328,7 @@ class Controller {
             ErrorType.FROM_VERTEX -> "Invalid from vertex"
             ErrorType.TO_VERTEX -> "Invalid to vertex"
         }
-        val errorDescription = when(error) {
+        val errorDescription = when (error) {
             ErrorType.VERTEX_COUNT -> "'vertex count' requires: Int, >= 0"
             ErrorType.CLUSTER_COUNT -> "'cluster count' requires: Int, >= 0, <= 'vertex count'"
             ErrorType.EDGEWEIGHT_MIN -> "'min edge weight' requires: Int or blank, >= 0"
@@ -329,10 +345,9 @@ class Controller {
         physicsSlider.valueProperty().addListener { _, _, newValue ->
             newValue?.let {
                 graphicComponents.physicsC.run {
-                    if(it.toDouble() < 0.02){
-                        if(isActive()) stopSimulation()
-                    }
-                    else {
+                    if (it.toDouble() < 0.02) {
+                        if (isActive()) stopSimulation()
+                    } else {
                         speed = it.toDouble()
                         if (!isActive())
                             startSimulation()
@@ -344,23 +359,18 @@ class Controller {
 
     //Vertex selection
     private fun initializeVertexSelection() {
-        fromVertexField.textProperty().addListener { _, oldValue, newValue ->
-            graphicComponents.stringToVMap[oldValue]?.run{
-                clearOutline()
+        graphicComponents.stringToVMap.run {
+            fromVertexField.textProperty().addListener { _, oldValue, newValue ->
+                get(oldValue)?.clearOutline()
+                get(newValue)?.setOutline(PATH_START)
             }
-            graphicComponents.stringToVMap[newValue]?.run{
-                setOutline(PATH_START)
-            }
-        }
-        toVertexField.textProperty().addListener { _, oldValue, newValue ->
-            graphicComponents.stringToVMap[oldValue]?.run{
-                clearOutline()
-            }
-            graphicComponents.stringToVMap[newValue]?.run{
-                setOutline(PATH_END)
+            toVertexField.textProperty().addListener { _, oldValue, newValue ->
+                get(oldValue)?.clearOutline()
+                get(newValue)?.setOutline(PATH_END)
             }
         }
     }
+
     private fun retrieveVertexElement(lookupKey: String): Any? {
         return graphicComponents.stringToVMap[lookupKey]?.v
     }
@@ -405,7 +415,7 @@ class Controller {
         queuePrintEntry(Color.DEEPSKYBLUE, text, title)
     }
 
-    private fun pathingString(path: List<Any>, time: Long): String{
+    private fun pathingString(path: List<Any>, time: Long): String {
         return buildString {
             append("Path: $path\n")
             append("Time(ns): ${NumberFormat.getIntegerInstance().format(time)}")
@@ -439,11 +449,11 @@ class Controller {
     private fun pathingButtonPressed(algorithm: (Any, Any) -> List<Any>): Triple<Pair<Any, Any>, List<Any>, Long>? {
         val from = getFromField()
         val to = getToField()
-        if(from == null){
+        if (from == null) {
             printError(ErrorType.FROM_VERTEX)
             return null
         }
-        if(to == null){
+        if (to == null) {
             printError(ErrorType.TO_VERTEX)
             return null
         }
@@ -475,6 +485,7 @@ class Controller {
     private var clusteringThread: Thread? = null
     private var numClusterTasks = 0
     private var completedClusterTasks = 0
+
     private data class ClusterInfo(
         val clusters: Collection<Graph<Any>>,
         val connectedness: Double,
@@ -494,11 +505,11 @@ class Controller {
         val numRuns = graph.estimateRequiredKargerness(0.997).coerceIn(0..10000)
         val clusters: Collection<Graph<Any>>
         val time = measureNanoTime {
-            clusters = if(mergeSinglesToggle.isSelected) graph.getClusters(connectedness, numRuns)
+            clusters = if (mergeSinglesToggle.isSelected) graph.getClusters(connectedness, numRuns)
             else graph.highlyConnectedSubgraphs(connectedness, numRuns)
         }
         val info = ClusterInfo(clusters, connectedness, numRuns, graph.estimateClusteringConfidence(numRuns), time)
-        Platform.runLater{
+        Platform.runLater {
             setTitle(clusterInfo = info)
         }
         return info
@@ -513,9 +524,10 @@ class Controller {
             clusteringThread?.join()
             clusteringThread = Thread.currentThread()
 
-            try{ clustersInfo = getClusters() }
-            catch (_: InterruptedException){
-                Platform.runLater{
+            try {
+                clustersInfo = getClusters()
+            } catch (_: InterruptedException) {
+                Platform.runLater {
                     clusteringProgress(-1)
                 }
                 return@Thread
@@ -529,7 +541,7 @@ class Controller {
     }
 
     private fun updateClusterColoringAsync() {
-        if(clusteringToggle.isSelected){
+        if (clusteringToggle.isSelected) {
             clusteringThread?.interrupt()
             clusteringProgress(1)
             Thread(controllerSubroutines, {
@@ -537,14 +549,15 @@ class Controller {
                 clusteringThread = Thread.currentThread()
 
                 val clusters: Collection<Graph<Any>>
-                try{ clusters = getClusters().clusters }
-                catch (_: InterruptedException){
-                    Platform.runLater{
+                try {
+                    clusters = getClusters().clusters
+                } catch (_: InterruptedException) {
+                    Platform.runLater {
                         clusteringProgress(-1)
                     }
                     return@Thread
                 }
-                Platform.runLater{
+                Platform.runLater {
                     graphicComponents.colorClusters(clusters)
                     clusteringProgress(-1)
                 }
@@ -555,12 +568,12 @@ class Controller {
     }
 
     private fun clusteringProgress(i: Int) {
-        when(i){
+        when (i) {
             1 -> numClusterTasks++
             -1 -> completedClusterTasks++
         }
-        clusteringProgress.progress = completedClusterTasks.toDouble()/numClusterTasks
-        if(clusteringProgress.progress == 1.0){
+        clusteringProgress.progress = completedClusterTasks.toDouble() / numClusterTasks
+        if (clusteringProgress.progress == 1.0) {
             completedClusterTasks = 0
             numClusterTasks = 0
         }
@@ -584,7 +597,7 @@ class Controller {
             append("Average connections per vertex: ${pureRandomizeInfo.avgConnections}\n")
             append("Probability of connection: ${pureRandomizeInfo.probConnection}\n")
             append("Disjoint graph: ${pureRandomizeInfo.disjointGraph}\n")
-            if(pureRandomizeInfo.min == 0 && pureRandomizeInfo.max == 1) {
+            if (pureRandomizeInfo.min == 0 && pureRandomizeInfo.max == 1) {
                 append("Unweighted")
             } else {
                 append("Edge weights: [${pureRandomizeInfo.min} - ${pureRandomizeInfo.max}]")
@@ -601,7 +614,7 @@ class Controller {
             append("Intra-connectedness: ${clusterRandomizeInfo.intraConn}\n")
             append("Inter-connectedness: ${clusterRandomizeInfo.interConn}\n")
             append("Disjoint graph: ${clusterRandomizeInfo.disjointGraph}\n")
-            if(clusterRandomizeInfo.min == 0 && clusterRandomizeInfo.max == 1) {
+            if (clusterRandomizeInfo.min == 0 && clusterRandomizeInfo.max == 1) {
                 append("Unweighted")
             } else {
                 append("Edge weights: [${clusterRandomizeInfo.min} - ${clusterRandomizeInfo.max}]")
@@ -612,7 +625,7 @@ class Controller {
     }
 
     //Randomization Switch
-    private fun initializeClusterRandomizationSwitch(){
+    private fun initializeClusterRandomizationSwitch() {
         clusterRandomizationSwitchHBox.children.addAll(
             Label("Cluster Rand ").apply { textFill = Color.WHITE },
             SwitchButton().also { randSwitchButton = it },
@@ -629,13 +642,14 @@ class Controller {
     }
 
     private fun randSwitched(state: SwitchButton.SwitchButtonState) {
-        when(state){
+        when (state) {
             SwitchButton.SwitchButtonState.LEFT -> {
                 pureRandGridPane.opacity = 0.0
                 pureRandGridPane.disableProperty().set(true)
                 clusterRandGridPane.opacity = 1.0
                 clusterRandGridPane.disableProperty().set(false)
             }
+
             SwitchButton.SwitchButtonState.RIGHT -> {
                 clusterRandGridPane.opacity = 0.0
                 clusterRandGridPane.disableProperty().set(true)
@@ -645,11 +659,12 @@ class Controller {
         }
     }
 
-    private fun weightSwitched(state: SwitchButton.SwitchButtonState){
-        when(state){
+    private fun weightSwitched(state: SwitchButton.SwitchButtonState) {
+        when (state) {
             SwitchButton.SwitchButtonState.LEFT -> {
                 graphicComponents.hideWeight()
             }
+
             SwitchButton.SwitchButtonState.RIGHT -> {
                 graphicComponents.showWeight()
             }
@@ -658,7 +673,7 @@ class Controller {
 
     //Randomization actions
     @FXML
-    private fun randomizePressed(){
+    private fun randomizePressed() {
         val state = randSwitchButton.state
 
         Thread(controllerSubroutines, {
@@ -667,32 +682,49 @@ class Controller {
                 vertexCountField.text.toInt().also {
                     if (it < 0) throw IllegalArgumentException()
                 }
-            } catch(e: Exception){
+            } catch (e: Exception) {
                 printError(ErrorType.VERTEX_COUNT)
                 return@Thread
             }
 
             this.graph = AMGraph((0 until vertexCount).toList())
 
-            when(state){
+            when (state) {
                 SwitchButton.SwitchButtonState.RIGHT -> {
-                    generateRandomGraph()?.let{printPureRandomization(it)}
+                    generateRandomGraph()?.let { printPureRandomization(it) }
                 }
+
                 SwitchButton.SwitchButtonState.LEFT -> {
-                    generateClusteredGraph()?.let{printClusterRandomization(it)}
+                    generateClusteredGraph()?.let { printClusterRandomization(it) }
                 }
             }
         }, "Graph Creator").start()
     }
 
-    private data class ClusterRandomizeInfo(val vertexCount: Int, val clusterCount: Int, val intraConn: Double, val interConn: Double, val disjointGraph: Boolean, val min: Int, val max: Int)
-    private data class PureRandomizeInfo(val vertexCount: Int, val avgConnections: Double, val probConnection: Double, val disjointGraph: Boolean, val min: Int,  val max: Int)
+    private data class ClusterRandomizeInfo(
+        val vertexCount: Int,
+        val clusterCount: Int,
+        val intraConn: Double,
+        val interConn: Double,
+        val disjointGraph: Boolean,
+        val min: Int,
+        val max: Int
+    )
+
+    private data class PureRandomizeInfo(
+        val vertexCount: Int,
+        val avgConnections: Double,
+        val probConnection: Double,
+        val disjointGraph: Boolean,
+        val min: Int,
+        val max: Int
+    )
 
     private fun tellPlatformRandomizationFinished(hideWeight: Boolean) {
         Platform.runLater {
             graphicComponents.graph = this.graph
             graphicComponents.draw()
-            if(hideWeight)
+            if (hideWeight)
                 weightSwitchButton.manuallySwitch(newState = SwitchButton.SwitchButtonState.LEFT)
             graphicComponents.physicsC.startSimulation()
             updateClusterColoringAsync()
@@ -702,11 +734,11 @@ class Controller {
     //Null represents a failed randomization
     private fun generateClusteredGraph(): ClusterRandomizeInfo? {
         //Validate cluster count
-        val clusterCount = try{
+        val clusterCount = try {
             clusterCountTextBox.text.toInt().also {
-                if(it < 0 || it > graph.size()) throw IllegalArgumentException()
+                if (it < 0 || it > graph.size()) throw IllegalArgumentException()
             }
-        } catch(e: Exception){
+        } catch (e: Exception) {
             printError(ErrorType.CLUSTER_COUNT)
             return null
         }
@@ -714,12 +746,27 @@ class Controller {
         val intraConn = intraConnectednessSlider.value
 
         val (min, max) = getEdgeWeights() ?: return null
-        this.graph.randomizeWithCluster(clusterCount, min, max, intraConn, interConn, allowDisjointSelectionBox.isSelected)
+        this.graph.randomizeWithCluster(
+            clusterCount,
+            min,
+            max,
+            intraConn,
+            interConn,
+            allowDisjointSelectionBox.isSelected
+        )
 
-        if(!allowDisjointSelectionBox.isSelected) this.graph.mergeDisjoint(min, max)
+        if (!allowDisjointSelectionBox.isSelected) this.graph.mergeDisjoint(min, max)
 
         tellPlatformRandomizationFinished(min == 0 && max == 1)
-        return ClusterRandomizeInfo(graph.size(), clusterCount, intraConn, interConn, allowDisjointSelectionBox.isSelected, min, max)
+        return ClusterRandomizeInfo(
+            graph.size(),
+            clusterCount,
+            intraConn,
+            interConn,
+            allowDisjointSelectionBox.isSelected,
+            min,
+            max
+        )
     }
 
     //Null represents a failed randomization
@@ -728,8 +775,15 @@ class Controller {
         val probConn = probOfConnectionsField.text.toDouble()
         this.graph.randomize(probConn, min, max, allowDisjointSelectionBox.isSelected)
 
-        tellPlatformRandomizationFinished(min ==0 && max == 1)
-        return PureRandomizeInfo(graph.size(), probConn, probConn,  allowDisjointSelectionBox.isSelected, min, max)
+        tellPlatformRandomizationFinished(min == 0 && max == 1)
+        return PureRandomizeInfo(
+            graph.size(),
+            probConn,
+            probConn,
+            allowDisjointSelectionBox.isSelected,
+            min,
+            max
+        )
     }
 
     //Return: null if error, (0, 1) if unweighted
@@ -737,7 +791,7 @@ class Controller {
         //Validate min
         var min: Int = try {
             val text = minWeightTextBox.text
-            if(text.isEmpty()) 0
+            if (text.isEmpty()) 0
             else {
                 text.toInt().also {
                     if (it < 0) throw IllegalArgumentException()
@@ -751,7 +805,7 @@ class Controller {
         //Validate max
         val max: Int = try {
             val text = maxWeightTextBox.text
-            if(text.isEmpty()) 0.also{min = 0}
+            if (text.isEmpty()) 0.also { min = 0 }
             else {
                 text.toInt().also {
                     if (it < min) throw IllegalArgumentException()
@@ -763,22 +817,21 @@ class Controller {
         }
         return Pair(min, max + 1)
     }
-    
+
     @FXML
     private fun probOfConnectionsEdited() {
         val p = probOfConnectionsField.text
 
-        if(p.toDoubleOrNull() != null) {
-            if(p.toDouble() > 1.0)
+        if (p.toDoubleOrNull() != null) {
+            if (p.toDouble() > 1.0)
                 probOfConnectionsField.text = 1.0.toString()
-
-            else if(p.toDouble() < 0.0)
+            else if (p.toDouble() < 0.0)
                 probOfConnectionsField.text = 0.0.toString()
         }
 
         val v = vertexCountField.text.toInt()
         avgConnPerVertexField.text = p.toDoubleOrNull()?.let {
-            ((2*it*(v -1)) + (if(!allowDisjointSelectionBox.isSelected) ((v-1)/ v).toDouble() else 0.0)).toString()
+            ((2 * it * (v - 1)) + (if (!allowDisjointSelectionBox.isSelected) ((v - 1) / v).toDouble() else 0.0)).toString()
         } ?: ""
     }
 
@@ -787,12 +840,12 @@ class Controller {
         val v = vertexCountField.text.toInt()
         val a = avgConnPerVertexField.text
         probOfConnectionsField.text = a.toDoubleOrNull()?.let {
-            ((it - if(!allowDisjointSelectionBox.isSelected) ((v-1.0)/ v) else 0.0) / (2*(v -1))).toString()
+            ((it - if (!allowDisjointSelectionBox.isSelected) ((v - 1.0) / v) else 0.0) / (2 * (v - 1))).toString()
         } ?: ""
 
         val p = probOfConnectionsField.text
-        if(p.toDoubleOrNull() != null) {
-            if(p.toDouble() > 1.0 || p.toDouble() < 0.0) {
+        if (p.toDoubleOrNull() != null) {
+            if (p.toDouble() > 1.0 || p.toDouble() < 0.0) {
                 probOfConnectionsEdited() //illegal edit was made, this method does data validation
             }
         }
@@ -805,13 +858,13 @@ class Controller {
     private fun copyToClipboardPressed() {
         val content = ClipboardContent()
         content[DataFormat.PLAIN_TEXT] = graph.getKey()
-        if(Clipboard.getSystemClipboard().setContent(content))
+        if (Clipboard.getSystemClipboard().setContent(content))
             copyToClipboardButton.text = "Copied!"
         else
             copyToClipboardButton.text = "Not Copied :("
-        Thread{
+        Thread {
             Thread.sleep(3000)
-            Platform.runLater{
+            Platform.runLater {
                 copyToClipboardButton.text = "Copy to Clipboard"
             }
         }.start()
@@ -820,7 +873,7 @@ class Controller {
     @FXML
     private fun pasteGraphPreviewPressed() {
         pastedGraph.text = Clipboard.getSystemClipboard().string
-        if(pastedGraph.text.isNotEmpty()) {
+        if (pastedGraph.text.isNotEmpty()) {
             try {
                 currentPastedGraph = AMGraph.graphOf(pastedGraph.text)
                 pastedGraphLabel.text =
@@ -830,8 +883,7 @@ class Controller {
             } catch (e: Exception) {
                 invalidPasteFormat()
             }
-        }
-        else {
+        } else {
             emptyPaste()
         }
     }
@@ -842,7 +894,7 @@ class Controller {
         pastedGraphHBox.prefHeight = 0.0
     }
 
-    private fun invalidPasteFormat(){
+    private fun invalidPasteFormat() {
         pastedGraphLabel.text =
             "Invalid Format"
         pastedGraphHBox.isVisible = true
@@ -860,7 +912,7 @@ class Controller {
         try {
             val g = AMGraph.graphOf(pastedGraph.text)
             presetPressed(g as Graph<Any>, "from clipboard")
-        } catch (_:Exception) {
+        } catch (_: Exception) {
             invalidPasteFormat()
         }
 
