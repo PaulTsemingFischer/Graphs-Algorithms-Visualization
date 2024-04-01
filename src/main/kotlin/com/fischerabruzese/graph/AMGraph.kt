@@ -740,19 +740,14 @@ class AMGraph<E : Any> private constructor(
     }
 
     /**
-     * Allows specification of [useSimpleAlgorithm] to use dijkstra's without a
+     * Allows specification of [useArray] to use dijkstra's without a
      * fib heap which preforms slightly better, but is currently non-functional
      * on disjoint graphs.
      */
-    @Deprecated(
-        "Simple Algorithm has a unresolved logic flaw. Use path(from: E, to: E) instead",
-        ReplaceWith("path(from, to)")
-    )
-    fun path(from: E, to: E, useSimpleAlgorithm: Boolean): List<E> {
-        return path(indexLookup[from]!!, indexLookup[to]!!).map { vertices[it] }
+    fun path(from: E, to: E, useArray: Boolean): List<E> {
+        return path(indexLookup[from]!!, indexLookup[to]!!, useArray).map { vertices[it] }
     }
 
-    @Suppress("DEPRECATION_ERROR")
     /**
      * Uses vertex id's for faster internal access to the edges
      *
@@ -762,12 +757,12 @@ class AMGraph<E : Any> private constructor(
      *
      * @see AMGraph.path
      */
-    private fun path(from: Int, to: Int, useSimpleAlgorithm: Boolean = true): List<Int> {
+    private fun path(from: Int, to: Int, useArray: Boolean = true): List<Int> {
         return try {
             tracePath(
                 from,
                 to,
-                if (useSimpleAlgorithm) getDijkstraTableSimple(from) else getDijkstraTable(from)
+                getDijkstraTable(from, useArray)
             )
         } catch (e: IndexOutOfBoundsException) { //More nodes were added that are disjoint and not in cached tables (we know there's no path)
             emptyList()
@@ -830,15 +825,10 @@ class AMGraph<E : Any> private constructor(
         return prev.zip(dist).toTypedArray()
     }
 
-    @Deprecated(
-        "This algorithm is flawed and should not be used. Use path(from: E, to: E) instead",
-        ReplaceWith("path(from, to)"),
-        level = DeprecationLevel.ERROR
-    )
     /**
      * An implementation of Dijkstra's using looping rather than queues.
      */
-    private fun dijkstra(from: Int, to: Int? = null): Array<Pair<Int, Int>> {
+    private fun dijkstraArr(from: Int, to: Int? = null): Array<Pair<Int, Int>> {
         val distance = IntArray(size()) { Int.MAX_VALUE }
         val prev = IntArray(size()) { -1 }
         val visited = BooleanArray(size()) { false }
@@ -876,29 +866,9 @@ class AMGraph<E : Any> private constructor(
      *
      * @return The table retrieved from [dijkstraTables]
      */
-    private fun getDijkstraTable(fromIndex: Int): Array<Pair<Int, Int>> {
+    private fun getDijkstraTable(fromIndex: Int, useArray: Boolean = false): Array<Pair<Int, Int>> {
         if (dijkstraTables == null) dijkstraTables = Array(size()) { null }
-        if (dijkstraTables!![fromIndex] == null) dijkstraTables!![fromIndex] = dijkstraFibHeap(fromIndex)
-        return dijkstraTables!![fromIndex]!!
-    }
-
-    /**
-     * Attempts to retrieve the dijkstra's table from the
-     * [cache][dijkstraTables]. If it is not cached, it will create and cache
-     * it using [dijkstra].
-     *
-     * @return The table retrieved from [dijkstraTables]
-     */
-    @Suppress("DEPRECATION_ERROR")
-    @Deprecated(
-        "The dijkstra algorithm that fills empty cache here is flawed and should not be used. " +
-                "It will produce wrong results in this method and potentially future pathing calls.",
-        ReplaceWith("getDijkstraTable(fromIndex)"),
-        level = DeprecationLevel.ERROR
-    )
-    private fun getDijkstraTableSimple(fromIndex: Int): Array<Pair<Int, Int>> {
-        if (dijkstraTables == null) dijkstraTables = Array(size()) { null }
-        if (dijkstraTables!![fromIndex] == null) dijkstraTables!![fromIndex] = dijkstra(fromIndex)
+        if (dijkstraTables!![fromIndex] == null) dijkstraTables!![fromIndex] = if(useArray) dijkstraArr(fromIndex) else dijkstraFibHeap(fromIndex)
         return dijkstraTables!![fromIndex]!!
     }
 
