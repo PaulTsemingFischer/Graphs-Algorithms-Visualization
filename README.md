@@ -1,4 +1,5 @@
 Graphs-Algorithms-Visualization. A Data Structure with Algorithm's project co-authored by ![Abruzese](https://github.com/labruzese) and ![Fischer](https://github.com/PaulTsemingFischer)
+-
 Part 1: Graph Implementation
 -
 _A graph data structure in Kotlin using an adjacency matrix_
