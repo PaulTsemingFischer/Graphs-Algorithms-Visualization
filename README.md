@@ -19,6 +19,7 @@ Features:
 - _Visualize and move vertices that make the graph easy to see_
 - _Run algorithms and see the results in real time_
 - _PHYSICS SIMULATION! Turn on physics to watch the graph move around the screen forming 'natural' clusters and spreading across the screen_
+- And more!
 
 
 Previews
